@@ -14,6 +14,8 @@ export function displayName(id:string){
 }
 export function region(p:Part){
  const id=p.id.toLowerCase();
+ if(/(?:flexor|extensor)_digitorum/.test(id))return p.center[0]<0?'Hindlimb':'Forelimb';
+ if(/capsularis|levator_ani|coccygeus/.test(id))return 'Hindlimb';
  if(/scapula|humerus|radius|ulna|carpal|phalanx|biceps_brachii|triceps|brachialis|anconeus|supra|infraspinatus|deltoideus|teres_|subscapularis|coracobrachialis|carpi|capri|pronator|supinator|pollicis|antebrachii/.test(id)) return 'Forelimb';
  if(/femor|pelvis|patella|fibula|tibia|tars|calcaneal|phalanges_b|gluteus|vastus|sartorius|psoas|iliacus|gastrocnemius|semitend|semimembr|gracilis|pectineus|adductor|obturator|gemellus|popliteus|peroneus|cruris|latae/.test(id))return 'Hindlimb';
  if(/skull|jaw|eye|nose|oculi|oris|buccinator|masseter|temporalis|pterygoid|caninus|labii|zygomatic|hyoid|scut/.test(id))return 'Head';

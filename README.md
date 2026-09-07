@@ -13,7 +13,8 @@ Use Node.js 22.13 or newer. Install with `npm ci`, then `npm run dev`. Build sta
 - Isolate or hide pieces, restore hidden pieces, set muscle opacity and separate the anatomy into an exploded layout.
 - Camera presets for left/right lateral, cranial, dorsal and oblique views.
 - Regional browsing and 15 muscle-action recall cards with reference links.
-- Short movement notes for selected major muscles; other pieces explicitly state that detailed notes are unavailable.
+- Detailed notes for all 425 pieces, with 168 distinct anatomical profiles. Each includes overview, location, attachments/articulations, function, nerve supply, physiotherapy relevance, a recall question and reference links.
+- Side and source-piece annotations distinguish bilateral anatomy and fragments. Forty-three pieces carry explicit identity qualifications; uncertain labels are not silently converted into definitive anatomy.
 
 ## Anatomy provenance and limits
 
@@ -23,7 +24,9 @@ This is research-used anatomical modeling, **not a CT reconstruction or a clinic
 
 Geometry is converted without decimation from STL and SKN. Body hierarchy translations and skin bind weights are applied in the MJCF reference pose, then axes are converted from Z-up to Y-up. Exploded mode translates pieces for inspection and preserves their shapes. It is not an anatomical movement simulation. Colors are illustrative.
 
-Study summaries are brief educational notes linked to [University of Minnesota Carnivore Dissection Labs](https://vanat.ahc.umn.edu/carnLabs/), especially labs 3, 5, 6, 7 and 9. Review the canine examples alongside your prescribed veterinary anatomy text. No treatment protocols, diagnoses, joint limits or exercise prescriptions are supplied.
+Study notes are original educational summaries with references to [University of Minnesota Carnivore Dissection Labs](https://vanat.ahc.umn.edu/carnLabs/), its canine/cat dissection guide, Sheridan College skeletal anatomy, and relevant additional sources. References are provided per profile. Review the canine examples alongside your prescribed veterinary anatomy text. Notes have not undergone independent veterinary peer review. No treatment protocols, diagnoses, joint limits or exercise prescriptions are supplied.
+
+Notes are authored in `scripts/notes/*.txt`; `python scripts/build_study_notes.py` produces the explicit `app/study-data.json` mapping. The generator fails on any missing piece or unreferenced profile. It distinguishes forelimb and hindlimb digital-flexor labels using the source pose, and retains qualification messages for unclear source names. Bilateral counterparts share core anatomy; side, vertebral level and fragment context are stored per piece.
 
 The interface follows Human Atlas's patterns, with an independently implemented canine catalogue, renderer and study layer; no human geometry is reused.
 
@@ -39,4 +42,4 @@ The converter validates every index, finite coordinate, source format and suppor
 
 ## Validation
 
-`node --experimental-strip-types scripts/validate.mjs` checks catalogue and geometry bounds, valid indices, finite coordinates, naming, visibility behavior and study-card mappings. `npx tsc --noEmit` checks types. The production static build must complete successfully. Browser interactions and physical touch devices have not been tested.
+`node --experimental-strip-types scripts/validate.mjs` checks catalogue and geometry bounds, valid indices, finite coordinates, naming, visibility behavior and study-card mappings. `node scripts/validate-notes.mjs` checks all-part coverage, complete content fields, references, fore/hindlimb distinctions, muscle-head distinctions and required qualifications. `npx tsc --noEmit` checks types. The production static build must complete successfully. Browser interactions and physical touch devices have not been tested.
