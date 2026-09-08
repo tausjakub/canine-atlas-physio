@@ -3,8 +3,10 @@ import {useEffect,useRef,useState} from 'react';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {type Atlas,type SceneState,isShown,displayName,systems} from './anatomy';
+import {type Language,translate} from './i18n';
 type Engine={update:(s:SceneState)=>void;destroy:()=>void};
-export default function AnatomyScene({atlas,state,onSelect}:{atlas:Atlas;state:SceneState;onSelect:(id:string)=>void}){
+export default function AnatomyScene({atlas,state,onSelect,language}:{atlas:Atlas;state:SceneState;onSelect:(id:string)=>void;language:Language}){
+ const t=(key:string)=>translate(language,key),locale=useRef(language);locale.current=language;
  const host=useRef<HTMLDivElement>(null),engine=useRef<Engine|null>(null),latest=useRef(state),select=useRef(onSelect);
  const [status,setStatus]=useState('Loading anatomy…'),[error,setError]=useState('');latest.current=state;select.current=onSelect;
  useEffect(()=>{
@@ -14,7 +16,7 @@ export default function AnatomyScene({atlas,state,onSelect}:{atlas:Atlas;state:S
     const response=await fetch('/models/anatomy.bin',{signal:abort.signal});if(!response.ok)throw Error('The anatomy file could not be loaded.');
     const buffer=await response.arrayBuffer();if(dead)return;if(buffer.byteLength!==atlas.bytes)throw Error('The anatomy download is incomplete.');
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0,0);renderer.outputColorSpace=THREE.SRGBColorSpace;el.appendChild(renderer.domElement);
-    renderer.domElement.setAttribute('aria-label','Interactive canine anatomy. Drag to orbit; scroll or pinch to zoom. Select structures using the list for keyboard access.');
+    renderer.domElement.setAttribute('aria-label',translate(locale.current,'Interactive canine anatomy. Drag to orbit; scroll or pinch to zoom. Select structures using the list for keyboard access.'));
     const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(36,1,.001,100);camera.position.set(0,.4,-2);
     const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.09;controls.minDistance=.035;controls.maxDistance=30;controls.autoRotateSpeed=.8;controls.target.set(0,.35,0);
     scene.add(new THREE.HemisphereLight(0xdcefff,0x425367,2));
@@ -52,9 +54,10 @@ export default function AnatomyScene({atlas,state,onSelect}:{atlas:Atlas;state:S
     renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera);});
     cleanup=()=>{observer.disconnect();renderer.setAnimationLoop(null);controls.dispose();meshes.forEach(m=>{m.geometry.dispose();m.material.dispose();});renderer.dispose();renderer.domElement.remove();};
     engine.current={update,destroy:cleanup};setStatus('');
-   }catch(e){if(!dead)setError(e instanceof Error?e.message:'Unable to initialize the 3D viewer.');}
+   }catch(e){if(!dead)setError(e instanceof Error&&['The anatomy file could not be loaded.','The anatomy download is incomplete.'].includes(e.message)?e.message:'Unable to initialize the 3D viewer.');}
   }init();return()=>{dead=true;abort.abort();cleanup();engine.current=null;};
  },[atlas]);
  useEffect(()=>engine.current?.update(state),[state]);
- return <><div className="scene" ref={host}/>{(error||status)&&<div className="load-card" role={error?'alert':'status'}><strong>{error?'Viewer unavailable':status}</strong><p>{error||'Preparing 3D bones and soft tissues.'}</p>{error&&<button onClick={()=>location.reload()}>Retry viewer</button>}</div>}</>;
+ useEffect(()=>{host.current?.querySelector('canvas')?.setAttribute('aria-label',t('Interactive canine anatomy. Drag to orbit; scroll or pinch to zoom. Select structures using the list for keyboard access.'));},[language]);
+ return <><div className="scene" ref={host}/>{(error||status)&&<div className="load-card" role={error?'alert':'status'}><strong>{t(error?'Viewer unavailable':status)}</strong><p>{t(error||'Preparing 3D bones and soft tissues.')}</p>{error&&<button onClick={()=>location.reload()}>{t('Retry viewer')}</button>}</div>}</>;
 }

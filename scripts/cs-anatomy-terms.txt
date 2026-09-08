@@ -1,0 +1,168 @@
+longissimus_thoracis|Nejdelší sval hrudníku (m. longissimus thoracis)|Oboustranná aktivita podporuje extenzi páteře; jednostranná aktivita přispívá k úklonu a segmentální stabilizaci.
+longissimus_lumborum|Nejdelší sval beder (m. longissimus lumborum)|Provádí extenzi a stabilizuje bederní oblast; asymetrická aktivita přispívá k úklonu.
+longissimus_cervicis|Nejdelší sval krku (m. longissimus cervicis)|Oboustranně provádí extenzi krku, jednostranně jej uklání na aktivní stranu.
+longissimus_capitis|Nejdelší sval hlavy (m. longissimus capitis)|Provádí extenzi hlavy a krku a přispívá k úklonu na stejnou stranu.
+splenius|Řemenový sval (m. splenius)|Provádí extenzi hlavy a krku; jednostranná aktivita otáčí nebo uklání hlavu na příslušnou stranu.
+longus_capitis|Dlouhý sval hlavy (m. longus capitis)|Provádí flexi a stabilizuje hlavu a kraniální část krku.
+rectus_capitis_dorsalis_major|Velký dorzální přímý sval hlavy (m. rectus capitis dorsalis major)|Provádí extenzi hlavy a přispívá k jemnému nastavení polohy hlavy a kraniálního krku.
+rectus_capitis_dorsalis_minor|Malý dorzální přímý sval hlavy (m. rectus capitis dorsalis minor)|Provádí extenzi a stabilizuje hlavu v oblasti atlantookcipitálního kloubu.
+rectus_capitis_lateralis|Boční přímý sval hlavy (m. rectus capitis lateralis)|Uklání hlavu a pomáhá stabilizovat kraniální část krku.
+rectus_capitis_ventr|Ventrální přímý sval hlavy (m. rectus capitis ventralis)|Provádí flexi a stabilizuje hlavu v atlantookcipitálním kloubu.
+obliquus_capitis_caudalis|Kaudální šikmý sval hlavy (m. obliquus capitis caudalis)|Otáčí nosič a hlavu kolem zubu čepovce; přispívá také k místní stabilitě.
+obliquus_capitis_cranialis|Kraniální šikmý sval hlavy (m. obliquus capitis cranialis)|Oboustranně provádí extenzi hlavy, jednostranně přispívá k jejímu úklonu.
+sternocephalicus|Hrudnohlavový sval (m. sternocephalicus)|Oboustranně provádí flexi hlavy a krku; jednostranně pomáhá otáčet hlavu.
+sternohyroideus|Hrudnojazylkový sval (m. sternohyoideus) · opravený název|Táhne jazylkový aparát kaudálně a pomáhá koordinovat jeho polohu při polykání.
+sternothyroideus|Hrudnoštítný sval (m. sternothyroideus)|Táhne hrtan kaudálně při pohybech souvisejících s polykáním.
+dorsi_scaleni_dors|Klanošikmý sval (m. scalenus) · dorzální část modelu|Pomáhá stabilizovat a ohýbat krk a může podpořit nádech působením na kraniální žebra.
+serratus_dorsalis_cranialis|Kraniální dorzální pilovitý sval (m. serratus dorsalis cranialis)|Táhne žebra kraniálně a napomáhá rozšíření hrudní stěny.
+serratus_dorsalis_caudalis|Kaudální dorzální pilovitý sval (m. serratus dorsalis caudalis)|Táhne zadní žebra kaudálně a napomáhá výdechovému pohybu hrudní stěny.
+intercostals_ext|Zevní mezižeberní svaly (mm. intercostales externi)|Stabilizují mezižeberní prostory a při kraniálním tahu žeber obvykle přispívají k nádechu.
+intercostals_int|Vnitřní mezižeberní svaly (mm. intercostales interni)|Stabilizují mezižeberní prostory a přispívají k výdechu; účinek závisí na oblasti a mechanických podmínkách.
+rectus_thoracis|Přímý sval hrudníku (m. rectus thoracis)|Pomáhá pohybovat a stabilizovat kraniální hrudní stěnu při dýchání.
+transverses_thoracis|Příčný sval hrudníku (m. transversus thoracis)|Tahem ventrálních částí žeber a žeberních chrupavek dovnitř napomáhá výdechu a podpírá hrudní stěnu.
+diaphragma|Bránice (diaphragma)|Kontrakce oplošťuje klenbu a zvětšuje objem hrudníku; podílí se také na regulaci nitrobřišního tlaku.
+obliquus_ext_abdominis|Zevní šikmý sval břišní (m. obliquus externus abdominis)|Stlačuje a podpírá obsah břicha, napomáhá usilovnému výdechu a přispívá k ohýbání a rotaci trupu.
+obliquus_int_abdominis|Vnitřní šikmý sval břišní (m. obliquus internus abdominis)|Stlačuje obsah břicha a přispívá k flexi a rotaci trupu a k regulaci tlaku při dýchání.
+tranversus_abdominis|Příčný sval břišní (m. transversus abdominis)|Stlačuje obsah břicha a podílí se na koordinované podpoře trupu a regulaci nitrobřišního tlaku.
+rectus_abdominis|Přímý sval břišní (m. rectus abdominis)|Provádí flexi trupu a podpírá a stlačuje obsah břišní dutiny.
+levator_caudae_brevis|Krátké dorzální části ocasních svalů|Zvedají ocas, provádějí jeho extenzi a přispívají k místnímu nastavení polohy; jednostranná aktivita může způsobit úklon.
+levator_caudae_longus|Dlouhé dorzální části ocasních svalů|Provádějí extenzi, zvedají ocas a pomáhají řídit směr jeho pohybu.
+depressor_caudae_brevis|Krátké ventrální části ocasních svalů|Spouštějí ocas a provádějí jeho flexi; asymetrická aktivita přispívá k vychýlení ocasu do strany.
+coccygeus|Kostrční sval (m. coccygeus)|Táhne ocas ventrálně a laterálně a pomáhá podpírat pánevní východ.
+levator_ani|Zvedač řiti (m. levator ani)|Podpírá pánevní orgány a řídí vzájemnou polohu struktur pánevního východu a kořene ocasu.
+supraspinatus|Nadhřebenový sval (m. supraspinatus)|Provádí extenzi ramenního kloubu a pomáhá udržovat jeho postavení při zatížení. Jeho šlacha přechází přes kraniální stranu ramene.
+infraspinatus|Podhřebenový sval (m. infraspinatus)|Provádí abdukci a zevní rotaci pažní kosti; flekční nebo extenční účinek závisí na poloze kloubu. Laterálně stabilizuje rameno.
+subscapularis|Podlopatkový sval (m. subscapularis)|Provádí addukci a stabilizuje paži, podporuje ramenní kloub z mediální strany a podle jeho polohy přispívá k pohybu.
+deltoideus_acromialis|Deltový sval · nadpažková část (m. deltoideus)|Provádí flexi ramene a napomáhá abdukci pažní kosti. Nepřechází přes loketní kloub.
+deltoideus_scapularis|Deltový sval · lopatková část (m. deltoideus)|Provádí flexi ramene a přispívá k abdukci pažní kosti.
+teres_major|Velký oblý sval (m. teres major)|Provádí flexi ramene, addukci paže a přispívá k vnitřní rotaci.
+teres_minor|Malý oblý sval (m. teres minor)|Provádí flexi ramene a napomáhá zevní rotaci a místní stabilizaci.
+coracobrachialis|Hákový sval pažní (m. coracobrachialis)|Provádí addukci paže a napomáhá stabilizaci a extenzi ramenního kloubu.
+biceps_brachii|Dvojhlavý sval pažní (m. biceps brachii)|Provádí flexi lokte a extenzi ramene; proximální šlacha rovněž stabilizuje ramenní kloub.
+brachialis|Pažní sval (m. brachialis)|Provádí flexi loketního kloubu, aniž by přecházel přes ramenní kloub.
+triceps_brachii_long|Trojhlavý sval pažní · dlouhá hlava|Provádí extenzi lokte a flexi ramene. Při zatížení brání podklesnutí lokte.
+triceps_brachii_lateral|Trojhlavý sval pažní · laterální hlava|Provádí extenzi lokte; přímo nepohybuje ramenem, protože přes tento kloub nepřechází.
+triceps_brachii_medial|Trojhlavý sval pažní · mediální hlava|Provádí extenzi a stabilizuje loket. Přímo mechanicky působí na loket, nikoli na rameno.
+triceps_brachii_accessory|Trojhlavý sval pažní · přídatná hlava|Přispívá k extenzi lokte a jeho aktivní stabilizaci při zatížení.
+anconeus|Loketní sval (m. anconeus)|Napomáhá extenzi lokte a odtahuje kloubní pouzdro od pohybujících se kloubních ploch.
+tensor_f.antebrachii|Napínač povázky předloktí (m. tensor fasciae antebrachii)|Provádí extenzi lokte a napíná povázku předloktí.
+extensor_capri_radialis|Vřetenní natahovač zápěstí (m. extensor carpi radialis)|Provádí extenzi zápěstí a pomáhá udržovat opěrné postavení tlapky.
+extensor_capri_ulnaris|Boční loketní sval (m. ulnaris lateralis)|Stabilizuje zatížené zápěstí a přispívá k jeho flexi a abdukci tlapky; nelze jej chápat jako prostý natahovač zápěstí.
+extensor_digitorum_communis|Společný natahovač prstů · hrudní končetina|Provádí extenzi prstů a napomáhá extenzi zápěstí.
+extensor_digitorum_lat|Boční natahovač prstů · hrudní končetina|Provádí extenzi laterálních prstů a přispívá ke koordinovanému pokládání přední tlapky.
+flexor_capri_radialis|Vřetenní ohybač zápěstí (m. flexor carpi radialis)|Provádí flexi zápěstí a pomáhá řídit jeho polohu při zatížení končetiny.
+flexor_carpi_ulnaris|Loketní ohybač zápěstí (m. flexor carpi ulnaris)|Provádí flexi zápěstí a přispívá k boční kontrole tlapky.
+flexor_digitorum_superficialis_fore|Povrchový ohybač prstů · hrudní končetina|Provádí flexi prstů, zejména v proximálních mezičlánkových kloubech, a napomáhá flexi zápěstí.
+flexor_digitorum_profundus_fore|Hluboký ohybač prstů · hrudní končetina|Provádí flexi prstů včetně distálních mezičlánkových kloubů a přispívá k flexi zápěstí.
+pronator_teres|Oblý přivraceč (m. pronator teres)|Provádí pronaci předloktí a může napomáhat flexi lokte.
+pronator_quadratus|Čtyřhranný přivraceč (m. pronator quadratus)|Provádí pronaci a stabilizuje vřetenní kost vůči loketní kosti.
+supinator|Odvraceč (m. supinator)|Provádí supinaci předloktí zevní rotací vřetenní kosti vůči loketní kosti.
+abductor_pollicis_longus|Dlouhý odtahovač prvního prstu (m. abductor digiti I longus)|Provádí abdukci prvního prstu a přispívá k extenzi zápěstí.
+trapezius|Trapézový sval (m. trapezius)|Zvedá lopatku a mění její polohu; různé směry vláken přispívají ke kraniálnímu nebo kaudálnímu pohybu lopatky.
+rhomboideus|Kosočtverečný sval (m. rhomboideus)|Zvedá a stabilizuje lopatku vůči trupu a přispívá ke změnám její polohy.
+latissimus_dors|Široký sval zádový (m. latissimus dorsi)|Táhne volnou končetinu dozadu a provádí flexi ramene; při fixované končetině může táhnout trup dopředu.
+omotransversarius|Lopatkopříčný sval (m. omotransversarius)|Při fixovaném krku posouvá lopatkovou oblast dopředu; při fixované končetině napomáhá úklonu krku.
+brachiocephalicus|Pažněhlavový sval (m. brachiocephalicus)|Posouvá volnou hrudní končetinu dopředu; při fixované končetině může měnit polohu hlavy a krku.
+thoracis_serratus_ventr|Ventrální pilovitý sval (m. serratus ventralis)|Podpírá trup a řídí posun a rotaci lopatky. Různé části mají odlišné směry tahu.
+thoracis_m_pectoralis_profundus|Hluboký prsní sval (m. pectoralis profundus)|Provádí addukci a táhne volnou končetinu dozadu; pomáhá posouvat trup nad fixovanou končetinu a stabilizuje spojení končetiny s trupem.
+pectorales_superficiales|Povrchové prsní svaly (mm. pectorales superficiales)|Provádějí addukci hrudní končetiny a omezují její nadměrnou abdukci při opoře.
+temporalis|Spánkový sval (m. temporalis)|Zvedá dolní čelist a zavírá tlamu; směr vláken pomáhá řídit také polohu čelisti.
+masseter|Žvýkací sval (m. masseter)|Zvedá dolní čelist a přispívá ke stabilnímu skusu při žvýkání.
+pterygoideus_med|Vnitřní křídlový sval (m. pterygoideus medialis)|Zvedá dolní čelist a napomáhá drobným příčným pohybům při žvýkání.
+pterygoideus_lat|Zevní křídlový sval (m. pterygoideus lateralis)|Přispívá k posunu dolní čelisti dopředu a k drobným pohybům do stran.
+digastricus|Dvojbříškový sval (m. digastricus)|Při stabilizovaném úponu na lebce spouští dolní čelist a otevírá tlamu.
+mylohyoideus|Čelistnějazylkový sval (m. mylohyoideus)|Zvedá a podpírá dno dutiny ústní a jazyk při pohybech souvisejících s polykáním.
+geniohyoideus|Bradojazylkový sval (m. geniohyoideus)|Táhne jazylku a kořen jazyka rostrálně při koordinovaných pohybech dutiny ústní a polykání.
+buccinator|Tvářový sval (m. buccinator)|Přitlačuje tvář k zubům a napomáhá manipulaci s potravou.
+orbicularis_oris|Kruhový sval ústní (m. orbicularis oris)|Uzavírá a tvaruje pysky při příjmu potravy a pohybech obličeje.
+orbicularis_oculi|Kruhový sval oční (m. orbicularis oculi)|Zavírá víčka při mrkání a ochranném zakrytí oka.
+retractor_anguli_oculi|Zatahovač zevního očního koutku (m. retractor anguli oculi lateralis)|Táhne zevní oční koutek dozadu a mění tvar oční štěrbiny.
+levator_labii_sup|Zvedač horního pysku (m. levator labii superioris)|Zvedá horní pysk a pomáhá měnit tvar ústního otvoru.
+caninus|Špičákový sval (m. caninus)|Zvedá a táhne tkáně horního pysku dozadu a podílí se na tvarování rostrálních otvorů obličeje.
+zygomaticus|Lícní sval (m. zygomaticus)|Táhne ústní koutek dozadu a podílí se na mimice a manipulaci s potravou.
+interscutularis|Mezištítkový sval (m. interscutularis)|Mění polohu štítkových chrupavek a napomáhá koordinovanému nastavení uší.
+Skutulum|Štítková chrupavka · pravděpodobná identifikace|Přenáší síly mezi ušními svaly při změnách polohy vnějšího ucha.
+eye|Oko · povrch oční koule|Zrak a směr pohledu přispívají k orientaci a kontrole držení těla; model tyto funkce nesimuluje.
+nose|Povrch zevního nosu|Tvoří zevní vstup pro proudění vzduchu a vnímání pachů; tvar nozder závisí na okolních obličejových svalech.
+skin|Povrch těla|Ochrana, čití a mechanické rozhraní s okolím. Model nezobrazuje srst, poddajnost tkání ani teplotu.
+Ligament|Neurčený vaz · nejasná identifikace|Pasivní kolagenní struktury omezují nebo vedou pohyb a mohou obsahovat mechanosenzitivní zakončení; přesná funkce závisí na konkrétním vazu.
+abdominis_Aponeurosis|Břišní aponeuróza|Přenáší svalovou sílu a rozkládá napětí v břišní stěně. Sama se aktivně nestahuje.
+dorsi_Fascia_thoracolumbar|Hrudněbederní povázka (fascia thoracolumbalis)|Rozkládá tahové síly a poskytuje svalům úpony a oporu; sama není kontraktilním natahovačem páteře.
+biceps_femoris_tendon|Dvojhlavý sval stehenní · šlachová a aponeurotická část|Přenáší sílu vytvořenou dvojhlavým svalem stehenním přes jeho distální spojení. Sama nevytváří sílu kontrakcí.
+gluteus_superficialis_major|Povrchový hýžďový sval (m. gluteus superficialis)|Provádí extenzi a abdukci kyčle a přispívá k boční kontrole pánevní končetiny.
+gluteus_medius|Střední hýžďový sval (m. gluteus medius)|Provádí extenzi a abdukci kyčle; pomáhá řídit polohu pánve nad opěrnou končetinou.
+gluteus_profundus_minor|Hluboký hýžďový sval (m. gluteus profundus)|Provádí abdukci kyčle a přispívá k vnitřní rotaci a stabilizaci kloubu.
+biceps_femoris|Dvojhlavý sval stehenní (m. biceps femoris)|Provádí extenzi kyčle. Kraniální část může provádět extenzi kolena, kaudální část jeho flexi; distální spojení napomáhají extenzi hlezna.
+semitendinosus|Pološlašitý sval (m. semitendinosus)|Provádí extenzi kyčle, flexi kolena a přispívá k extenzi hlezna.
+semimembranosus|Poloblanitý sval (m. semimembranosus)|Provádí extenzi kyčle a addukci končetiny; holenní část může provádět flexi kolena, zatímco stehenní část přes koleno nepřechází.
+sartorius|Krejčovský sval (m. sartorius) · kraniální a kaudální část|Obě části provádějí flexi kyčle; kraniální část provádí extenzi kolena a kaudální část jeho flexi.
+gracilis|Štíhlý sval (m. gracilis)|Provádí addukci končetiny; přes distální spojení přispívá k flexi kolena a extenzi hlezna.
+pectineus|Hřebenový sval (m. pectineus)|Provádí addukci kyčle a přispívá ke kontrole polohy proximální části končetiny.
+adductor_magnus|Přitahovač stehna · oblast m. adductor magnus et brevis|Provádí addukci kyčle a napomáhá její extenzi a stabilizaci při stoji.
+adductor_longus|Dlouhý přitahovač stehna (m. adductor longus)|Provádí addukci končetiny a přispívá ke stabilizaci kyčle.
+abductor_cruris|Kaudální odtahovač bérce (m. abductor cruris caudalis)|Pomáhá provádět abdukci končetiny a napínat laterální povázku bérce.
+rectus_femoris|Přímý sval stehenní (m. rectus femoris)|Provádí extenzi kolena a flexi kyčle.
+vastus_lat|Zevní široký sval stehenní (m. vastus lateralis)|Provádí extenzi kolena a přispívá k aktivní opoře při zatížení.
+vastus_med|Vnitřní široký sval stehenní (m. vastus medialis)|Provádí extenzi kolena a pomáhá koordinovat čéškový extenzorový aparát.
+vastus_intermedius|Prostřední široký sval stehenní (m. vastus intermedius)|Provádí extenzi kolena, aniž by přímo přecházel přes kyčelní kloub.
+tensor_f.latae|Napínač široké povázky (m. tensor fasciae latae)|Napíná širokou povázku stehna, provádí flexi kyčle a prostřednictvím fasciálních spojení napomáhá extenzi kolena.
+iliacus|Kyčelní sval (m. iliacus)|Provádí flexi kyčle a pomáhá nastavovat polohu stehenní kosti vůči pánvi.
+psoas_major|Velký bedrovec (m. psoas major)|Provádí flexi kyčle; při fixované končetině přispívá k nastavení polohy beder a pánve.
+psoas_minor|Malý bedrovec (m. psoas minor)|Provádí flexi a stabilizuje bederní páteř; může ovlivňovat polohu pánve.
+obturatorius_int|Vnitřní ucpávač (m. obturatorius internus)|Provádí zevní rotaci kyčle a přispívá k hluboké stabilizaci kloubu.
+obturatorius_ext|Zevní ucpávač (m. obturatorius externus)|Provádí zevní rotaci a stabilizuje kyčelní kloub.
+gemellus|Dvojčecí svaly (mm. gemelli)|Provádějí zevní rotaci a pomáhají stabilizovat kyčelní kloub.
+quadratus_femoris|Čtyřhranný sval stehenní (m. quadratus femoris)|Provádí extenzi a zevní rotaci kyčle.
+capsularis|Pouzdrový sval · označení modelu v oblasti kyčle|Obecnou úlohou kloubního svalu je napínat pouzdro při pohybu kloubu a omezovat jeho vchlípení mezi kloubní plochy.
+tibialis_cranialis|Přední holenní sval (m. tibialis cranialis)|Provádí flexi hlezna a přispívá k vnitřní rotaci tlapky.
+extensor_digitorum_longus|Dlouhý natahovač prstů · pánevní končetina|Provádí extenzi prstů a flexi hlezna.
+extensor_digitorum_lateralis|Boční natahovač prstů · pánevní končetina|Provádí extenzi laterálního prstu a napomáhá flexi hlezna.
+peroneus_longus|Dlouhý lýtkový sval (m. fibularis longus)|Provádí flexi hlezna a vnitřní rotaci tlapky.
+peroneus_brevis|Krátký lýtkový sval (m. fibularis brevis)|Provádí flexi hlezna a přispívá k boční kontrole tlapky.
+gastrocnemius|Dvojhlavý sval lýtkový (m. gastrocnemius)|Provádí extenzi hlezna a napomáhá flexi kolena.
+flexor_digitorum_superficialis_hind|Povrchový ohybač prstů · pánevní končetina|Provádí flexi prstů a kolena a extenzi a stabilizaci hlezna.
+flexor_digitorum_profundus_hind|Hluboký ohybač prstů · pánevní končetina|Provádí flexi prstů a napomáhá extenzi hlezna.
+tibialis_caudalis|Kaudální holenní složka · označení modelu|Nadřazený svalový komplex psa provádí flexi prstů a napomáhá extenzi hlezna. Této části nepřisuzujeme samostatnou funkci typickou pro kočku.
+popliteus|Zákolenní sval (m. popliteus)|Provádí vnitřní rotaci holenní kosti vůči stehenní kosti a přispívá k flexi a stabilitě kolena.
+ribcage|Hrudní koš a soubor hrudních obratlů|Chrání hrudní orgány, poskytuje svalové úpony a mění tvar při dýchání. Sloučení v modelu skrývá pohyb jednotlivých kloubů.
+atlas|Nosič (atlas) · C1|Atlantookcipitální spojení umožňuje flexi a extenzi hlavy; atlantoaxiální spojení umožňuje rotaci.
+axis|Čepovec (axis) · C2|Poskytuje osu pro velkou část rotace kraniálního krku a úpony pro struktury nastavující polohu hlavy.
+cervical|Typický krční obratel · oblast C3–C5|Podporuje pohyb hlavy a krku, chrání páteřní kanál a rozkládá zatížení mezi segmenty.
+c6|Šestý krční obratel · C6|Podpírá a vede pohyb kaudální části krku a poskytuje úpony hypaxiálním strukturám.
+c7|Sedmý krční obratel · C7|Přenáší zatížení mezi pohyblivým krkem a hrudníkem spojeným se žebry.
+lumbar|Bederní obratel|Nese zatížení trupu a umožňuje řízený pohyb páteře; zároveň ohraničuje páteřní kanál.
+caudal|Ocasní obratel|Podpírá ocas a umožňuje jeho polohování a pohyb. Délka, tvar a počet ocasních obratlů se mezi psy liší.
+sacrum|Křížová kost (os sacrum)|Přenáší zatížení mezi páteří a pánevními končetinami a poskytuje úpony pánevním a ocasním strukturám.
+pelvis|Pánev · spojené pánevní kosti|Přenáší zatížení na trup, chrání pánevní struktury a poskytuje rozsáhlé začátky svalům kyčle a pánevní bránice.
+scapula|Lopatka (scapula)|Přenáší zatížení přes svalový závěs a tvoří pohyblivou základnu hrudní končetiny.
+humerus|Pažní kost (humerus)|Působí jako páka a nosné spojení mezi ramenem a loktem.
+radius|Vřetenní kost (radius)|Přenáší zatížení a poskytuje svalové úpony; spolupracuje s loketní kostí při pohybu předloktí.
+ulna|Loketní kost (ulna)|Vede loketní kloub a poskytuje páku trojhlavému svalu pažnímu a dalším natahovačům.
+femur|Stehenní kost (femur)|Přenáší zatížení a působí jako páka pro svalové skupiny kyčle a kolena.
+fabella|Sezamská kost lýtkového svalu (fabella) · část modelu|Mění kontakt šlachy a přenos síly a chrání místní vztahy šlach v okolí kolena.
+patella|Čéška (patella)|Mění směr síly čtyřhlavého svalu stehenního a zvětšuje rameno páky při extenzi kolena.
+tibia|Holenní kost (tibia)|Přenáší zatížení a poskytuje páky a úpony svalům kolena a distální části končetiny.
+fibula|Lýtková kost (fibula)|Poskytuje svalové úpony a laterální oporu distální části končetiny.
+calcaneus|Patní kost (calcaneus) · oblast patního hrbolu|Poskytuje významnou páku pro extenzi hlezna a vede přenos šlachových sil.
+talus|Hlezenní kost (talus)|Přijímá zatížení z bérce a vede flexi a extenzi v bércohlezenním kloubu.
+central_tarsal|Střední zánártní kost (os tarsi centrale)|Přenáší zatížení kompaktním sloupcem zánártí; její místní pohyby jsou mnohem menší než v hlavním bércohlezenním kloubu.
+tarsal_i|První zánártní kost|Pomáhá vytvářet stabilní mediální sloupec zánártí a poskytuje místní úpony měkkým tkáním.
+tarsal_ii|Druhá zánártní kost|Rozkládá tlakové zatížení v distálním zánártí; krátké vazy omezují nadměrný pohyb.
+tarsal_iii|Třetí zánártní kost|Přenáší zatížení z proximálních struktur zánártí do nártu.
+tarsal_iv|Čtvrtá zánártní kost|Podpírá laterální sloupec zánártí a pomáhá rozkládat síly směrem k laterální části zadní tlapky.
+metatarsal|Nártní kost · číslovaná část modelu|Přenáší zatížení podél zadní tlapky a poskytuje úpony a oporu šlachám a vlastním tkáním tlapky.
+hind_digit_piece|Kost prstu zadní tlapky · číslovaná část modelu|Kosti prstů přenášejí zatížení a poskytují páky šlachám; nejasné číslování neumožňuje určit přesný úpon ani konkrétní kloubní úroveň.
+accessory_carpal|Přídatná zápěstní kost (os carpi accessorium)|Poskytuje páku a úponovou plochu pro stabilizaci zápěstí a síly ohybačů.
+ulnar_carpal|Loketní zápěstní kost (os carpi ulnare)|Rozkládá zatížení laterální částí zápěstí a podporuje správné postavení kloubu.
+radial_carpal|Nečíslovaná zápěstní část modelu|Přispívá k přenosu zatížení a koordinovanému pohybu zápěstí.
+carpal_sesamoid|Sezamská kost zápěstí · blíže neurčená|Podle své skutečné polohy mění směr nebo rozkládá místní šlachové síly.
+carpal_i|První zápěstní kost|Tvoří část mediálního opěrného sloupce zápěstí a kostěný základ oblasti prvního prstu.
+carpal_ii|Druhá zápěstní kost|Přenáší zatížení kompaktní sítí kloubů, jejichž pohyb omezují krátké vazy.
+carpal_iii|Třetí zápěstní kost|Podílí se na přenosu zatížení distálním zápěstím a stabilizuje základnu záprstí.
+carpal_iv|Čtvrtá zápěstní kost|Rozkládá zatížení do laterální části přední tlapky; místní vazy omezují nadměrný posun.
+metacarpal|Záprstní kost|Přenáší zatížení tlapky a podpírá vztahy šlach prstů a vlastních svalů. První prst se liší od hlavních opěrných prstů II–V.
+proximal_phalanx|Proximální článek prstu · přední tlapka|Přenáší zatížení a tvoří páku v ohybačovém a natahovačovém aparátu prstu.
+middle_phalanx|Střední článek prstu · přední tlapka|Podílí se na flexi a extenzi prstu a přenáší zatížení směrem k jeho distální části.
+distal_phalanx|Distální článek prstu · přední tlapka|Podpírá dráp a poskytuje protilehlé šlachové páky pro pohyb distální části prstu.
+skull|Lebka · spojené mozkové a obličejové kosti|Chrání smyslové a nervové struktury a tvoří kostru pro příjem potravy, dýchání a oporu hlavy.
+mandible|Dolní čelist (mandibula) · spojené části|Působí jako páka při žvýkání a otevírání tlamy; nese dolní chrup a úpony dna dutiny ústní.

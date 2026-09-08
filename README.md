@@ -40,6 +40,12 @@ python scripts/convert_model.py /path/to/MusculoskeletalDog-main
 
 The converter validates every index, finite coordinate, source format and supported transform. Unexpected rotations or malformed skinning cause an error rather than an approximate conversion.
 
-## Validation
+## Languages
+
+The CZ / ENG header switch changes all app-owned interface text, accessible labels, structure names, detailed notes, piece annotations, reference titles and all 15 study cards. The preference is stored locally; changing it preserves exploration state. Search accepts English, Czech and original model names, including Czech queries without diacritics. Latin terminology and original identifiers remain available; external source pages and the original model licence retain their published language.
+
+Czech content is bundled in `app/study-data.cs.json`, `app/ui.cs.json` and `app/cards.cs.json`; no translation service is called by the deployed app. `scripts/cs-anatomy-terms.txt` and `scripts/cs-note-corrections.json` retain the terminology and field-level editorial corrections used in preparing the Czech text. The notes and translation have not undergone independent veterinary review. `node scripts/validate-i18n.mjs` checks coverage, source consistency, anatomical distinctions, actual localization helpers, search and representative page rendering in both languages. An English-content fingerprint prevents silently stale Czech notes after English changes; review translations before updating that fingerprint.
+
+## Validation checks
 
 `node --experimental-strip-types scripts/validate.mjs` checks catalogue and geometry bounds, valid indices, finite coordinates, naming, visibility behavior and study-card mappings. `node scripts/validate-notes.mjs` checks all-part coverage, complete content fields, references, fore/hindlimb distinctions, muscle-head distinctions and required qualifications. `npx tsc --noEmit` checks types. The production static build must complete successfully. Browser interactions and physical touch devices have not been tested.

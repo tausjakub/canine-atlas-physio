@@ -1,0 +1,480 @@
+{
+  "longissimus_thoracis": {
+    "location": "Podél dorzolaterální části hrudní páteře, mediálně od m. iliocostalis a laterálně od transverzospinálního systému.",
+    "physio": "Studujte překrývající se svalový systém, nikoli jednu dlouhou šlachu mezi dvěma body. Povrch modelu neukazuje aktivaci jednotlivých svalových snopců."
+  },
+  "longissimus_lumborum": {
+    "location": "Podél dorzolaterální bederní páteře, pod hrudněbederní povázkou.",
+    "attachments": "Začátky na kyčelní kosti a v křížové a obratlové pojivové tkáni se přes svalové snopce spojují s bederními a kraniálněji uloženými obratlovými výběžky."
+  },
+  "longissimus_cervicis": {
+    "location": "Dorzolaterální krční oblast pod povrchovými svaly krku.",
+    "physio": "Pohyb krku je rozdělen mezi více svalů a kloubů; sloučený povrch modelu nelze chápat jako jeden izolovaný sval pohybující jediným segmentem."
+  },
+  "longissimus_capitis": {
+    "location": "Dorzolaterálně na krku pod m. splenius, poblíž kraniálního pokračování m. longissimus cervicis.",
+    "attachments": "Oblast výběžků krčních a kraniálních hrudních obratlů → bradavková část spánkové kosti.",
+    "nerve": "Dorzální větve krčních míšních nervů.",
+    "physio": "Odlište část capitis, která dosahuje na hlavu, od části cervicis, která končí na krčních obratlech.",
+    "recall": "Co přípona capitis napovídá o koncovém úponu?"
+  },
+  "splenius": {
+    "location": "Dorzolaterálně na krku, pod povrchovými vnějšími svaly hrudní končetiny a nad hlubšími epaxiálními svaly.",
+    "attachments": "Oblast trnových výběžků kraniálních hrudních obratlů a dorzální krční šev → kaudální plocha lebky, šíjová a bradavková oblast.",
+    "physio": "Porovnejte široká vlákna řemenového svalu s menšími segmentálními svaly kolem nosiče a čepovce."
+  },
+  "longus_capitis": {
+    "location": "Ventrolaterálně od krčních obratlů, hlouběji než dýchací cesty, jícen a povrchové svaly krku."
+  },
+  "rectus_capitis_dorsalis_major": {
+    "overview": "Krátký podtýlní natahovač spojující čepovec s lebkou.",
+    "attachments": "Trnový výběžek čepovce → kaudální oblast týlní kosti.",
+    "physio": "Studujte jej vedle nosiče, čepovce a týlní kosti; kraniální část krku obsahuje dva specializované klouby s odlišnou mechanikou.",
+    "recall": "Který obratel poskytuje tomuto svalu kaudální úpon?"
+  },
+  "rectus_capitis_dorsalis_minor": {
+    "location": "Bezprostředně dorzálně od atlantookcipitální oblasti, pod většími podtýlními svaly.",
+    "physio": "Krátký průběh odpovídá spíše místnímu nastavení polohy než velkému pohybu trupu. Malá velikost nevylučuje důležitou senzorickou úlohu."
+  },
+  "rectus_capitis_lateralis": {
+    "attachments": "Oblast křídla nosiče → hrdelní výběžek týlní kosti.",
+    "recall": "Čím se boční sval nastavující polohu hlavy liší od dlouhého natahovače krku?"
+  },
+  "rectus_capitis_ventr": {
+    "recall": "Který dorzální sval také spojuje nosič přímo s týlní kostí?"
+  },
+  "obliquus_capitis_caudalis": {
+    "location": "Dorzolaterální atlantoaxiální oblast; sval probíhá laterálně od trnového výběžku čepovce.",
+    "attachments": "Trnový výběžek čepovce → křídlo nosiče.",
+    "nerve": "Dorzální větve krčních míšních nervů, zejména druhého krčního nervu.",
+    "physio": "Tento sval se neupíná na lebku. Jeho funkci vysvětluje specializované rotační spojení nosiče s čepovcem."
+  },
+  "sternocephalicus": {
+    "location": "Ventrolaterálně na krku vedle hrdelní brázdy, povrchově vůči hlubším krčním strukturám.",
+    "attachments": "Rukojeť hrudní kosti → kaudální oblast lebky prostřednictvím týlní a bradavkové části.",
+    "nerve": "Přídatný nerv (n. accessorius) a příspěvky krčních míšních nervů.",
+    "physio": "Držení krku může ovlivňovat povrchové obrysy; hrdelní brázda slouží k orientaci ve vztazích struktur, nikoli k silnému tlaku."
+  },
+  "sternohyroideus": {
+    "overview": "Štíhlý páskovitý sval ventrálního krku spojující hrudní kost s jazylkovým aparátem. Pravopis ve zdroji je nestandardní.",
+    "nerve": "Motorická vlákna krčních míšních nervů pro svaly pod jazylkou.",
+    "recall": "Upíná se na krční obratel, nebo na jazylkový aparát?"
+  },
+  "sternothyroideus": {
+    "overview": "Páskovitý sval ventrálního krku končící na hrtanu.",
+    "nerve": "Motorická vlákna krčních míšních nervů."
+  },
+  "dorsi_scaleni_dors": {
+    "overview": "Část skupiny klanošikmých svalů označená ve zdroji; celá psí skupina zahrnuje více svalových snopců.",
+    "attachments": "Oblast příčných výběžků krčních obratlů → kraniální žebra; zkrácený název modelu neumožňuje určit přesné hranice jednotlivých snopců."
+  },
+  "serratus_dorsalis_cranialis": {
+    "location": "Nad částmi epaxiálního svalstva a pod velkými vnějšími svaly trupu a končetiny.",
+    "attachments": "Kraniální oblast hrudněbederní povázky → kraniální okraje několika žeber.",
+    "recall": "Která skupina pilovitých svalů tvoří hlavní svalový závěs hrudní končetiny?"
+  },
+  "serratus_dorsalis_caudalis": {
+    "overview": "Kaudální dorzální sval hrudníku zobrazený v několika částech modelu.",
+    "attachments": "Hrudněbederní povázka → kaudální okraje posledních žeber.",
+    "physio": "Čísla zdroje označují části modelu, nikoli samostatné svaly s různými funkcemi. Porovnejte směr vláken s kraniálním dorzálním pilovitým svalem."
+  },
+  "intercostals_ext": {
+    "location": "Zevní svalová vrstva mezižeberních prostorů, povrchově od vnitřních mezižeberních svalů."
+  },
+  "intercostals_int": {
+    "location": "Mezi sousedními žebry, pod zevními mezižeberními svaly a vně pohrudnice.",
+    "attachments": "Okraje sousedních žeber spojují vlákna orientovaná převážně kranioventrálně."
+  },
+  "rectus_thoracis": {
+    "overview": "Malý ventrální sval hrudní stěny poblíž kraniálních žeber.",
+    "location": "Kraniálně na ventrolaterálním hrudníku, od prvního žebra směrem ke kaudálněji uloženým žeberním chrupavkám.",
+    "recall": "Která tělní dutina leží pod přímým svalem hrudníku?"
+  },
+  "diaphragma": {
+    "attachments": "Bederní pilíře, vnitřní plochy kaudálních žeber a hrudní kost → šlašitý střed bránice."
+  },
+  "obliquus_ext_abdominis": {
+    "overview": "Nejpovrchnější široký sval břišní stěny.",
+    "location": "Na boku břicha, nad vnitřním šikmým a příčným břišním svalem; vlákna probíhají převážně kaudoventrálně.",
+    "physio": "Studujte oporu trupu jako koordinovanou činnost celé břišní stěny, nikoli jako funkci jediného univerzálního stabilizačního svalu."
+  },
+  "obliquus_int_abdominis": {
+    "location": "Pod zevním šikmým a nad příčným břišním svalem; vlákna probíhají převážně kranioventrálně.",
+    "physio": "Porovnejte křížící se směry vláken obou šikmých svalů a jejich schopnost trup nejen pohybovat, ale také stabilizovat."
+  },
+  "tranversus_abdominis": {
+    "overview": "Nejhlubší široký sval břišní stěny; ve zdroji chybí písmeno v názvu transversus.",
+    "location": "Pod vnitřním šikmým břišním svalem, s vlákny orientovanými převážně napříč břišní stěnou."
+  },
+  "rectus_abdominis": {
+    "physio": "Odlište svalové bříško od okolní aponeurotické pochvy; model nemusí zobrazovat každou šlašitou přepážku samostatně."
+  },
+  "levator_caudae_brevis": {
+    "overview": "Zdroj používá funkční označení levator caudae pro krátké dorzální svalové snopce ocasu. Nejde o úplné moderní anatomické členění.",
+    "attachments": "Krátká spojení mezi výběžky křížových a ocasních obratlů; číslované části neumožňují určit přesné úpony mezi segmenty.",
+    "physio": "Odlište pohyb ocasu od určení úrovně míchy. Číslo ocasního obratle neoznačuje míšní segment zajišťující inervaci."
+  },
+  "depressor_caudae_brevis": {
+    "overview": "Funkční označení zdroje pro krátké ventrální snopce ohybačů ocasu.",
+    "location": "Ventrálně od křížové a ocasní kostry, mezi dalšími strukturami kořene ocasu."
+  },
+  "coccygeus": {
+    "attachments": "Oblast sedacího trnu → příčné výběžky proximálních ocasních obratlů.",
+    "nerve": "Motorické větve křížových míšních nervů."
+  },
+  "levator_ani": {
+    "location": "Mediálně od kostrčního svalu kolem pánevního východu, ve vztahu ke konečníku a pánevním orgánům.",
+    "nerve": "Somatické větve křížových míšních nervů; nezaměňujte je s autonomními funkcemi pánevního nervu."
+  },
+  "supraspinatus": {
+    "location": "Vyplňuje jámu kraniálně od hřebene lopatky, pod povrchovými tkáněmi ramene.",
+    "attachments": "Nadhřebenová jáma a hřeben lopatky → velký hrbolek pažní kosti."
+  },
+  "infraspinatus": {
+    "location": "Vyplňuje podhřebenovou jámu kaudálně od hřebene lopatky. Šlacha přechází přes laterální stranu ramene.",
+    "attachments": "Podhřebenová jáma → laterální proximální část pažní kosti poblíž velkého hrbolku."
+  },
+  "subscapularis": {
+    "overview": "Hlavní sval na mediální ploše lopatky.",
+    "attachments": "Podlopatková jáma → malý hrbolek pažní kosti."
+  },
+  "deltoideus_acromialis": {
+    "attachments": "Nadpažek lopatky → deltová drsnatina pažní kosti.",
+    "recall": "Na který kloub tato část působí a přes který sousední kloub nepřechází?"
+  },
+  "deltoideus_scapularis": {
+    "attachments": "Hřeben lopatky přes aponeurotický začátek → deltová drsnatina pažní kosti.",
+    "physio": "Studujte povrchový deltový sval odděleně od hlubšího podhřebenového svalu; jejich blízkost neznamená stejnou funkci."
+  },
+  "teres_major": {
+    "attachments": "Kaudální úhel a přilehlý okraj lopatky → drsnatina velkého oblého svalu na pažní kosti.",
+    "physio": "Mediální úpon vysvětluje, proč čistě boční pohled může skrýt směr tahu. Před zapamatováním funkce jej porovnejte s malým oblým svalem.",
+    "recall": "Jak se liší úpony velkého a malého oblého svalu?"
+  },
+  "teres_minor": {
+    "location": "Pod deltovým svalem, podél distálního kaudálního okraje lopatky a kaudolaterální strany ramene.",
+    "attachments": "Distální kaudální okraj lopatky → drsnatina malého oblého svalu na pažní kosti."
+  },
+  "coracobrachialis": {
+    "overview": "Krátký sval přecházející přes mediální stranu ramene.",
+    "physio": "Odlište tento malý mediální sval ramene od pažního svalu, který především ohýbá loket."
+  },
+  "biceps_brachii": {
+    "recall": "Která kombinace poloh obou kloubů by prodloužila jeho průběh? Vysvětlete anatomicky, nezkoušejte protahování."
+  },
+  "triceps_brachii_long": {
+    "recall": "Která hlava trojhlavého svalu přímo přechází přes ramenní kloub?"
+  },
+  "triceps_brachii_lateral": {
+    "physio": "Při opakování opory ve stoji sledujte rameno páky trojhlavého svalu od osy lokte k loketnímu výběžku.",
+    "recall": "Proč je loketní výběžek důležitou pákou, nikoli pouze místem úponu?"
+  },
+  "triceps_brachii_medial": {
+    "physio": "Mediální pohled je nutný pro odlišení od dlouhé hlavy a napínače povázky předloktí."
+  },
+  "triceps_brachii_accessory": {
+    "location": "Poblíž kaudální plochy pažní kosti, z velké části překrytá ostatními hlavami trojhlavého svalu.",
+    "attachments": "Oblast krčku pažní kosti → loketní výběžek."
+  },
+  "anconeus": {
+    "physio": "Blízkost kloubního pouzdra pomáhá vysvětlit mechaniku kloubu; stav svalu nelze z modelu samostatně posoudit."
+  },
+  "tensor_f.antebrachii": {
+    "attachments": "Kaudální oblast lopatky a fascie spojená se širokým svalem zádovým → loketní výběžek a povázka předloktí."
+  },
+  "extensor_capri_radialis": {
+    "physio": "Podle místa ukončení šlachy odlište extenzi zápěstí od extenze prstů."
+  },
+  "extensor_digitorum_communis": {
+    "physio": "Sledujte šlachu za záprstí, abyste odlišili funkci na prstech od funkce vřetenního natahovače zápěstí.",
+    "recall": "Který článek prstu přijímá koncový úpon?"
+  },
+  "extensor_digitorum_lat": {
+    "physio": "Zkrácený název ve zdroji se odlišuje od bočního natahovače prstů pánevní končetiny podle oblasti modelu."
+  },
+  "flexor_digitorum_superficialis_fore": {
+    "location": "Kaudální předloktí, povrchově od velké části hlubokého ohybače prstů; šlachy pokračují po palmární straně prstů."
+  },
+  "flexor_digitorum_profundus_fore": {
+    "physio": "Zobrazená část nemusí obsahovat všechny tři hlavy. Název zdroje používejte pouze k identifikaci příslušného svalu.",
+    "recall": "Jak se úroveň jeho úponu liší od povrchového ohybače prstů?",
+    "nerve": "Středový a loketní nerv (n. medianus a n. ulnaris); rozsah inervace se mezi jednotlivými hlavami liší."
+  },
+  "pronator_teres": {
+    "attachments": "Mediální nadhrbolek pažní kosti → mediální plocha těla vřetenní kosti."
+  },
+  "abductor_pollicis_longus": {
+    "physio": "Prst I je mediální první prst, nikoli jeden ze čtyř hlavních opěrných prstů. Sledujte šlachu, abyste tento rozdíl rozpoznali.",
+    "recall": "Proč označení pollicis neznamená lidský palec schopný opozice?"
+  },
+  "latissimus_dors": {
+    "attachments": "Hrudněbederní povázka a související úpony kaudálního trupu → oblast úponu velkého oblého svalu na pažní kosti."
+  },
+  "omotransversarius": {
+    "attachments": "Křídlo nosiče → nadpažek a distální část hřebene lopatky.",
+    "nerve": "Přídatný nerv a příspěvky krčních míšních nervů."
+  },
+  "brachiocephalicus": {
+    "nerve": "Nerv pro m. cleidobrachialis zásobuje pažní část; přídatný nerv a krční míšní nervy přispívají k inervaci kraniálních částí."
+  },
+  "thoracis_serratus_ventr": {
+    "attachments": "Příčné výběžky krčních obratlů a kraniální žebra → pilovitá plocha lopatky (facies serrata).",
+    "nerve": "Krční část zásobují větve krčních míšních nervů; hrudní část dlouhý hrudní nerv (n. thoracicus longus).",
+    "physio": "Přenos zatížení probíhá svalovým závěsem, nikoli kostěným ramenním pletencem opřeným o klíční kost."
+  },
+  "pectorales_superficiales": {
+    "overview": "Sestupná a příčná část vytvářejí povrchové ventrální spojení s hrudní končetinou. Čísla zdroje jednotlivé části spolehlivě neurčují.",
+    "location": "Kraniální ventrální hrudník, nad hlubokým prsním svalem a mediálně od paže."
+  },
+  "temporalis": {
+    "attachments": "Spánková jáma a spánková povázka → svalový výběžek dolní čelisti (processus coronoideus)."
+  },
+  "masseter": {
+    "nerve": "Žvýkací větev mandibulární větve trojklanného nervu (n. trigeminus, V. hlavový nerv).",
+    "physio": "Jediná vnější část modelu může spojovat hlubší a povrchové vrstvy. Obrys svalu sám neurčuje sílu skusu ani bolestivost."
+  },
+  "pterygoideus_lat": {
+    "physio": "Čelist psa má převážně kladkovou mechaniku ve srovnání s druhy specializovanými na rozmělňování potravy; nelze přebírat velké rozsahy pohybu člověka nebo býložravců."
+  },
+  "digastricus": {
+    "overview": "Hlavní sval otevírající čelist, s rostrální a kaudální částí, které u psa mohou působit souvisle.",
+    "physio": "Dvojí motorická inervace tvoří užitečný kontrast se svaly zavírajícími čelist. Jedna sloučená část modelu neznamená jediné inervační území."
+  },
+  "orbicularis_oris": {
+    "physio": "Motorické ovládání pysků se liší od síly čelisti. Zevní model obličeje nezobrazuje všechny vrstevnaté úpony ani vztahy ke sliznici."
+  },
+  "orbicularis_oculi": {
+    "recall": "Který hlavový nerv zajišťuje motorickou složku uzavření víčka?"
+  },
+  "levator_labii_sup": {
+    "attachments": "Oblast horní čelisti → horní pysk prostřednictvím úponů v měkkých tkáních obličeje."
+  },
+  "zygomaticus": {
+    "overview": "Štíhlý mimický sval táhnoucí ústní koutek kaudálně."
+  },
+  "interscutularis": {
+    "overview": "Ušní mimický sval spojující oblasti štítkových chrupavek přes hlavu."
+  },
+  "Skutulum": {
+    "overview": "Nestandardní název a poloha na hlavě naznačují malou štítkovou chrupavku sloužící jako úponová plocha ušním svalům.",
+    "physio": "Zachovejte upozornění na pravděpodobnou identifikaci. Předpona m_ ve zdroji nedokazuje, že jde o kontraktilní sval."
+  },
+  "eye": {
+    "overview": "Vybraná část oka představuje povrch oční oblasti, nikoli úplný anatomický rozbor oka. Více částí zdroje se zde může překrývat.",
+    "attachments": "Oční kouli podpírá pojivová tkáň očnice a pohybují jí úpony okohybných svalů; čočka, sítnice ani vnitřní vrstvy zde nejsou samostatně rozlišeny.",
+    "recall": "Který hlavový nerv přenáší zrakové informace, místo aby řídil pohyb oční koule?"
+  },
+  "nose": {
+    "location": "Rostrální část čenichu kolem zevních nozder.",
+    "nerve": "Místní čití zajišťuje převážně trojklanný nerv; přilehlé mimické svaly zásobuje VII. hlavový nerv. Čichové dráhy jsou uvnitř a nejsou zobrazeny."
+  },
+  "skin": {
+    "nerve": "Regionální kožní nervy zajišťují čití; sympatická vlákna zásobují cévy a kožní adnexa."
+  },
+  "Ligament": {
+    "nerve": "Bez motorické inervace; senzorická inervace závisí na ověřené identitě místního vazu."
+  },
+  "biceps_femoris_tendon": {
+    "nerve": "Senzorická zakončení šlachy; motorická inervace příslušného svalu probíhá větvemi souvisejícími se sedacím nervem."
+  },
+  "gluteus_superficialis_major": {
+    "recall": "Na který výběžek stehenní kosti se upíná povrchový hýžďový sval?"
+  },
+  "gluteus_medius": {
+    "overview": "Výrazný natahovač kyčle nad laterální plochou kyčelní kosti.",
+    "location": "Pod povrchovými hýžďovými tkáněmi a nad hlubokým hýžďovým svalem.",
+    "recall": "Jak se jeho úpon liší od úponu povrchového hýžďového svalu?"
+  },
+  "gluteus_profundus_minor": {
+    "attachments": "Laterální plocha těla kyčelní kosti a přilehlá oblast sedacího trnu → velký chocholík."
+  },
+  "semitendinosus": {
+    "attachments": "Sedací hrbol → proximální mediální plocha holenní kosti a patní hrbol prostřednictvím šlašitého příspěvku.",
+    "physio": "Při studiu délky svalu nebo přechodu mezi opěrnou a švihovou fází zvažte celý vícekloubový průběh."
+  },
+  "semimembranosus": {
+    "location": "Kaudomediální stehno, hlouběji a mediálně od pološlašitého a dvojhlavého svalu stehenního.",
+    "physio": "Před popisem účinků na koleno rozlišujte anatomické části. Sloučený povrch může spojovat oba úpony."
+  },
+  "sartorius": {
+    "attachments": "Hřeben a ventrální oblast kyčelní kosti → čéška prostřednictvím kraniální části a proximální mediální plocha holenní kosti prostřednictvím kaudální části."
+  },
+  "gracilis": {
+    "overview": "Široký povrchový mediální sval stehna s rozsáhlými fasciálními a šlašitými úpony.",
+    "location": "Mediální stehno, kde překrývá části skupiny přitahovačů.",
+    "attachments": "Oblast pánevní spony přes symfyzární šlachu → holenní a bércová fascie a příspěvek ke společné patní šlaše."
+  },
+  "rectus_femoris": {
+    "attachments": "Kyčelní kost kraniálně od kloubní jamky → čéška přes šlachu čtyřhlavého svalu, dále přes čéškový vaz na drsnatinu holenní kosti.",
+    "physio": "Poloha kyčle přímo mění délku tohoto svalu; ostatní tři hlavy čtyřhlavého svalu začínají na stehenní kosti a přes kyčel nepřecházejí."
+  },
+  "vastus_lat": {
+    "overview": "Laterální hlava čtyřhlavého svalu začínající na stehenní kosti."
+  },
+  "vastus_med": {
+    "overview": "Mediální hlava čtyřhlavého svalu začínající na stehenní kosti."
+  },
+  "iliacus": {
+    "attachments": "Kyčelní jáma a mediální oblast kyčelní kosti → malý chocholík prostřednictvím společného úponu bedrokyčelního svalu.",
+    "recall": "Který sval se s kyčelním svalem spojuje před společným úponem?"
+  },
+  "psoas_major": {
+    "recall": "Na který chocholík stehenní kosti se upíná bedrokyčelní sval?"
+  },
+  "psoas_minor": {
+    "physio": "Nepřisuzujte mu automaticky funkci ohybače kyčle jako u bedrokyčelního svalu; ověřte jeho úpon na pánvi."
+  },
+  "obturatorius_int": {
+    "location": "Na pánevní ploše kolem ucpaného otvoru; šlacha vystupuje směrem k chocholíkové jámě.",
+    "physio": "Při úvaze o funkci sledujte ohnutý průběh šlachy, místo abyste vedli přímou čáru skrz pánev."
+  },
+  "obturatorius_ext": {
+    "location": "Zevní a ventrální strana ucpávající blány, pod mediálními svaly stehna."
+  },
+  "quadratus_femoris": {
+    "physio": "Odlište jej od čtyřhlavého svalu stehenního: podobný název neznamená stejnou polohu ani kloubní funkci."
+  },
+  "capsularis": {
+    "physio": "Použijte tuto část ke studiu vztahu pouzdra k okolním svalům, nikoli jako cíl konkrétního léčebného zásahu."
+  },
+  "tibialis_cranialis": {
+    "overview": "Kraniální sval bérce, jehož šlacha dosahuje na mediální část zadní tlapky."
+  },
+  "extensor_digitorum_lateralis": {
+    "overview": "Laterální natahovač bérce zásobující laterální prst.",
+    "recall": "Který prst leží na laterální straně zadní tlapky psa?"
+  },
+  "gastrocnemius": {
+    "physio": "Společnou patní šlachu studujte jako složenou strukturu; nepředpokládejte, že každé její vlákno patří dvojhlavému lýtkovému svalu.",
+    "location": "Kaudální bérec nad hlubšími ohybači; hlavy začínají kolem distální stehenní kosti a sezamských kostí (fabell)."
+  },
+  "flexor_digitorum_superficialis_hind": {
+    "location": "Kaudální bérec ve vztahu k dvojhlavému lýtkovému svalu; šlacha tvoří čepičku nad patním hrbolem.",
+    "attachments": "Distální kaudální plocha stehenní kosti → patní hrbol a střední články prstů II–V.",
+    "physio": "Na rozdíl od protějšku hrudní končetiny má úponový vztah k patnímu hrbolu a přechází přes koleno. Podobné názvy neznamenají stejnou mechaniku."
+  },
+  "flexor_digitorum_profundus_hind": {
+    "overview": "Hluboký kaudální komplex ohybačů bérce, obvykle popisovaný pomocí mediální a laterální složky ohybače prstů.",
+    "physio": "Odlište úpon na distálním článku od úponu povrchového ohybače na středním článku. Fragmenty zdroje spolehlivě neurčují každou složku."
+  },
+  "tibialis_caudalis": {
+    "attachments": "Zdroj spolehlivě neurčuje samostatný začátek a úpon tohoto svalu u psa; studujte proto okolní komplex holenních a lýtkových ohybačů."
+  },
+  "ribcage": {
+    "overview": "Sloučená část osové kostry, nikoli jediná kost. Spojuje struktury, které se běžně pohybují v několika samostatných kloubech.",
+    "physio": "Jeden pevný povrch modelu není důkazem tuhosti živého hrudního koše. Jednotlivé hrudní klouby nelze v této sloučené části izolovat."
+  },
+  "atlas": {
+    "location": "Mezi týlními kondyly lebky a čepovcem.",
+    "attachments": "Kraniálně se kloubí s týlními kondyly, kaudálně s čepovcem. Zub čepovce zasahuje do prstence nosiče."
+  },
+  "axis": {
+    "overview": "Druhý krční obratel, rozpoznatelný podle zubu a výrazného trnového výběžku.",
+    "attachments": "Zub se účastní atlantoaxiálního spojení; kaudálně se C2 kloubí s C3. Upínají se zde četné podtýlní svaly.",
+    "physio": "Odlište zub od trnového výběžku. Jejich odlišná poloha vysvětluje různé vztahy ke kloubům a svalům.",
+    "recall": "Který sval spojuje trnový výběžek čepovce s křídlem nosiče?"
+  },
+  "cervical": {
+    "overview": "Krční obratel s tělem, obloukem, kloubními a příčnými výběžky.",
+    "location": "Střední krk mezi specializovaným nosičem a čepovcem a kaudálním krčním přechodem.",
+    "attachments": "Sousední těla spojují meziobratlové ploténky; kloubní výběžky tvoří párové synoviální klouby. Na výběžky se upínají svaly a vazy.",
+    "recall": "Jak se liší meziobratlová ploténka od kloubů mezi kloubními výběžky?"
+  },
+  "lumbar": {
+    "location": "Mezi hrudní oblastí a křížovou kostí, pod epaxiálními a dorzálně od hypaxiálních svalů.",
+    "physio": "Pro opakování anatomie je zásadní vztah kosti, míchy a nervových kořenů. Model obsahuje kosti a svaly, nikoli úplný anatomický rozbor obsahu páteřního kanálu.",
+    "attachments": "Sousední těla obratlů spojují ploténky; kloubní výběžky tvoří párové klouby. L7 se spojuje s křížovou kostí v bedrokřížovém přechodu."
+  },
+  "pelvis": {
+    "overview": "Zdroj spojuje pánevní pletenec do jedné části. Každou pánevní kost tvoří především kyčelní, sedací a stydká kost, které se setkávají v kloubní jamce (acetabulu)."
+  },
+  "scapula": {
+    "attachments": "Kloubní jamka lopatky se kloubí s hlavicí pažní kosti. Hřeben, nadpažek, jámy a okraje poskytují rozsáhlé svalové úpony.",
+    "recall": "Na kterou plochu lopatky se upíná ventrální pilovitý sval?"
+  },
+  "humerus": {
+    "recall": "Který výběžek na sousední loketní kosti poskytuje páku trojhlavému svalu pažnímu?"
+  },
+  "ulna": {
+    "attachments": "Kladkový zářez se kloubí s pažní kostí; distální bodcovitá oblast má vztah k zápěstním kostem a vřetenní kosti. Loketní výběžek přijímá úpony natahovačů lokte.",
+    "physio": "Pomocí loketního výběžku si vysvětlete rameno páky natahovačů lokte; nejde o stejný orientační bod jako přídatná zápěstní kost."
+  },
+  "femur": {
+    "attachments": "Hlavice se kloubí s acetabulem, kondyly s holenní kostí a kladka vede čéšku. Chocholíky poskytují důležité úpony svalům kyčle."
+  },
+  "fabella": {
+    "physio": "Sezamské kosti rozpoznávejte jako normální anatomické struktury, nikoli automaticky jako volná tělíska."
+  },
+  "patella": {
+    "physio": "Vedení čéšky závisí na celém extenzorovém aparátu a postavení končetiny, nikoli pouze na tvaru izolované čéšky."
+  },
+  "calcaneus": {
+    "overview": "Zdroj zdůrazňuje patní hrbol, vyčnívající patní oblast proximálního zánártí.",
+    "attachments": "Na hrbol se upíná společná patní šlacha; patní kost se kloubí se sousedními zánártními kostmi a mediálně podpírá průchod šlachy hlubokého ohybače.",
+    "recall": "Která složená šlacha se na tento orientační bod upíná?",
+    "physio": "Odlište patní hrbol od osy bércohlezenního kloubu. Délka ramene páky pomáhá vysvětlit mechaniku dvojhlavého lýtkového svalu."
+  },
+  "talus": {
+    "overview": "Proximální zánártní kost tvořící hlavní kladkový kloub s holenní kostí."
+  },
+  "tarsal_i": {
+    "physio": "Číslo označuje zánártní kost, nikoli stejně číslovaný prst. Zachovávejte správnou orientaci řady a strany."
+  },
+  "metatarsal": {
+    "overview": "Protáhlá kost zadní tlapky mezi zánártím a prsty. Zdroj používá čtyři čísla modelových částí, která nejsou ověřenými anatomickými čísly prstů.",
+    "nerve": "Senzorické větve prstů a místní větve pro okostici a klouby; bez motorické inervace.",
+    "physio": "Nepřejmenovávejte část zdroje 1 na první nártní kost. Psi obvykle zatěžují prsty II–V a číslování zdroje se může lišit.",
+    "recall": "Jaký důkaz by potvrdil anatomický prst odpovídající číslu části modelu?"
+  },
+  "hind_digit_piece": {
+    "attachments": "Prstový aparát zahrnuje články, klouby a sezamské kosti s úpony ohybačů a natahovačů; přesné kloubní vztahy závisejí na potvrzené identitě části.",
+    "physio": "K orientaci používejte polohu mezi sousedními částmi, ale před zapamatováním ověřte prst a úroveň v popsaném psím anatomickém zdroji."
+  },
+  "radial_carpal": {
+    "attachments": "Proximální řada zápěstí psa zahrnuje prostředněvřetenní, loketní a přídatnou zápěstní kost; přesné kontakty závisejí na tom, kterou kost tato část modelu představuje."
+  },
+  "carpal_sesamoid": {
+    "overview": "Malá část související se sezamskou kostí, kterou zdroj určuje pouze obecně.",
+    "nerve": "Místní senzorická inervace; sezamská kost není kontraktilní sval.",
+    "physio": "Blíže neurčené sezamské kosti nepřisuzujte konkrétní šlachu pouze podle velikosti nebo vzhledu."
+  },
+  "metacarpal": {
+    "nerve": "Senzorické větve prstů a místní větve pro okostici a klouby.",
+    "physio": "Další části zdroje se stejným číslem považujte za opakované části, dokud nebude anatomické rozdělení ověřeno.",
+    "recall": "Který prst odpovídá mediální oblasti prvního prstu přední tlapky?"
+  },
+  "proximal_phalanx": {
+    "overview": "První článek prstu; zdroj v několika názvech chybně zapisuje proximalis.",
+    "attachments": "Proximálně tvoří záprstněčlánkový kloub, distálně se obvykle spojuje se středním článkem. Výjimkou je prst I, který má pouze proximální a distální článek.",
+    "physio": "Naučte se výjimky jednotlivých prstů místo předpokladu, že každý má tři články. Číslo ze zdroje je uvedeno v poznámce k modelu."
+  },
+  "middle_phalanx": {
+    "overview": "Střední článek jednoho z hlavních opěrných prstů.",
+    "location": "Mezi proximálním a distálním článkem prstů II–V.",
+    "attachments": "Kloubí se s proximálním a distálním článkem; přijímá úpon povrchového ohybače prstů.",
+    "physio": "Porovnejte úpon povrchového ohybače na tomto článku s úponem hlubokého ohybače na distálním článku."
+  },
+  "distal_phalanx": {
+    "attachments": "Proximálně se kloubí se středním článkem, u prstu I s proximálním článkem; přijímá koncové úpony ohybačů a natahovačů.",
+    "physio": "Pohled pouze na kost vynechává rohový obal drápu, polštářky a mnoho omezení měkkých tkání. Z kosti samotné nelze určit tvar zatěžovaného kontaktu s podložkou."
+  },
+  "mandible": {
+    "physio": "Odlište kloubní, svalový a úhlový výběžek. Sloučený model neukazuje úplnou anatomii zubů, parodontu ani kloubního disku.",
+    "recall": "Který výběžek přijímá spánkový sval a který tvoří čelistní kloub?"
+  },
+  "supinator": {
+    "location": "Kraniolaterálně u proximální části vřetenní kosti, pod povrchovými natahovači."
+  },
+  "adductor_magnus": {
+    "location": "Pod štíhlým svalem, od ventrální pánve ke kaudomediální ploše stehenní kosti."
+  },
+  "peroneus_brevis": {
+    "location": "Podél distální laterální části lýtkové kosti, pod povrchovějšími laterálními strukturami bérce."
+  },
+  "popliteus": {
+    "location": "Překlenuje kaudální proximální plochu holenní kosti, pod dvojhlavým lýtkovým svalem a většími kaudálními svaly bérce."
+  },
+  "skull": {
+    "nerve": "Hlavové nervy procházejí pojmenovanými otvory, ale jejich dráhy ani jednotlivé kosti nejsou v této části modelu samostatně odděleny."
+  }
+}
