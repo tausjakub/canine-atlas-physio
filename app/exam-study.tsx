@@ -3,6 +3,7 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {ArrowUpRight,BookOpen,Check,ChevronLeft,ChevronRight,Focus,Search} from 'lucide-react';
 import {examModules,examSources,examUrl,local} from './exam-data';
 import {normalizeSearch,type Language} from './i18n';
+import StudyVisuals from './study-visuals';
 const progressKey='canine-atlas-exam-reviewed-v1';
 export default function ExamStudy({language,onExplore}:{language:Language;onExplore:(id:string)=>void}){
  const e=(en:string,cs:string)=>language==='cs'?cs:en;
@@ -31,6 +32,7 @@ export default function ExamStudy({language,onExplore}:{language:Language;onExpl
    {selected?<article key={selected.id}>
     <header className="exam-heading"><span className="eyebrow mint">{e(`TOPIC ${String(index+1).padStart(2,'0')} / 13`,`TÉMA ${String(index+1).padStart(2,'0')} / 13`)}</span><h1 tabIndex={-1}>{local(selected.title,language)}</h1><div className="exam-badges"><span>{local(selected.mode,language)}</span><span>{e('Criteria','Kritéria')}: {selected.sections.map(s=>s.criteria).join(', ')}</span></div></header>
     {selected.model&&<button className="exam-model-link" onClick={()=>onExplore(selected.model!)}><Focus size={20}/><span>{e('Connect this topic to the 3D atlas','Propojit téma s 3D atlasem')}<small>{e('Open related anatomy and its study note','Otevřít související anatomii a studijní poznámku')}</small></span><ChevronRight size={18}/></button>}
+    <StudyVisuals topic={selected.id} language={language}/>
     <div className="exam-sections">{selected.sections.map(s=><section className="exam-section" key={s.criteria}><div className="criterion-letter">{s.criteria}</div><div><h2>{local(s.title,language)}</h2><p>{local(s.text,language)}</p></div></section>)}</div>
     <section className="exam-practice"><span className="eyebrow mint">{e('REHEARSE YOUR EXPLANATION','NACVIČTE SI VYSVĚTLENÍ')}</span><h2>{e('Say it, show it, justify it','Řekněte, ukažte, zdůvodněte')}</h2><p>{local(selected.practice,language)}</p></section>
     <section className="exam-recall"><h2>{e('Check your recall','Ověřte si vybavení znalostí')}</h2><p className="muted">{e('Answer aloud before opening each explanation.','Než otevřete vysvětlení, odpovězte nahlas.')}</p>{selected.quiz.map((q,i)=><details key={i}><summary><span>{local(q.question,language)}</span><ChevronRight size={17}/></summary><p>{local(q.answer,language)}</p></details>)}</section>

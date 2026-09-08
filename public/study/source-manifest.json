@@ -1,0 +1,22 @@
+[
+  {
+    "filename": "dog-skeleton-museum.jpg",
+    "title": "German Shepherd dog skeleton",
+    "creator": "Museum of Veterinary Anatomy FMVZ USP / Wagner Souza e Silva; edited by Rodrigo Tetsuo Argenton",
+    "source": "https://commons.wikimedia.org/wiki/File:German_Shepherd_dog._%E2%80%9CCanis_lupus_familiaris%E2%80%9D.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cc/German_Shepherd_dog._%E2%80%9CCanis_lupus_familiaris%E2%80%9D.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "notes": "Museum specimen photograph. Source editor cleaned background, sharpened, brightened and rearranged. Cite museum then photographer and editor. Retain attribution/license; disclose any further changes."
+  },
+  {
+    "filename": "dog-knee-museum.jpg",
+    "title": "Knee joint of dog",
+    "creator": "Museum of Veterinary Anatomy FMVZ USP / Wagner Souza e Silva",
+    "source": "https://commons.wikimedia.org/wiki/File:Knee_joint_of_dog.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Knee_joint_of_dog.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "notes": "Dog knee joint specimen prepared by dissection and freeze-drying. Cite museum then photographer. Retain attribution/license; disclose changes."
+  }
+]

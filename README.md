@@ -27,6 +27,12 @@ The study route follows [NSK qualification 43-001-R](https://www.narodnikvalifik
 
 `node scripts/validate-exam.mjs` checks criterion counts, bilingual content, source and anatomy links, real lesson rendering, search/progress handlers, finite Three.js geometry, mirrored sides, endpoint proximity and layer visibility. The existing language test also renders all new ligament inspector notes in both languages.
 
+### Visual study material
+
+All 13 exam topics include a visual memory aid. Anatomy and orthopedic topics use real canine specimens photographed by the Museum of Veterinary Anatomy FMVZ USP / Wagner Souza e Silva; the skeleton source was edited by Rodrigo Tetsuo Argenton. The unchanged JPEGs, source URLs and CC BY-SA 4.0 attribution are retained in `public/study/`. Numbered overlay compositions are also released under CC BY-SA 4.0. Numbers identify visible structures only: the knee photo does not expose the cruciates or menisci well enough to label them.
+
+`app/study-visuals.tsx` contains the bilingual numbered keys and ten original concept diagrams (the reflex-pathway diagram is shared by physiology and neurology). Diagrams explain mechanisms and distinctions; they are not measured anatomy, treatment schedules, normal joint ranges or device prescriptions. Each has a supporting reference and a hide/reveal control for recall. Photos can be opened at full resolution. No AI-generated anatomical images are used. No external image requests are needed for the hosted page.
+
 ## Anatomy provenance and limits
 
 Geometry comes from [MusculoskeletalDog](https://github.com/vittorione94/MusculoskeletalDog), © 2025 Vittorio La Barbera, MIT. Its research paper documents base Pharaoh dog geometry from leo3Dmodels and dm_control. Model licence is preserved at `public/models/LICENSE-MODEL.txt`.

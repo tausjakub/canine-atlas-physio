@@ -50,6 +50,9 @@ for(const language of ['en','cs'])for(const m of examModules){
  const html=renderToStaticMarkup(React.createElement(Component,{language,onExplore:()=>{}}));
  assert(html.includes(m.title[language].replaceAll('&','&amp;')));assert.equal((html.match(/class="exam-section"/g)||[]).length,m.sections.length);
  assert.equal((html.match(/<details/g)||[]).length,3);assert(!html.includes('undefined'));assert(!html.includes('[object Object]'));
+ assert(html.includes('class="study-photo"')||html.includes('class="memory-figure '),`Missing image/diagram: ${m.id}`);
+ assert(html.includes(language==='cs'?'Skrýt':'Hide '));
+ if(['anatomy','orthopedics'].includes(m.id)){assert(html.includes('CC BY-SA 4.0'));assert(html.includes('/study/dog-'));assert(html.includes('class="photo-key"'));}
  if(language==='cs')for(const leak of ['Mark this topic reviewed','Check your recall','Next topic','References &amp; further reading','Saved on this device'])assert(!html.includes(leak));
 }
 // Exercise real component handlers and storage recovery through a minimal hook harness.
@@ -71,3 +74,23 @@ saved.set('canine-atlas-exam-reviewed-v1','["anatomy","anatomy","invented",42]')
 console.log('PASS: 17 finite selectable ligament geometries; symmetric sides, regions, bilingual notes and layer visibility.');
 console.log('PASS: 13 modules, all 58 criterion mappings, 26 original recall questions, valid anatomy links and both-language rendering.');
 console.log('PASS: actual progress toggle, storage restoration, duplicate/invalid ID filtering, accent-insensitive search, no-result recovery and anatomy navigation handlers.');
+// Every requested visual has a valid source, on-disk asset and a usable recall state.
+const {photoData}=load('study-visuals');
+for(const p of Object.values(photoData)){
+ const bytes=fs.readFileSync(path.join(root,'public/study',p.file));assert.equal(bytes.readUInt16BE(0),0xffd8);assert(bytes.length>100000);assert(p.width>3000&&p.height>2000);
+ assert(p.source.startsWith('https://commons.wikimedia.org/'));assert(p.marks.length>=5);
+ for(const m of p.marks){assert(m.name.every(s=>s.length>=3));assert([...m.point,...m.label].every(v=>v>0&&v<1));}
+}
+for(const language of ['en','cs'])for(const topic of examModules.map(m=>m.id)){
+ let labels=true,handler;
+ const hook={...React,useId:()=>`test-${topic}`,useState:initial=>[labels,v=>{labels=typeof v==='function'?v(labels):v;}]};
+ const View=loader(hook)('study-visuals').default;
+ // Resolve the returned photo/diagram component without mounting a browser.
+ const renderView=()=>{const element=View({topic,language});return element.type(element.props);};
+ let tree=renderView();handler=elements(tree).find(n=>n.type==='button').props.onClick;handler();assert.equal(labels,false);tree=renderView();
+ assert.equal(elements(tree).find(n=>n.type==='button').props['aria-pressed'],true);
+ if(topic==='anatomy'||topic==='orthopedics')assert(elements(tree).filter(n=>n.type==='li').every(n=>!JSON.stringify(n).includes('Humerus')));
+ else assert(tree.props.className.includes('labels-off'));
+ elements(tree).find(n=>n.type==='button').props.onClick();assert.equal(labels,true);
+}
+console.log('PASS: visual content in all 13 topics in both languages; two attributed JPEG assets, bounded annotation coordinates and actual hide/reveal handlers.');
