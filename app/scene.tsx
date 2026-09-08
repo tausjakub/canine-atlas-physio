@@ -23,7 +23,7 @@ export default function AnatomyScene({atlas,state,onSelect,language}:{atlas:Atla
     const key=new THREE.DirectionalLight(0xffefdf,3);key.position.set(1,3,-2);scene.add(key);
     const fill=new THREE.DirectionalLight(0x8cc8ff,1.6);fill.position.set(-2,1,2);scene.add(fill);
     const meshes:THREE.Mesh<THREE.BufferGeometry,THREE.MeshStandardMaterial>[]=[];
-    atlas.parts.forEach(p=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(buffer,p.vertexOffset,p.vertexCount*3),3));g.setIndex(new THREE.BufferAttribute(new Uint32Array(buffer,p.indexOffset,p.indexCount),1));g.computeVertexNormals();g.computeBoundingBox();
+    atlas.parts.forEach(p=>{const g=p.path?new THREE.TubeGeometry(new THREE.CatmullRomCurve3(p.path.map(v=>new THREE.Vector3(...v)),false,'centripetal'),24,p.radius,8,false):new THREE.BufferGeometry();if(!p.path){g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(buffer,p.vertexOffset,p.vertexCount*3),3));g.setIndex(new THREE.BufferAttribute(new Uint32Array(buffer,p.indexOffset,p.indexCount),1));g.computeVertexNormals();}g.computeBoundingBox();
      const color=systems.find(s=>s.id===p.system)!.color;const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:.63,metalness:.02,side:THREE.DoubleSide}));m.userData.part=p;scene.add(m);meshes.push(m);});
     const box=new THREE.Box3();let previous:SceneState|undefined;
     function frame(view:string){box.makeEmpty();meshes.filter(m=>m.visible).forEach(m=>box.expandByObject(m));if(box.isEmpty())return;

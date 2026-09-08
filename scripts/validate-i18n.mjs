@@ -36,8 +36,8 @@ for(const [key,value] of Object.entries(ui)){
 // Execute the actual TypeScript helpers with their real data, without a browser or network.
 const require=createRequire(import.meta.url),cache=new Map();
 function load(name){
- const file=path.join(root,'app',name+'.ts');if(cache.has(file))return cache.get(file);
- const output=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
+ const file=path.join(root,'app',name+(fs.existsSync(path.join(root,'app',name+'.ts'))?'.ts':'.tsx'));if(cache.has(file))return cache.get(file);
+ const output=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
  const exports={};cache.set(file,exports);
  new Function('require','exports',output)(specifier=>specifier.endsWith('.json')?json('app/'+specifier.slice(2)):specifier.startsWith('./')?load(specifier.slice(2)):require(specifier),exports);
  return exports;
@@ -75,7 +75,8 @@ console.log(`PASS: all 425 pieces, ${Object.keys(cs.profiles).length} Czech prof
 console.log('PASS: actual language helpers, bilingual search, diacritics, side labels, references, placeholders, anatomical distinctions and JSX/accessibility translation coverage.');
 // Render representative real page branches with supplied state; no browser/3D context is needed.
 const pageCode=ts.transpileModule(read('app/page.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
-for(const language of ['en','cs'])for(const selected of [null,'m_supraspinatus_R','m_flexor_digitorum_superficialis_L.001','Carpal_L','C_1','m_Ligament','study']){
+atlas.parts.push(...load('ligaments').addLigaments(atlas).parts.filter(p=>p.system==='ligament'));
+for(const language of ['en','cs'])for(const selected of [null,'m_supraspinatus_R','m_flexor_digitorum_superficialis_L.001','Carpal_L','C_1','m_Ligament','study',...atlas.parts.filter(p=>p.system==='ligament').map(p=>p.id)]){
  const state={...load('anatomy').initial,selected:selected==='study'?null:selected};
  const mockReact={...React,useEffect:()=>{},useMemo:f=>f(),useRef:()=>({current:null}),useState:initial=>[initial==='en'?language:initial===null?atlas:initial===load('anatomy').initial?state:initial==='explore'&&selected==='study'?'study':initial===false&&selected==='study'?true:initial,()=>{}]};
  const exports={};new Function('require','exports',pageCode)(s=>s==='react'?mockReact:s==='./scene'?{__esModule:true,default:()=>null}:s==='@/components/ui/button'?{Button:({children,...props})=>React.createElement('button',props,children)}:s.endsWith('.json')?json('app/'+s.slice(2)):s.startsWith('./')?load(s.slice(2)):require(s),exports);

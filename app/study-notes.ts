@@ -2,6 +2,7 @@ import data from './study-data.json';
 import dataCs from './study-data.cs.json';
 import {type Part,displayName} from './anatomy';
 import type {Language} from './i18n';
+import {ligamentDetail} from './ligaments';
 export type Source={title:string;url:string};
 export type StudyProfile={title:string;overview:string;location:string;attachments:string;function:string;nerve:string;physio:string;recall:string;sources:string[]};
 export type PieceNote={profile:string;side:string;modelNote:string;warning:string};
@@ -10,6 +11,7 @@ const profiles:Record<string,StudyProfile>=data.profiles;
 const pieces:Record<string,PieceNote>=data.parts;
 export const noteCoverage={pieces:Object.keys(pieces).length,profiles:Object.keys(profiles).length,qualified:Object.values(pieces).filter(p=>p.warning).length};
 export function detailFor(part:Part,language:Language='en'){
+ const guide=ligamentDetail(part,language);if(guide)return guide;
  const localized=language==='cs'?dataCs:data;
  const localPieces:Record<string,PieceNote>=localized.parts,localProfiles:Record<string,StudyProfile>=localized.profiles,localSources:Record<string,Source>=localized.sources;
  const piece=localPieces[part.id];
@@ -17,6 +19,7 @@ export function detailFor(part:Part,language:Language='en'){
  return {...localProfiles[piece.profile],...piece,references:localProfiles[piece.profile].sources.map(id=>localSources[id])};
 }
 export function structureName(part:Part,language:Language){
+ const guide=ligamentDetail(part,language);if(guide)return `${guide.title} · ${guide.side}`;
  if(language==='en')return displayName(part.id);
  const note=detailFor(part,language);
  const suffix=part.id.match(/(?:digiti_|metacarpale_)([IV]+)/)?.[1];

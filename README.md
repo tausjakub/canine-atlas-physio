@@ -9,12 +9,23 @@ Use Node.js 22.13 or newer. Install with `npm ci`, then `npm run dev`. Build sta
 ## Capabilities
 
 - Orbit, zoom and select anatomical pieces; search the complete source catalogue.
-- Toggle skeleton, muscle, connective tissue and surface layers.
+- Toggle skeleton, muscle, schematic ligament, connective tissue and surface layers. The Bones + ligaments preset reveals 17 additional teaching guides with bilingual notes.
 - Isolate or hide pieces, restore hidden pieces, set muscle opacity and separate the anatomy into an exploded layout.
 - Camera presets for left/right lateral, cranial, dorsal and oblique views.
 - Regional browsing and 15 muscle-action recall cards with reference links.
 - Detailed notes for all 425 pieces, with 168 distinct anatomical profiles. Each includes overview, location, attachments/articulations, function, nerve supply, physiotherapy relevance, a recall question and reference links.
 - Side and source-piece annotations distinguish bilateral anatomy and fragments. Forty-three pieces carry explicit identity qualifications; uncertain labels are not silently converted into definitive anatomy.
+- Exam preparation in Czech and English: 13 topic modules mapped to 58 criteria, 26 original recall questions, rehearsal prompts, references, anatomy links and device-local review progress.
+
+## Exam preparation and ligament additions
+
+The study route follows [NSK qualification 43-001-R](https://www.narodnikvalifikace.cz/kvalifikace-1879-Fyzioterapeut_a_rehabilitacni_pracovnik_fyzioterapeutka_a_rehabilitacni_pracovnice_malych_zvirat), valid from 21 October 2022 and checked on 8 September 2026. It includes dogs and cats. Criterion letters refer to the corresponding competency in the official standard. The concise explanations are a study overview, not the official question bank or complete course. Clinical procedures need supervised instruction; there are no universal device settings or patient treatment prescriptions. Content and translation have not undergone independent veterinary peer review.
+
+`app/exam-data.ts` keeps paired English/Czech content together. `app/exam-study.tsx` provides topic search, accessible recall disclosures and review progress stored only in this browser. The FMS versus EMS/FES terminology discrepancy in the official standard is explicitly retained for clarification with the assessor.
+
+`app/ligaments.ts` supplements the 425 original pieces with 17 procedural guides (442 selectable objects total): bilateral stifle cruciates, collaterals, patellar ligaments, elbow collateral guides and sacrotuberous ligaments, plus a midline nuchal guide. The source binary is unchanged. Guide endpoints lie at nearby source bone vertices, but anatomical footprints, course, shape and thickness are approximate and not independently validated. Elbow branches are simplified. These guides are clearly labeled and are not a complete ligament atlas. The source piece `m_Ligament` retains its existing identity qualification.
+
+`node scripts/validate-exam.mjs` checks criterion counts, bilingual content, source and anatomy links, real lesson rendering, search/progress handlers, finite Three.js geometry, mirrored sides, endpoint proximity and layer visibility. The existing language test also renders all new ligament inspector notes in both languages.
 
 ## Anatomy provenance and limits
 

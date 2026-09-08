@@ -1,8 +1,8 @@
-export type System = 'bone'|'muscle'|'connective'|'surface';
-export type Part = {id:string;system:System;vertexOffset:number;vertexCount:number;indexOffset:number;indexCount:number;center:number[];bounds:number[][]};
+export type System = 'bone'|'muscle'|'connective'|'surface'|'ligament';
+export type Part = {id:string;system:System;vertexOffset:number;vertexCount:number;indexOffset:number;indexCount:number;center:number[];bounds:number[][];path?:number[][];radius?:number;anatomicalRegion?:string};
 export type Atlas = {parts:Part[];bytes:number};
 export type SceneState = {systems:System[];selected:string|null;hidden:string[];isolate:boolean;explode:number;opacity:number;view:string;reset:number;rotate:boolean};
-export const systems:{id:System;name:string;color:string}[]=[{id:'bone',name:'Skeleton',color:'#e6d5ad'},{id:'muscle',name:'Muscles',color:'#cf7776'},{id:'connective',name:'Connective tissue',color:'#abc8d6'},{id:'surface',name:'Body surface',color:'#758d9c'}];
+export const systems:{id:System;name:string;color:string}[]=[{id:'bone',name:'Skeleton',color:'#e6d5ad'},{id:'muscle',name:'Muscles',color:'#cf7776'},{id:'ligament',name:'Ligaments · schematic',color:'#eeb85b'},{id:'connective',name:'Connective tissue',color:'#abc8d6'},{id:'surface',name:'Body surface',color:'#758d9c'}];
 export const initial:SceneState={systems:['bone','muscle'],selected:null,hidden:[],isolate:false,explode:0,opacity:1,view:'lateral',reset:0,rotate:false};
 export function displayName(id:string){
  if(id==='skin')return 'Body surface'; if(id==='MergedSkull')return 'Skull';if(id==='Jaw')return 'Mandible';if(id==='Ribcage')return 'Rib cage & thoracic spine';
@@ -13,6 +13,7 @@ export function displayName(id:string){
  return s.charAt(0).toUpperCase()+s.slice(1);
 }
 export function region(p:Part){
+ if(p.anatomicalRegion)return p.anatomicalRegion;
  const id=p.id.toLowerCase();
  if(/(?:flexor|extensor)_digitorum/.test(id))return p.center[0]<0?'Hindlimb':'Forelimb';
  if(/capsularis|levator_ani|coccygeus/.test(id))return 'Hindlimb';
