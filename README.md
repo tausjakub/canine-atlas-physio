@@ -19,6 +19,14 @@ Use Node.js 22.13 or newer. Install with `npm ci`, then `npm run dev`. Build sta
 
 ## Exam preparation and ligament additions
 
+### Knowledge practice
+
+Inside Exam prep, **Test my knowledge / Otestovat znalosti** offers topic/mixed theory quizzes, numbered-picture identification and a revision queue. The first bank has 58 original multiple-choice questions (one per mapped criterion) and 11 museum-photo questions. Topic availability is shown explicitly; sessions contain up to 5, 10, 20 or all available questions. Mixed theory sessions rotate through shuffled topics, and answer order is shuffled once per session. Changing the interface language preserves answer identity and option order.
+
+Answers are locked after submission. Feedback uses the corresponding bilingual lesson explanation and links back to study material. Results show answered versus planned counts, overall accuracy and topic breakdowns; unanswered items in an ended session are not scored. Incorrect or unsure answers enter device-local revision storage. A later correct, confident response clears the revision flag. A lesson detour preserves the session, while reloading or leaving Exam prep discards the current session; submitted revision records remain saved. This is a learning aid, not an official exam simulation, official question bank or certification result.
+
+`app/quiz-data.ts` contains stable question and option identifiers; `app/quiz-engine.ts` handles selection, scoring and validated storage; `app/exam-quiz.tsx` implements the interface. `node scripts/validate-quiz.mjs` verifies all answer keys and criterion/photo mappings, balanced selection, duplicate-submit protection, revision transitions, real component handlers and 138 bilingual feedback renders. Clinical content retains the references and review limitations of the underlying study notes.
+
 The study route follows [NSK qualification 43-001-R](https://www.narodnikvalifikace.cz/kvalifikace-1879-Fyzioterapeut_a_rehabilitacni_pracovnik_fyzioterapeutka_a_rehabilitacni_pracovnice_malych_zvirat), valid from 21 October 2022 and checked on 8 September 2026. It includes dogs and cats. Criterion letters refer to the corresponding competency in the official standard. The concise explanations are a study overview, not the official question bank or complete course. Clinical procedures need supervised instruction; there are no universal device settings or patient treatment prescriptions. Content and translation have not undergone independent veterinary peer review.
 
 `app/exam-data.ts` keeps paired English/Czech content together. `app/exam-study.tsx` provides topic search, accessible recall disclosures and review progress stored only in this browser. The FMS versus EMS/FES terminology discrepancy in the official standard is explicitly retained for clarification with the assessor.
