@@ -77,3 +77,6 @@ Czech content is bundled in `app/study-data.cs.json`, `app/ui.cs.json` and `app/
 
 ### Spatial anatomy practice
 Study → Practice anatomy in 3D starts ten random targets from 23 named bones. Select directly or highlight anonymous numbered pieces using the keyboard, check once, isolate the answer, read existing source-linked notes, and retry mistakes. Both languages share the same round. Rounds reset when leaving the challenge or reloading; scores are not added to the theory revision queue. Test with `node scripts/validate-challenge.mjs`.
+
+### Private reading library and study links
+Three user-supplied PDFs are split into 69 browser-readable sections (2,607 pages). Anatomy notes have direct text-match links for 100 of 168 profiles, with an explicitly labelled general chapter link for unmatched profiles. All 13 exam topics have related section links; ligament guides link to regional figures. Links use original PDF page positions and translate to the local section page; opening a new tab preserves the study session. Astrophysics remains available for reading but is not used as a veterinary anatomy source. Books retain original English. Full extracted text is kept outside the app; the app stores page references only. Run `node scripts/validate-reading.mjs` to verify links and reader offsets.
