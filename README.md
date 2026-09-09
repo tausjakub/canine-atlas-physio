@@ -1,3 +1,7 @@
+# GitHub Pages
+
+See [GITHUB-PAGES.md](GITHUB-PAGES.md) for the tested build command and manual deployment steps.
+
 # Canine Atlas
 
 An interactive canine musculoskeletal study app inspired by the interaction patterns of [Human Atlas](https://github.com/ashemag/human-atlas). Built using React, Three.js and a Sites/Vinext scaffold.

@@ -1,4 +1,5 @@
 'use client';
+import {sitePath} from './site-path';
 import {useEffect,useRef,useState} from 'react';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -13,7 +14,7 @@ export default function AnatomyScene({atlas,state,onSelect,language}:{atlas:Atla
   const el=host.current!;let dead=false;let cleanup=()=>{};const abort=new AbortController();
   async function init(){
    try{
-    const response=await fetch('/models/anatomy.bin',{signal:abort.signal});if(!response.ok)throw Error('The anatomy file could not be loaded.');
+    const response=await fetch(sitePath('/models/anatomy.bin'),{signal:abort.signal});if(!response.ok)throw Error('The anatomy file could not be loaded.');
     const buffer=await response.arrayBuffer();if(dead)return;if(buffer.byteLength!==atlas.bytes)throw Error('The anatomy download is incomplete.');
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0,0);renderer.outputColorSpace=THREE.SRGBColorSpace;el.appendChild(renderer.domElement);
     renderer.domElement.setAttribute('aria-label',translate(locale.current,'Interactive canine anatomy. Drag to orbit; scroll or pinch to zoom. Select structures using the list for keyboard access.'));
