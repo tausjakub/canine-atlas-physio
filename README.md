@@ -74,3 +74,6 @@ Czech content is bundled in `app/study-data.cs.json`, `app/ui.cs.json` and `app/
 ## Validation checks
 
 `node --experimental-strip-types scripts/validate.mjs` checks catalogue and geometry bounds, valid indices, finite coordinates, naming, visibility behavior and study-card mappings. `node scripts/validate-notes.mjs` checks all-part coverage, complete content fields, references, fore/hindlimb distinctions, muscle-head distinctions and required qualifications. `npx tsc --noEmit` checks types. The production static build must complete successfully. Browser interactions and physical touch devices have not been tested.
+
+### Spatial anatomy practice
+Study → Practice anatomy in 3D starts ten random targets from 23 named bones. Select directly or highlight anonymous numbered pieces using the keyboard, check once, isolate the answer, read existing source-linked notes, and retry mistakes. Both languages share the same round. Rounds reset when leaving the challenge or reloading; scores are not added to the theory revision queue. Test with `node scripts/validate-challenge.mjs`.
