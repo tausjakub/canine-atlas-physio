@@ -13,12 +13,12 @@ for(const [,url] of html.matchAll(/(?:src|href)="([^"#]+)"/g)){
 }
 assert(assets>0,'No generated assets found');
 assert(fs.existsSync(path.join(root,'.nojekyll')));
-for(const p of ['models/anatomy.bin','models/catalog.json','models/LICENSE-MODEL.txt','study/dog-skeleton-museum.jpg','study/dog-knee-museum.jpg'])assert(fs.existsSync(path.join(root,p)),p);
+for(const p of ['models/anatomy.bin','models/catalog.json','models/LICENSE-MODEL.txt','study/dog-skeleton-museum.jpg','study/dog-knee-museum.jpg',...['calm-approach','gentle-touch','walking-observation'].map(name=>`study/practice/${name}.webp`)])assert(fs.existsSync(path.join(root,p)),p);
 const books=JSON.parse(fs.readFileSync('app/library-data.json','utf8'));
 let count=0;
 for(const book of books)for(const section of book.parts){assert.equal(fs.statSync(path.join(root,section.url)).size,section.bytes);count++;}
 // All runtime asset URLs must use the same deployment prefix as the bundles.
-for(const file of ['page','scene','library','book-reading','exam-quiz','study-visuals']){
+for(const file of ['page','scene','library','book-reading','exam-quiz','study-visuals','practical-study']){
  const source=fs.readFileSync('app/'+file+'.tsx','utf8');assert(source.includes('sitePath('),file);
  assert(!/fetch\(['"]\/|(?:src|href)=['"]\/(?!\/)/.test(source),'Root-only URL in '+file);
 }

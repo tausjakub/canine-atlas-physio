@@ -49,7 +49,7 @@ for(const language of ['en','cs'])for(const m of examModules){
  const Component=loader(mock)('exam-study').default;
  const html=renderToStaticMarkup(React.createElement(Component,{language,onExplore:()=>{}}));
  assert(html.includes(m.title[language].replaceAll('&','&amp;')));assert.equal((html.match(/class="exam-section"/g)||[]).length,m.sections.length);
- assert.equal((html.match(/<details/g)||[]).length,3);assert(!html.includes('undefined'));assert(!html.includes('[object Object]'));
+ assert.equal((html.match(/<details/g)||[]).length,m.quiz.length+2);assert(html.includes('class="exam-case"'));assert(!html.includes('undefined'));assert(!html.includes('[object Object]'));
  assert(html.includes('class="study-photo"')||html.includes('class="memory-figure '),`Missing image/diagram: ${m.id}`);
  assert(html.includes(language==='cs'?'Skrýt':'Hide '));
  if(['anatomy','orthopedics'].includes(m.id)){assert(html.includes('CC BY-SA 4.0'));assert(html.includes('/study/dog-'));assert(html.includes('class="photo-key"'));}
