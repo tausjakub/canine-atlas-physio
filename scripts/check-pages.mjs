@@ -18,7 +18,7 @@ const books=JSON.parse(fs.readFileSync('app/library-data.json','utf8'));
 let count=0;
 for(const book of books)for(const section of book.parts){assert.equal(fs.statSync(path.join(root,section.url)).size,section.bytes);count++;}
 // All runtime asset URLs must use the same deployment prefix as the bundles.
-for(const file of ['page','scene','library','book-reading','exam-quiz','study-visuals','practical-study']){
+for(const file of ['page','scene','library','book-reading','exam-quiz','study-visuals','practical-study','theory-chapter']){
  const source=fs.readFileSync('app/'+file+'.tsx','utf8');assert(source.includes('sitePath('),file);
  assert(!/fetch\(['"]\/|(?:src|href)=['"]\/(?!\/)/.test(source),'Root-only URL in '+file);
 }

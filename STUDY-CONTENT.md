@@ -1,5 +1,13 @@
 # Exam and practical study content
 
+## Detailed theory expansion (18 September 2026)
+
+All 13 exam lessons now start with a bilingual theory chapter: three developed sections, six explanatory paragraphs, a comparison table and a worked example. These supplement rather than replace the 58 criterion explanations, case questions and existing quizzes. Chapter navigation links to the theory sections, comparison, criterion map and recall prompts. Search includes the full theory text. Each chapter links to a related verified PDF section, and existing topic references remain available. The NSK scope was rechecked on 18 September 2026.
+
+The Additional topics / Rozšiřující témata area adds the nine previously requested subjects: Dorn method, Osteodynamika®, applied neurology, small-animal physiotherapy, canine massage, musculoskeletal structure/function, healing/scars, active movement therapy, and reconditioning/recovery. Each has four original explanatory sections, evidence context, a rehearsal prompt, recall question and links back to exam criteria and books. Provider pages identify course terminology and are labelled separately from efficacy evidence. A targeted search did not verify controlled canine efficacy studies for the two named manual systems; this is not presented as proof of ineffectiveness. No proprietary course materials are reproduced.
+
+Direct local views are `?view=exam` and `?view=topics`. These also work under the GitHub Pages base path. `scripts/validate-theory.mjs` checks all chapter IDs, bilingual completeness, textbook targets, both base paths, chapter anchors and additional-topic interactions.
+
 The Exam prep tab retains its 13 topics, 58 criterion mappings and existing quizzes. Each criterion now has an additional bilingual explanation. Each topic adds a fictional case reasoning prompt, an answer and a common mistake. A separate 58-item closed-book recall checklist records self-review, independently of quiz scores.
 
 The Practical / Praxe tab has 12 stations: five home observation/voluntary-handling rehearsals, four rehearsals without a dog, and three instructor-led learning areas. Each has setup, three steps, observation guidance, stop criteria, an oral explanation, three preparation checks, relevant exam links and a PDF-page link. Illustrations are labelled as generated context images; existing anatomy photographs and conceptual diagrams retain their own credits and limitations.
