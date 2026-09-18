@@ -1,0 +1,23 @@
+:root{--theme-base:#0a1119;--theme-surface:#172a34;--theme-text:#eaf1f5;--theme-muted:#aec3cf;--theme-border:#526777;--theme-accent:#6bdfcb;--answer-bg:#203a42;--answer-text:#e2f1f4}
+.header-preferences{display:flex;align-items:center;gap:14px;flex-shrink:0}.theme-picker{display:grid;gap:4px;max-width:185px}.theme-picker label{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--theme-muted)}.theme-picker select{width:100%;min-height:34px;font:inherit;font-size:.75rem;border:1px solid var(--theme-border);border-radius:7px;background:var(--theme-surface);color:var(--theme-text);padding:6px}.theme-picker small{font-size:.65rem;color:var(--theme-muted)}
+.answer-detail{margin:20px 0;border-top:1px solid var(--theme-border);padding-top:16px}.answer-detail h4{font-size:.83rem;margin:12px 0 8px;font-weight:650}.answer-detail p{font-size:.9rem;line-height:1.85}.answer-detail .answer-pitfall{border-left:3px solid var(--theme-accent);padding-left:13px}.answer-detail details{margin:14px 0}.answer-detail summary{cursor:pointer;line-height:1.6;padding:8px 0}.answer-detail .answer-practice{font-size:.8rem}
+html[data-theme] :is(.quiz-feedback,.quiz-answer-list>details,.exam-recall>details,.exam-day-feedback,.practice-oral){background:var(--answer-bg);color:var(--answer-text);border-color:var(--theme-border);border-radius:12px;padding:18px}
+html[data-theme] :is(.quiz-feedback,.quiz-answer-list>details,.exam-recall>details,.exam-day-feedback,.practice-oral) :is(p,h3,h4,small,summary){color:var(--answer-text)}
+html[data-theme] .quiz-options label{background:var(--answer-bg);color:var(--answer-text)}
+html[data-theme] .quiz-options label.picked{outline:2px solid var(--theme-accent);outline-offset:2px}
+html[data-theme] .quiz-options label.correct{border:2px solid var(--theme-accent)}
+html[data-theme] .quiz-options label.incorrect{border:2px dashed currentColor}
+html[data-theme="terracotta"] :is(.exam-content,.practical-page,.library-page){background-image:repeating-linear-gradient(0deg,transparent,transparent 31px,#976e5612 32px);background-color:var(--theme-base)}
+html[data-theme="terracotta"] :is(.exam-day-card,.plan-phase,.theory-unit){box-shadow:3px 4px 0 #78405f12}
+html[data-theme="terracotta"] :is(.exam-heading h1,.plan-hero h1,.practical-hero h1){font-family:Georgia,serif}
+html[data-theme="pastel"] .plan-hero{background:linear-gradient(125deg,#ead9ee,#dceade,#f5e7d5)}
+html[data-theme="pirate"] :is(.exam-content,.practical-page){background-image:repeating-linear-gradient(0deg,transparent 0 79px,#d4b5800c 80px,#0000001f 82px);background-color:var(--theme-base)}
+html[data-theme="pirate"] .plan-hero{border-style:double;border-width:4px;background:radial-gradient(circle at 90% 30%,#e5c0781f,transparent 50%),var(--theme-surface)}
+html[data-theme="pirate"] :is(.exam-heading h1,.plan-hero h1){font-family:Georgia,serif}
+html[data-theme="pyramid"] :is(.exam-content,.practical-page){background:linear-gradient(150deg,transparent 70%,#b3986630 70%),linear-gradient(30deg,transparent 70%,#b3986620 70%),var(--theme-base);background-size:220px 170px}
+html[data-theme="pyramid"] .plan-hero{border:3px double var(--theme-accent);background:linear-gradient(160deg,#f4e6bf,#dcc496)}
+html[data-theme="pyramid"] .plan-step-number{border:1px dashed var(--theme-accent);border-radius:4px}
+html[data-theme="ufo"] :is(.exam-content,.practical-page){background-image:radial-gradient(#d9c9ff55 1px,transparent 1px),radial-gradient(#b2ed9b44 1px,transparent 1px);background-size:61px 71px,97px 113px;background-position:0 0,23px 31px;background-color:var(--theme-base)}
+html[data-theme="ufo"] .plan-hero{background:radial-gradient(ellipse at 85% 20%,#78509866,transparent 65%),var(--theme-surface);box-shadow:inset 0 0 50px #b2ed9b09;border-color:#977dbe}
+@media(max-width:1150px){.app-header{display:flex;flex-wrap:wrap;height:auto;min-height:120px;gap:12px;padding:14px 18px}.app-header .brand{flex:1}.app-header .mode-tabs{order:4;width:100%;justify-content:center;min-height:44px}.header-preferences{margin-left:auto}.app-header .source-button span{display:none}.app-header .source-button{display:flex}}
+@media(max-width:600px){.app-header{padding:12px;gap:10px}.header-preferences{order:3;width:100%;justify-content:space-between}.theme-picker{max-width:none;flex:1}.theme-picker select{max-width:250px}.app-header .mode-tabs{justify-content:flex-start;overflow-x:auto;white-space:nowrap}.app-header .mode-tabs button{flex-shrink:0}.answer-detail p{font-size:.86rem}}

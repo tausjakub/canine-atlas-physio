@@ -1,0 +1,9 @@
+[
+ {"id":"terracotta","cs":"Terakotový zápisník","en":"Terracotta notebook","icon":"✎","scheme":"light","base":"#e8c8b4","surface":"#f8ead9","text":"#3b2928","muted":"#69504e","border":"#ae877b","accent":"#78405f","error":"#972d36","answer":"#e4d5e8","answerText":"#47314f"},
+ {"id":"dark","cs":"Tmavé","en":"Dark","icon":"◐","scheme":"dark","base":"#0a1119","surface":"#172a34","text":"#eaf1f5","muted":"#aec3cf","border":"#526777","accent":"#6bdfcb","error":"#ffa1a1","answer":"#203a42","answerText":"#e2f1f4"},
+ {"id":"light","cs":"Světlé","en":"Light","icon":"☀","scheme":"light","base":"#edf1f5","surface":"#ffffff","text":"#24323c","muted":"#506273","border":"#a8b6c4","accent":"#256358","error":"#a52c3c","answer":"#e5edf7","answerText":"#24384c"},
+ {"id":"pastel","cs":"Pastelové barvy","en":"Pastel colors","icon":"✿","scheme":"light","base":"#e6e2f3","surface":"#fff4eb","text":"#36304b","muted":"#635972","border":"#ada0bf","accent":"#63508a","error":"#9b324e","answer":"#dcece3","answerText":"#28493f"},
+ {"id":"pirate","cs":"Pirátská loď","en":"Pirate ship","icon":"⚓","scheme":"dark","base":"#141f24","surface":"#30332c","text":"#f4e6cc","muted":"#c3b79f","border":"#857157","accent":"#e5c078","error":"#ffb6a6","answer":"#263c42","answerText":"#e9e5d4"},
+ {"id":"pyramid","cs":"Pyramidy a mumie","en":"Pyramids & mummies","icon":"△","scheme":"light","base":"#d8bf8e","surface":"#f4e6bf","text":"#372f23","muted":"#62553c","border":"#a28b58","accent":"#245c60","error":"#973d2e","answer":"#d3e1d7","answerText":"#244642"},
+ {"id":"ufo","cs":"UFO a mimozemšťané","en":"UFO & aliens","icon":"🛸","scheme":"dark","base":"#100e23","surface":"#25203d","text":"#e9e3fb","muted":"#bcb0d2","border":"#69578d","accent":"#b2ed9b","error":"#ffa1c2","answer":"#35274d","answerText":"#eaddfa"}
+]
