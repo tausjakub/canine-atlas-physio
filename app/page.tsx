@@ -4,6 +4,8 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {Bone,Layers3,Search,RotateCcw,RotateCw,Focus,EyeOff,ArrowUpRight,BookOpen,ChevronRight,X,Dog,Check,Info,PanelLeftClose} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import AnatomyScene from './scene';
+import PoseControls from './pose-controls';
+import type {DogPose} from './poses';
 import ExamStudy from './exam-study';
 import PracticalStudy from './practical-study';
 import Library from './library';
@@ -33,6 +35,7 @@ export default function Home(){
  const results=useMemo(()=>atlas?.parts.filter(p=>(area==='All regions'||region(p)===area)&&(!query||normalizeSearch(`${structureName(p,'en')} ${structureName(p,'cs')} ${displayName(p.id)} ${p.id} ${translate(language,systems.find(s=>s.id===p.system)!.name)}`).includes(normalizeSearch(query)))).sort((a,b)=>structureName(a,language).localeCompare(structureName(b,language),language))||[],[atlas,query,area,language]);
  const count=atlas?.parts.filter(p=>isShown(p,state)).length||0;
  const choose=(id:string)=>{setState(s=>({...s,selected:id,isolate:false,hidden:s.hidden.filter(h=>h!==id),rotate:false}));setMobile(false)};
+ const changePose=(pose:DogPose)=>setState(s=>({...s,pose,selected:null,isolate:false,hidden:[],explode:0,rotate:false,reset:s.reset+1}));
  const reset=()=>{setState(s=>({...initial,reset:s.reset+1}));setQuery('');setArea('All regions')};
  const toggle=(system:System)=>setState(s=>({...s,selected:null,isolate:false,systems:s.systems.includes(system)?s.systems.filter(x=>x!==system):[...s.systems,system]}));
  const quizBase=notes[card%notes.length];
@@ -43,6 +46,7 @@ export default function Home(){
   <div className="workspace" style={tab==='library'||tab==='exam'||tab==='practical'||(tab==='study'&&challenge)?{display:'none'}:undefined}>
    <aside className={`sidebar ${mobile?'mobile-open':''}`} aria-label={t("Anatomy controls")}><div className="side-heading"><span>{t("ANATOMICAL STRUCTURES")}</span><button className="mobile-close icon" onClick={()=>setMobile(false)} aria-label={t("Close structure controls")}><X size={18}/></button></div>
     <label className="search-field"><Search size={17}/><input ref={search} placeholder={t("Find a structure…")} aria-label={t("Find a structure")} value={query} onChange={e=>setQuery(e.target.value)}/><kbd>/</kbd></label>
+    <PoseControls pose={state.pose||'standing'} onChange={changePose} language={language}/>
     <div className="section-title"><h2>{t("Layers")}</h2><span>{systems.length}</span></div>
     <div className="presets"><button onClick={()=>setState(s=>({...s,systems:['bone','muscle'],selected:null,isolate:false,hidden:[]}))}>{t("Musculoskeletal")}</button><button onClick={()=>setState(s=>({...s,systems:['bone'],selected:null,isolate:false,hidden:[]}))}>{t("Skeleton")}</button><button onClick={()=>setState(s=>({...s,systems:['bone','ligament'],selected:null,isolate:false,hidden:[],explode:0,reset:s.reset+1}))}>{t("Bones + ligaments")}</button></div>
     <div className="layer-list">{systems.map(sys=><button key={sys.id} className="layer-row" aria-pressed={state.systems.includes(sys.id)} onClick={()=>toggle(sys.id)}><span className="layer-dot" style={{background:sys.color}}/><span>{t(sys.name)}</span><small>{atlas?.parts.filter(p=>p.system===sys.id).length??'—'}</small><span className={`switch ${state.systems.includes(sys.id)?'on':''}`}><i/></span></button>)}</div>
@@ -60,7 +64,7 @@ export default function Home(){
     {atlas?.parts.some(p=>p.system==='ligament'&&isShown(p,state))&&<div className="ligament-legend" role="note"><span/>{t("Ligament guides · approximate anatomy")}</div>}
     <div className="orientation"><span>{t("CAMERA PRESET")}</span><small>{t(state.view==='lateral'?'Left lateral view':state.view==='right'?'Right lateral view':state.view==='dorsal'?'Dorsal view':state.view==='cranial'?'Cranial view':'Oblique view')}</small></div>
     <nav className="view-tools" aria-label={t("Camera controls")}>{[['lateral','L','Left lateral view'],['right','R','Right lateral view'],['cranial','Cr','Cranial view'],['dorsal','D','Dorsal view'],['three-quarter','¾','Oblique view']].map(([v,label,title])=><button key={v} title={t(title)} aria-label={t(title)} aria-pressed={state.view===v} onClick={()=>setState(s=>({...s,view:v,explode:0,reset:s.reset+1,rotate:false}))}>{language==='cs'?(label==='R'?'P':label==='Cr'?'Kr':label):label}</button>)}<i/><button title={t("Auto rotate")} aria-label={t("Auto rotate")} aria-pressed={state.rotate} onClick={()=>setState(s=>({...s,rotate:!s.rotate}))}><RotateCw size={17}/></button><button title={t("Reset view and layers")} aria-label={t("Reset view and layers")} onClick={reset}><RotateCcw size={17}/></button></nav>
-    <div className="explode-dock"><Layers3 size={20}/><div><label htmlFor="explode">{t("Explode anatomy")} <output>{Math.round(state.explode*100)}%</output></label><input id="explode" type="range" min="0" max="1" step="0.01" value={state.explode} onChange={e=>setState(s=>({...s,explode:+e.target.value,rotate:false,isolate:false}))}/><div className="range-captions"><span>{t("Assembled")}</span><span>{t("Separate pieces")}</span></div></div><button aria-label={t("Reassemble anatomy")} onClick={()=>setState(s=>({...s,explode:0,reset:s.reset+1}))}><RotateCcw size={17}/></button></div>
+    <div className="explode-dock"><Layers3 size={20}/><div><label htmlFor="explode">{t("Explode anatomy")} <output>{Math.round(state.explode*100)}%</output></label><input id="explode" type="range" min="0" max="1" step="0.01" value={state.explode} onChange={e=>setState(s=>({...s,pose:'standing',explode:+e.target.value,rotate:false,isolate:false}))}/><div className="range-captions"><span>{t("Assembled")}</span><span>{t("Separate pieces")}</span></div></div><button aria-label={t("Reassemble anatomy")} onClick={()=>setState(s=>({...s,explode:0,reset:s.reset+1}))}><RotateCcw size={17}/></button></div>
     <footer className="viewer-footer"><span>{t('Drag to orbit')} <b>·</b> {t('Scroll / pinch to zoom')} <b>·</b> {t('Click to inspect')}</span><span>{t("Educational reference")}</span></footer>
    </section>
    <aside ref={inspector} className="inspector" aria-label={tab==='study'?t("Study cards"):t("Structure details")}>

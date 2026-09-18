@@ -88,3 +88,22 @@ for(const language of ['en','cs'])for(const selected of [null,'m_supraspinatus_R
  if(language==='cs')for(const leak of ['Review anatomy source','Find in the 3D model','Source identity qualification','Model repository','Show surrounding anatomy'])assert(!html.includes(leak),`Czech render leaks ${leak}`);
 }
 console.log('PASS: English and Czech page rendering for empty selection, muscles, limb-specific notes, ambiguous pieces, vertebrae and revealed study cards.');
+
+// Regression: changing layers, presets or selected tissues must preserve a pose.
+function findElement(node,predicate){if(Array.isArray(node)){for(const n of node){const found=findElement(n,predicate);if(found)return found;}}else if(node&&typeof node==='object'){if(predicate(node))return node;return findElement(node.props?.children,predicate);}}
+for(const pose of ['sitting','lying']){
+ let state={...load('anatomy').initial,pose,systems:['bone']};
+ const Scene=()=>null;
+ const mockReact={...React,useEffect:()=>{},useMemo:f=>f(),useRef:()=>({current:null}),useState:init=>[init===null?atlas:init===load('anatomy').initial?state:init,update=>{if(init===load('anatomy').initial)state=typeof update==='function'?update(state):update;}]};
+ const exports={};new Function('require','exports',pageCode)(s=>s==='react'?mockReact:s==='./scene'?{__esModule:true,default:Scene}:s==='@/components/ui/button'?{Button:()=>null}:s.endsWith('.json')?json('app/'+s.slice(2)):s.startsWith('./')?load(s.slice(2)):require(s),exports);
+ for(const system of ['muscle','ligament','connective','surface']){
+  const index=load('anatomy').systems.findIndex(s=>s.id===system);
+  let tree=exports.default();const rows=findElement(tree,n=>n.props?.className==='layer-list').props.children;
+  rows[index].props.onClick();assert.equal(state.pose,pose);assert(state.systems.includes(system));
+  tree=exports.default();assert.equal(findElement(tree,n=>n.props?.className==='layer-list').props.children[index].props['aria-pressed'],true);
+  findElement(tree,n=>n.props?.className==='layer-list').props.children[index].props.onClick();assert.equal(state.pose,pose);assert(!state.systems.includes(system));
+ }
+ const tree=exports.default();findElement(tree,n=>n.type===Scene).props.onSelect('m_supraspinatus_R');assert.equal(state.pose,pose);assert.equal(state.selected,'m_supraspinatus_R');
+ for(const button of findElement(tree,n=>n.props?.className==='presets').props.children){button.props.onClick();assert.equal(state.pose,pose);}
+}
+console.log('PASS: sitting and lying persist through every tissue layer toggle, layer preset and muscle selection.');

@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {type Atlas,type SceneState,isShown,displayName,systems} from './anatomy';
 import {type Language,translate} from './i18n';
+import {dogPoses,poseMatrix,bindSoftVertices,deformSoftVertices,type DogPose} from './poses';
 type Engine={update:(s:SceneState)=>void;destroy:()=>void};
 export default function AnatomyScene({atlas,state,onSelect,language}:{atlas:Atlas;state:SceneState;onSelect:(id:string)=>void;language:Language}){
  const t=(key:string)=>translate(language,key),locale=useRef(language);locale.current=language;
@@ -26,6 +27,13 @@ export default function AnatomyScene({atlas,state,onSelect,language}:{atlas:Atla
     const meshes:THREE.Mesh<THREE.BufferGeometry,THREE.MeshStandardMaterial>[]=[];
     atlas.parts.forEach(p=>{const g=p.path?new THREE.TubeGeometry(new THREE.CatmullRomCurve3(p.path.map(v=>new THREE.Vector3(...v)),false,'centripetal'),24,p.radius,8,false):new THREE.BufferGeometry();if(!p.path){g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(buffer,p.vertexOffset,p.vertexCount*3),3));g.setIndex(new THREE.BufferAttribute(new Uint32Array(buffer,p.indexOffset,p.indexCount),1));g.computeVertexNormals();}g.computeBoundingBox();
      const color=systems.find(s=>s.id===p.system)!.color;const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:.63,metalness:.02,side:THREE.DoubleSide}));m.userData.part=p;scene.add(m);meshes.push(m);});
+    const poseMatrices=new Map(dogPoses.map(pose=>[pose,new Map(atlas.parts.map(p=>[p.id,poseMatrix(p,pose)]))]));
+    const bones=atlas.parts.filter(p=>p.system==='bone');
+    const softGeometry=new Map(meshes.filter(m=>m.userData.part.system!=='bone').map(m=>[m,{
+     rest:(m.geometry.getAttribute('position').array as Float32Array).slice(),
+     bindings:null as ReturnType<typeof bindSoftVertices>|null,
+     poses:new Map<DogPose,Float32Array>(),active:'standing' as DogPose
+    }]));
     const box=new THREE.Box3();let previous:SceneState|undefined;
     function frame(view:string){box.makeEmpty();meshes.filter(m=>m.visible).forEach(m=>box.expandByObject(m));if(box.isEmpty())return;
      const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
@@ -39,9 +47,19 @@ export default function AnatomyScene({atlas,state,onSelect,language}:{atlas:Atla
      meshes.forEach(m=>{const p=m.userData.part;m.visible=isShown(p,s);const selected=p.id===s.selected;
       m.material.color.set(selected?'#67e0d0':systems.find(t=>t.id===p.system)!.color);m.material.emissive.set(selected?'#123d39':'#000000');
       m.material.opacity=selected?1:p.system==='muscle'?s.opacity:p.system==='surface'?.20:1;m.material.transparent=m.material.opacity<1;m.material.depthWrite=m.material.opacity>=1;
-      m.position.copy(layout.get(p.id)||new THREE.Vector3()).multiplyScalar(s.explode);});
+      const pose=s.pose||'standing',soft=softGeometry.get(m);
+      if(soft&&soft.active!==pose){
+       let positions=pose==='standing'?soft.rest:soft.poses.get(pose);
+       if(!positions){soft.bindings??=bindSoftVertices(soft.rest,bones);positions=deformSoftVertices(soft.rest,soft.bindings,pose);soft.poses.set(pose,positions);}
+       const attribute=m.geometry.getAttribute('position') as THREE.BufferAttribute;
+       attribute.set(positions);attribute.needsUpdate=true;
+       m.geometry.computeVertexNormals();m.geometry.computeBoundingBox();m.geometry.computeBoundingSphere();soft.active=pose;
+      }
+      m.matrixAutoUpdate=false;
+      if(soft)m.matrix.identity();else m.matrix.copy(poseMatrices.get(pose)!.get(p.id)!);
+      const translation=new THREE.Vector3().setFromMatrixPosition(m.matrix).addScaledVector(layout.get(p.id)||new THREE.Vector3(),s.explode);m.matrix.setPosition(translation);m.matrixWorldNeedsUpdate=true;});
      controls.autoRotate=s.rotate;
-     if(!previous||previous.reset!==s.reset||previous.view!==s.view||previous.isolate!==s.isolate||previous.explode!==s.explode||(s.isolate&&previous.selected!==s.selected))frame(s.explode>0?'lateral':s.view);
+     if(!previous||previous.pose!==s.pose||previous.reset!==s.reset||previous.view!==s.view||previous.isolate!==s.isolate||previous.explode!==s.explode||(s.isolate&&previous.selected!==s.selected))frame(s.explode>0?'lateral':s.view);
      previous={...s};
     }
     let width=0,height=0;const resize=()=>{const r=el.getBoundingClientRect();if(!r.width||!r.height)return;camera.aspect=r.width/r.height;camera.updateProjectionMatrix();renderer.setSize(r.width,r.height);if(width!==r.width||height!==r.height){width=r.width;height=r.height;frame(latest.current.view);}};
