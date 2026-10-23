@@ -1,8 +1,8 @@
 import type {DogPose} from './poses';
 export type System = 'bone'|'muscle'|'connective'|'surface'|'ligament';
 export type Part = {id:string;system:System;vertexOffset:number;vertexCount:number;indexOffset:number;indexCount:number;center:number[];bounds:number[][];path?:number[][];radius?:number;anatomicalRegion?:string};
-export type Atlas = {parts:Part[];bytes:number};
-export type SceneState = {systems:System[];selected:string|null;hidden:string[];isolate:boolean;explode:number;opacity:number;view:string;reset:number;rotate:boolean;pose?:DogPose};
+export type Atlas = {parts:Part[];bytes:number;binaryPath?:string;poseConfig?:import('./poses').PoseConfig;species?:'cat'|'rabbit'};
+export type SceneState = {systems:System[];selected:string|null;hidden:string[];isolate:boolean;explode:number;opacity:number;view:string;reset:number;rotate:boolean;pose?:DogPose;focusSelected?:boolean};
 export const systems:{id:System;name:string;color:string}[]=[{id:'bone',name:'Skeleton',color:'#e6d5ad'},{id:'muscle',name:'Muscles',color:'#cf7776'},{id:'ligament',name:'Ligaments · schematic',color:'#eeb85b'},{id:'connective',name:'Connective tissue',color:'#abc8d6'},{id:'surface',name:'Body surface',color:'#758d9c'}];
 export const initial:SceneState={systems:['bone','muscle'],selected:null,hidden:[],isolate:false,explode:0,opacity:1,view:'lateral',reset:0,rotate:false,pose:'standing'};
 export function displayName(id:string){

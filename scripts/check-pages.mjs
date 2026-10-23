@@ -17,10 +17,16 @@ for(const p of ['models/anatomy.bin','models/catalog.json','models/LICENSE-MODEL
 const books=JSON.parse(fs.readFileSync('app/library-data.json','utf8'));
 assert(!books.some(book=>book.id==='dorn-method-dogs'),'Removed Dorn document must not return to the library');
 for(const name of fs.readdirSync(path.join(root,'library')))assert(!/^dorn-(?:method-dogs-.*\.pdf|preview-.*\.jpg)$/.test(name),'Removed Dorn document asset remains in the build: '+name);
+for(const species of ['cat','rabbit'])assert.equal(fs.statSync(path.join(root,'models',species,'skeleton-scan.glb')).size,fs.statSync(path.join('public/models',species,'skeleton-scan.glb')).size);
+assert(fs.existsSync(path.join(root,'models/SCAN-CREDITS.md')));
+const feline=JSON.parse(fs.readFileSync(path.join(root,'models/cat/detailed-catalog.json'),'utf8'));
+assert.equal(fs.statSync(path.join(root,feline.binaryPath)).size,feline.bytes);
+assert(fs.existsSync(path.join(root,'models/cat/FELINE-CREDITS.md')));
+for(const species of ['cat','rabbit']){const atlas=JSON.parse(fs.readFileSync(path.join(root,'models',species,'catalog.json'),'utf8'));assert.equal(fs.statSync(path.join(root,atlas.binaryPath)).size,atlas.bytes);}
 let count=0;
 for(const book of books)for(const section of book.parts){assert.equal(fs.statSync(path.join(root,section.url)).size,section.bytes);count++;}
 // All runtime asset URLs must use the same deployment prefix as the bundles.
-for(const file of ['page','scene','library','book-reading','exam-quiz','study-visuals','practical-study','theory-chapter']){
+for(const file of ['page','scene','native-species-atlas','species-scan','library','book-reading','exam-quiz','study-visuals','practical-study','theory-chapter']){
  const source=fs.readFileSync('app/'+file+'.tsx','utf8');assert(source.includes('sitePath('),file);
  assert(!/fetch\(['"]\/|(?:src|href)=['"]\/(?!\/)/.test(source),'Root-only URL in '+file);
 }
