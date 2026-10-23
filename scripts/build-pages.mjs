@@ -1,5 +1,6 @@
 import {spawnSync} from 'node:child_process';
 import {writeFileSync,renameSync} from 'node:fs';
+if(process.env.ATLAS_GATE_BUILD!=='1')throw new Error('This private branch requires npm run build:private. Do not publish a raw GitHub Pages or Sites artifact.');
 const base=process.env.PAGES_BASE_PATH??'/canine-atlas-physio';
 if(base && !/^\/[a-zA-Z0-9_.-]+$/.test(base))throw new Error('PAGES_BASE_PATH must be empty or a single /repository-name.');
 const result=spawnSync(process.execPath,['node_modules/vinext/dist/cli.js','build'],{stdio:'inherit',env:{...process.env,PAGES_BASE_PATH:base}});

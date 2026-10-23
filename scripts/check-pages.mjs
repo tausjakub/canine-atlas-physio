@@ -15,6 +15,8 @@ assert(assets>0,'No generated assets found');
 assert(fs.existsSync(path.join(root,'.nojekyll')));
 for(const p of ['models/anatomy.bin','models/catalog.json','models/LICENSE-MODEL.txt','study/dog-skeleton-museum.jpg','study/dog-knee-museum.jpg',...['calm-approach','gentle-touch','walking-observation'].map(name=>`study/practice/${name}.webp`)])assert(fs.existsSync(path.join(root,p)),p);
 const books=JSON.parse(fs.readFileSync('app/library-data.json','utf8'));
+assert(!books.some(book=>book.id==='dorn-method-dogs'),'Removed Dorn document must not return to the library');
+for(const name of fs.readdirSync(path.join(root,'library')))assert(!/^dorn-(?:method-dogs-.*\.pdf|preview-.*\.jpg)$/.test(name),'Removed Dorn document asset remains in the build: '+name);
 let count=0;
 for(const book of books)for(const section of book.parts){assert.equal(fs.statSync(path.join(root,section.url)).size,section.bytes);count++;}
 // All runtime asset URLs must use the same deployment prefix as the bundles.

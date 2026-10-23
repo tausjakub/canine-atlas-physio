@@ -1,3 +1,5 @@
+> **PRIVATE BRANCH:** Use `npm run build:private` and `npm run preview:private`. This branch requires the authentication Worker; GitHub Pages and raw Sites uploads bypass it. The older deployment instructions below are historical. See [private branch setup](docs/PRIVATE-BRANCH.md).
+
 # GitHub Pages setup
 
 The project is ready for `https://tausjakub.github.io/canine-atlas-physio/`.
