@@ -1,3 +1,5 @@
+> **PRIVATE BRANCH:** Use `npm run build:private` and `npm run preview:private`. This branch requires the authentication Worker; GitHub Pages and raw Sites uploads bypass it. The older deployment instructions below are historical. See [private branch setup](docs/PRIVATE-BRANCH.md).
+
 # GitHub Pages
 
 See [GITHUB-PAGES.md](GITHUB-PAGES.md) for the tested build command and manual deployment steps.

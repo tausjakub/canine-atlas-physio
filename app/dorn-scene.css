@@ -1,0 +1,30 @@
+.dorn-three-scene{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 48% 38%,#293f4c 0%,#142b35 58%,#10222c 100%);color:#dcebed}
+.dorn-three-detail{height:460px;min-height:330px;width:100%}
+.dorn-three-overview{height:150px;width:100%;border:1px solid var(--theme-border);border-radius:13px;background:radial-gradient(ellipse at 50% 42%,#29414b,#142a33 72%)}
+.dorn-three-canvas{position:absolute;inset:0}
+.dorn-three-canvas canvas{display:block;width:100%;height:100%;cursor:grab;outline-offset:-5px;touch-action:none}
+.dorn-three-canvas canvas:active{cursor:grabbing}
+.dorn-three-canvas canvas:focus-visible{outline:2px solid #92ebdb}
+.dorn-three-heading{position:absolute;top:22px;left:24px;pointer-events:none;display:flex;flex-direction:column;gap:7px;max-width:52%;text-shadow:0 2px 9px #10232c}
+.dorn-three-kicker{font-size:.57rem;letter-spacing:.16em;color:#a5c6cc;font-weight:600}
+.dorn-three-heading strong{font-size:1.05rem;line-height:1.3;letter-spacing:-.01em;font-weight:500}
+.dorn-three-state{font-size:.67rem;color:#b4ced0}
+.dorn-three-tools{position:absolute;right:17px;top:17px;display:flex;gap:5px;align-items:center}
+.dorn-three-tools button,.dorn-three-zoom button{display:flex;align-items:center;justify-content:center;gap:6px;color:#dcebed!important;background:rgba(10,27,36,.78)!important;border:1px solid #587079!important;border-radius:7px;min-height:34px;padding:7px 10px;font-size:.67rem;line-height:1.3;cursor:pointer;backdrop-filter:blur(10px)}
+.dorn-three-tools button:hover,.dorn-three-zoom button:hover{background:#2d4953!important;border-color:#9cb9be!important}
+.dorn-three-tools button[aria-pressed=true]{color:#9cf3df!important;border-color:#7dd7c4!important;background:#234a4b!important}
+.dorn-three-tools button:last-child{padding-inline:9px}
+.dorn-three-zoom{position:absolute;bottom:22px;right:19px;display:flex;gap:6px}
+.dorn-three-zoom button{min-width:34px;padding:7px}
+.dorn-three-legend{display:flex;align-items:center;flex-wrap:wrap;gap:13px;position:absolute;bottom:48px;left:24px;font-size:.61rem;pointer-events:none;color:#bed0d3;text-shadow:0 2px 6px #13252d}
+.dorn-three-legend span{display:flex;align-items:center;gap:6px}
+.dorn-three-legend i{width:10px;height:10px;border-radius:50%;background:#f1dfbd;box-shadow:0 0 0 1px #fff3ce55}
+.dorn-three-legend span:nth-child(2) i{background:transparent;box-shadow:none;border:1px dashed #a5bbc2}
+.dorn-three-hint{position:absolute;left:24px;bottom:20px;margin:0!important;font-size:.61rem;line-height:1.4;color:#9fb8bf;pointer-events:none}
+.dorn-three-plane-note{position:absolute;left:24px;bottom:77px;max-width:65%;margin:0!important;color:#d2e6ec;font-size:.63rem;line-height:1.6;pointer-events:none;text-shadow:0 2px 6px #10232c}.dorn-three-plane-note span{display:block;color:#adc7d1;font-size:.5rem;letter-spacing:.08em;margin-bottom:2px}
+.dorn-three-status{position:absolute;inset:0;display:flex;gap:12px;align-items:center;justify-content:center;flex-direction:column;padding:22px;text-align:center;font-size:.82rem;color:#bfd4d8;background:radial-gradient(ellipse,#233f4d,#142b35);z-index:4}
+.dorn-three-status svg{color:#8bdccc}.dorn-three-status button{padding:8px 13px;border:1px solid #8bdccc;border-radius:6px;cursor:pointer;background:#213d47;color:#ceeee5}
+.dorn-three-overview .dorn-three-status{font-size:.66rem;padding:10px;gap:7px}
+@media(max-width:1050px){.dorn-three-detail{height:430px}.dorn-three-heading{left:19px;top:20px}.dorn-three-tools{right:12px;top:15px}.dorn-three-tools button{padding:7px 8px}.dorn-three-tools button span{display:none}.dorn-three-hint,.dorn-three-legend{left:19px}.dorn-three-zoom{right:14px}}
+@media(max-width:760px){.dorn-three-detail{height:440px}.dorn-three-tools button span{display:inline}}
+@media(max-width:520px){.dorn-three-detail{height:390px;min-height:320px}.dorn-three-heading{top:18px;left:16px;gap:6px;max-width:43%}.dorn-three-heading strong{font-size:.94rem}.dorn-three-kicker{font-size:.53rem}.dorn-three-tools{top:14px;right:11px}.dorn-three-tools button{padding:7px;min-height:32px}.dorn-three-tools button span{display:none}.dorn-three-hint,.dorn-three-legend{left:16px;font-size:.56rem}.dorn-three-legend{gap:10px}.dorn-three-zoom{right:12px;bottom:20px}.dorn-three-hint{max-width:calc(100% - 100px)}.dorn-three-plane-note{left:16px;font-size:.59rem;bottom:76px}}

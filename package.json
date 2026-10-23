@@ -6,13 +6,18 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "vinext dev",
-    "build": "vinext build",
-    "start": "wrangler dev --config dist/server/wrangler.json",
+    "dev": "node scripts/serve-private.mjs",
+    "build": "node scripts/build-private.mjs",
+    "start": "node scripts/serve-private.mjs",
     "lint": "oxlint",
     "format": "oxfmt",
     "build:pages": "node scripts/build-pages.mjs",
-    "check:pages": "node scripts/check-pages.mjs"
+    "check:pages": "node scripts/check-pages.mjs",
+    "configure:private": "node scripts/configure-private.mjs",
+    "build:private": "node scripts/build-private.mjs",
+    "preview:private": "node scripts/serve-private.mjs",
+    "check:private": "node scripts/validate-private.mjs",
+    "deploy:private": "wrangler deploy --config wrangler.private.jsonc"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

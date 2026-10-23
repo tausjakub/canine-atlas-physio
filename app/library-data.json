@@ -173,7 +173,10 @@
         "end": 809,
         "bytes": 592224
       }
-    ]
+    ],
+    "language": "en",
+    "category": "rehabilitation",
+    "scanned": false
   },
   {
     "id": "veterinary-technicians",
@@ -235,7 +238,10 @@
         "end": 437,
         "bytes": 541755
       }
-    ]
+    ],
+    "language": "en",
+    "category": "rehabilitation",
+    "scanned": false
   },
   {
     "id": "modern-astrophysics",
@@ -435,6 +441,9 @@
         "end": 1361,
         "bytes": 13486520
       }
-    ]
+    ],
+    "language": "en",
+    "category": "astrophysics",
+    "scanned": false
   }
 ]
