@@ -16,6 +16,7 @@
     "private-assets/**",
     "dist/**",
     "*.md",
-    "docs/**"
+    "docs/**",
+    "wrangler.private.jsonc"
   ]
 }
