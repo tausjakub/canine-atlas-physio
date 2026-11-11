@@ -1,16 +1,43 @@
-> **PRIVATE BRANCH:** Use `npm run build:private` and `npm run preview:private`. This branch requires the authentication Worker; GitHub Pages and raw Sites uploads bypass it. The older deployment instructions below are historical. See [private branch setup](docs/PRIVATE-BRANCH.md).
-
-# GitHub Pages
-
-See [GITHUB-PAGES.md](GITHUB-PAGES.md) for the tested build command and manual deployment steps.
-
 # Canine Atlas
 
-An interactive canine musculoskeletal study app inspired by the interaction patterns of [Human Atlas](https://github.com/ashemag/human-atlas). Built using React, Three.js and a Sites/Vinext scaffold.
+Interactive canine musculoskeletal atlas and exam-preparation companion for
+small-animal physiotherapy trainees (Czech qualification 43-001-R), in Czech and
+English. React, Three.js and a Vinext static export.
 
-## Run
+## Editions
 
-Use Node.js 22.13 or newer. Install with `npm ci`, then `npm run dev`. Build static output with `npm run build` into `dist/client`.
+| | Public demo | Private edition |
+| --- | --- | --- |
+| Build | `npm run build:demo` | `npm run build:private` |
+| Hosting | GitHub Pages (`.github/workflows/demo-pages.yml`, on push to `main`) | Cloudflare Worker that authenticates every request ([setup](docs/PRIVATE-BRANCH.md)) |
+| 3D atlas, study cards, exam prep, quizzes, practical stations | yes | yes |
+| Book reading library and "read in your book" links | no | yes, if `private-assets/library/` exists |
+| Dorn course material, personal exam plan, logout | no | yes |
+
+The edition is fixed at build time (`app/edition.ts`, `vite.config.ts`), so
+private-only views are not just hidden in the demo; they are absent from its
+bundle. `scripts/check-pages.mjs` fails a demo build that contains any PDF,
+reader link or session code.
+
+**Licensed books never go in Git.** Place the supplied PDF sections in
+`private-assets/library/` (ignored). Rights status for every asset:
+[docs/RIGHTS-AND-ATTRIBUTION.md](docs/RIGHTS-AND-ATTRIBUTION.md).
+
+## Develop
+
+Node.js 22.13 or newer (older 22.x silently skips native build dependencies).
+
+```sh
+npm ci
+npm run build:demo       # public static export into dist/client
+npm run typecheck        # tsc --noEmit
+npx oxlint               # lint (0 errors expected)
+npx oxfmt --check        # formatting
+npm run validate         # every content and logic validator
+node scripts/mobile-check.mjs work/screens   # responsive screenshots + overflow check
+```
+
+`npm run dev` serves the protected private build locally (see the private setup).
 
 ## Capabilities
 
@@ -84,5 +111,5 @@ Czech content is bundled in `app/study-data.cs.json`, `app/ui.cs.json` and `app/
 ### Spatial anatomy practice
 Study → Practice anatomy in 3D starts ten random targets from 23 named bones. Select directly or highlight anonymous numbered pieces using the keyboard, check once, isolate the answer, read existing source-linked notes, and retry mistakes. Both languages share the same round. Rounds reset when leaving the challenge or reloading; scores are not added to the theory revision queue. Test with `node scripts/validate-challenge.mjs`.
 
-### Private reading library and study links
+### Private reading library and study links (private edition only)
 Three user-supplied PDFs are split into 69 browser-readable sections (2,607 pages). Anatomy notes have direct text-match links for 100 of 168 profiles, with an explicitly labelled general chapter link for unmatched profiles. All 13 exam topics have related section links; ligament guides link to regional figures. Links use original PDF page positions and translate to the local section page; opening a new tab preserves the study session. Astrophysics remains available for reading but is not used as a veterinary anatomy source. Books retain original English. Full extracted text is kept outside the app; the app stores page references only. Run `node scripts/validate-reading.mjs` to verify links and reader offsets.

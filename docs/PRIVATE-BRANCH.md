@@ -1,4 +1,11 @@
-# Private atlas study branch
+# Private edition
+
+> Since 2026-11-11 the book PDFs are kept out of Git in `private-assets/library/`.
+> `npm run build:private` copies them into the gated build when that folder
+> exists. The GitHub Actions deploy checks out Git only, so a CI deploy ships
+> **without** the reading library; deploy from a machine that has the folder
+> (`npm run build:private && npm run deploy:private`) to include it.
+
 
 Branch: `feature/private-dorn-library`.
 
