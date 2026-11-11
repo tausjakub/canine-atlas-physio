@@ -98,10 +98,11 @@ export default function FurtherStudy({
           <div>
             {topic.criteria.map((id) => {
               const [moduleId, criterion] = id.split('.'),
-                module = examModules.find((m) => m.id === moduleId)!;
+                topicModule = examModules.find((m) => m.id === moduleId)!;
               return (
                 <button key={id} onClick={() => onLesson(moduleId, criterion)}>
-                  {local(module.title, language)} · {criterion.toUpperCase()} →
+                  {local(topicModule.title, language)} ·{' '}
+                  {criterion.toUpperCase()} →
                 </button>
               );
             })}

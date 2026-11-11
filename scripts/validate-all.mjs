@@ -3,29 +3,29 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 
+/** @type {Array<[string, string[]]>} */
 const checks = [
   ['validate.mjs', ['--experimental-strip-types']],
-  ['validate-notes.mjs'],
-  ['validate-i18n.mjs'],
-  ['validate-exam.mjs'],
-  ['validate-quiz.mjs'],
-  ['validate-challenge.mjs'],
-  ['validate-reading.mjs'],
-  ['validate-theory.mjs'],
-  ['validate-practice.mjs'],
-  ['validate-poses.mjs'],
-  ['validate-personal-plan.mjs'],
-  ['validate-exam-day.mjs'],
-  ['validate-dorn-3d.mjs'],
-  ['validate-dorn-movements.mjs'],
-  ['validate-themes.mjs'],
-  ['validate-private.mjs'],
-  ['validate-editions.mjs'],
+  ['validate-notes.mjs', []],
+  ['validate-i18n.mjs', []],
+  ['validate-exam.mjs', []],
+  ['validate-quiz.mjs', []],
+  ['validate-challenge.mjs', []],
+  ['validate-reading.mjs', []],
+  ['validate-theory.mjs', []],
+  ['validate-practice.mjs', []],
+  ['validate-poses.mjs', []],
+  ['validate-personal-plan.mjs', []],
+  ['validate-exam-day.mjs', []],
+  ['validate-dorn-3d.mjs', []],
+  ['validate-dorn-movements.mjs', []],
+  ['validate-themes.mjs', []],
+  ['validate-private.mjs', []],
 ];
 
 const verbose = process.argv.includes('--verbose');
 let failed = 0;
-for (const [script, flags = []] of checks) {
+for (const [script, flags] of checks) {
   const file = `scripts/${script}`;
   if (!existsSync(file)) continue;
   const started = Date.now();

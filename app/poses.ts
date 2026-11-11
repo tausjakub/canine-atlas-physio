@@ -66,9 +66,9 @@ export function poseRig(pose: DogPose) {
 }
 export function poseSegment(part: Part): keyof ReturnType<typeof poseRig> {
   const id = part.id;
-  if (/^Ca_/.test(id)) return 'tail';
-  if (/^Phalanges_B/.test(id)) return 'hindtoes';
-  if (/^Phalanx/.test(id)) return 'foretoes';
+  if (id.startsWith('Ca_')) return 'tail';
+  if (id.startsWith('Phalanges_B')) return 'hindtoes';
+  if (id.startsWith('Phalanx')) return 'foretoes';
   if (/^humerus_/i.test(id)) return 'arm';
   if (/^(Radius|Ulna)_/.test(id)) return 'forearm';
   if (/^(Carpal|Os_metacarpale|Phalanx)/.test(id)) return 'forefoot';

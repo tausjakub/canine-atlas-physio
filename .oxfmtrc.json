@@ -8,6 +8,14 @@
     "pnpm-lock.yaml",
     "yarn.lock",
     "bun.lock",
-    "bun.lockb"
+    "bun.lockb",
+    "app/*.json",
+    "scripts/*.json",
+    "scripts/notes/**",
+    "public/**",
+    "private-assets/**",
+    "dist/**",
+    "*.md",
+    "docs/**"
   ]
 }

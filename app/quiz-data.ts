@@ -77,8 +77,8 @@ special|d|What determines exercise limits in cardiac disease?|Co určuje hranice
 export const questions: Question[] = rows.map((row) => {
   const [topic, criterion, en, cs, ...options] = row.split('|'),
     id = `${topic}-${criterion}-v1`,
-    module = examModules.find((m) => m.id === topic),
-    section = module?.sections.find((s) => s.criteria === criterion);
+    topicModule = examModules.find((m) => m.id === topic),
+    section = topicModule?.sections.find((s) => s.criteria === criterion);
   if (!section || options.length !== 6)
     throw Error(`Invalid quiz question: ${id}`);
   return {

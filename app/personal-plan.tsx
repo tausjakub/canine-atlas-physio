@@ -47,6 +47,7 @@ export default function PersonalPlan({
   }, []);
   useEffect(() => {
     if (today)
+      // oxlint-disable-next-line react/react-compiler -- hydrate browser-only state after mount (static export)
       setExpanded(
         phaseForDate(today)?.id ||
           (today > '2026-11-12' ? 'exam' : 'foundation'),

@@ -54,7 +54,7 @@ export function displayName(id: string) {
   if (/^C_\d+$/.test(id))
     return `Cervical vertebra C${id.slice(2)}${id === 'C_1' ? ' · atlas' : id === 'C_2' ? ' · axis' : ''}`;
   if (/^Ca_\d+$/.test(id)) return `Caudal vertebra ${id.slice(3)}`;
-  let s = id
+  const s = id
     .replace(/^m_/, '')
     .replace(/\(2\)/g, ' · additional piece')
     .replace(/\.001/g, ' · additional piece')

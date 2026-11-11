@@ -88,6 +88,8 @@ export function safeNext(value, origin) {
       typeof value !== 'string' ||
       !value.startsWith('/') ||
       value.startsWith('//') ||
+      // Control characters in a redirect target allow header injection.
+      // oxlint-disable-next-line no-control-regex
       /[\\\r\n\x00-\x1f]/.test(value)
     )
       return '/';

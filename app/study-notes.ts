@@ -21,7 +21,6 @@ export type PieceNote = {
   modelNote: string;
   warning: string;
 };
-const sources: Record<string, Source> = data.sources;
 const profiles: Record<string, StudyProfile> = data.profiles;
 const pieces: Record<string, PieceNote> = data.parts;
 export const noteCoverage = {

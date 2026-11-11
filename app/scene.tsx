@@ -1,15 +1,9 @@
 'use client';
 import { sitePath } from './site-path';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import {
-  type Atlas,
-  type SceneState,
-  isShown,
-  displayName,
-  systems,
-} from './anatomy';
+import { type Atlas, type SceneState, isShown, systems } from './anatomy';
 import { type Language, translate } from './i18n';
 import {
   dogPoses,
@@ -32,15 +26,18 @@ export default function AnatomyScene({
 }) {
   const t = (key: string) => translate(language, key),
     locale = useRef(language);
-  locale.current = language;
   const host = useRef<HTMLDivElement>(null),
     engine = useRef<Engine | null>(null),
     latest = useRef(state),
     select = useRef(onSelect);
   const [status, setStatus] = useState('Loading anatomy…'),
     [error, setError] = useState('');
-  latest.current = state;
-  select.current = onSelect;
+  // Keep the imperative engine's view of props current without re-initialising it.
+  useLayoutEffect(() => {
+    locale.current = language;
+    latest.current = state;
+    select.current = onSelect;
+  });
   useEffect(() => {
     const el = host.current!;
     let dead = false;
@@ -363,7 +360,7 @@ export default function AnatomyScene({
           );
       }
     }
-    init();
+    void init();
     return () => {
       dead = true;
       abort.abort();
@@ -377,7 +374,8 @@ export default function AnatomyScene({
       ?.querySelector('canvas')
       ?.setAttribute(
         'aria-label',
-        t(
+        translate(
+          language,
           'Interactive canine anatomy. Drag to orbit; scroll or pinch to zoom. Select structures using the list for keyboard access.',
         ),
       );

@@ -55,6 +55,7 @@ export default function ExamStudy({
     try {
       const raw = JSON.parse(localStorage.getItem(progressKey) || '[]');
       if (Array.isArray(raw))
+        // oxlint-disable-next-line react/react-compiler -- hydrate browser-only state after mount (static export)
         setReviewed([
           ...new Set(
             raw.filter(

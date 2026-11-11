@@ -23,7 +23,10 @@ export function readMemory(raw: string | null): Memory {
   )
     return {};
   const safe: Memory = {};
-  for (const [id, v] of Object.entries(value.items) as [string, any][]) {
+  for (const [id, v] of Object.entries(value.items) as [
+    string,
+    Memory[string] | null,
+  ][]) {
     if (
       questionById.has(id) &&
       v &&

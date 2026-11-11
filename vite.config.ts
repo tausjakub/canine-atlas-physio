@@ -2,7 +2,8 @@ import tailwindcss from '@tailwindcss/postcss';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
 
-const flag = (name: string) => JSON.stringify(process.env[name] === '1' ? '1' : '0');
+const flag = (name: string) =>
+  JSON.stringify(process.env[name] === '1' ? '1' : '0');
 
 export default defineConfig({
   define: {

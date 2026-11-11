@@ -16,6 +16,7 @@ export default function Library({ language }: { language: Language }) {
     if (b) {
       const valid =
         Number.isInteger(page) && page >= 1 && page <= b.pages ? page : 1;
+      // oxlint-disable-next-line react/react-compiler -- hydrate browser-only state after mount (static export)
       setSelected(b.id);
       setPart(b.parts.findIndex((p) => valid >= p.start && valid <= p.end));
       setRequestedPage(valid);

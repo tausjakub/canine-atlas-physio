@@ -54,17 +54,27 @@ if (library) {
   assert.equal(edition, 'private', 'The book library is private-only');
   for (const book of books)
     for (const section of book.parts) {
-      assert.equal(fs.statSync(path.join(root, section.url)).size, section.bytes);
+      assert.equal(
+        fs.statSync(path.join(root, section.url)).size,
+        section.bytes,
+      );
       count++;
     }
 } else {
   const pdfs = files.filter((name) => /\.pdf$/i.test(name));
-  assert.deepEqual(pdfs, [], 'PDF files must not ship without the private gate');
+  assert.deepEqual(
+    pdfs,
+    [],
+    'PDF files must not ship without the private gate',
+  );
   const bundles = files
     .filter((name) => /\.(?:js|html)$/.test(name))
     .map((name) => fs.readFileSync(path.join(root, name), 'utf8'))
     .join('\n');
-  assert(!bundles.includes('?book='), 'Book reader links leaked into the build');
+  assert(
+    !bundles.includes('?book='),
+    'Book reader links leaked into the build',
+  );
   if (edition === 'demo')
     assert(
       !bundles.includes('/_auth/session'),

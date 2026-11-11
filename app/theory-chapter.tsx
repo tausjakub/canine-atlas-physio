@@ -16,7 +16,7 @@ export default function TheoryChapter({
 }) {
   const e = (en: string, cs: string) => (language === 'cs' ? cs : en);
   const chapter = theoryChapters[topic],
-    module = examModules.find((m) => m.id === topic)!;
+    topicModule = examModules.find((m) => m.id === topic)!;
   const words = [
     local(chapter.lead, language),
     ...chapter.units.flatMap((u) =>
@@ -26,7 +26,7 @@ export default function TheoryChapter({
       [r.term, r.mechanism, r.meaning].map((p) => local(p, language)),
     ),
     local(chapter.example, language),
-    ...module.sections.flatMap((s) => [
+    ...topicModule.sections.flatMap((s) => [
       local(s.text, language),
       local(criterionDepth[topic][s.criteria], language),
     ]),

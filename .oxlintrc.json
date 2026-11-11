@@ -51,6 +51,22 @@
     "typescript/no-namespace": "error",
     "typescript/no-require-imports": "error",
     "typescript/no-unnecessary-type-constraint": "error",
-    "typescript/no-unsafe-function-type": "error"
-  }
+    "typescript/no-unsafe-function-type": "error",
+    "nextjs/no-img-element": "off",
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "jsx-a11y/no-noninteractive-tabindex": "off"
+  },
+  "overrides": [
+    {
+      "files": ["scripts/**"],
+      "rules": {
+        "typescript/no-implied-eval": "off",
+        "prefer-const": "off",
+        "no-unused-vars": "warn",
+        "react-hooks/rules-of-hooks": "off",
+        "nextjs/no-assign-module-variable": "off",
+        "typescript/require-array-sort-compare": "off"
+      }
+    }
+  ]
 }

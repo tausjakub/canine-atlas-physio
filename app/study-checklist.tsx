@@ -23,6 +23,7 @@ export function useChecklist(key: string, validIds: readonly string[]) {
     [error, setError] = useState(false);
   useEffect(() => {
     try {
+      // oxlint-disable-next-line react/react-compiler -- hydrate browser-only state after mount (static export)
       setChecked(parseChecklist(localStorage.getItem(key), validIds));
     } catch {
       setError(true);
@@ -59,7 +60,7 @@ export default function StudyChecklist({
     'canine-atlas-criterion-recall-v1',
     criterionIds,
   );
-  const module = examModules.find((m) => m.id === topic)!;
+  const topicModule = examModules.find((m) => m.id === topic)!;
   return (
     <section className="learning-checklist">
       <h2>
@@ -80,7 +81,7 @@ export default function StudyChecklist({
           `${checked.length} / 58 kritérií samostatně zopakováno`,
         )}
       </p>
-      {module.sections.map((s) => {
+      {topicModule.sections.map((s) => {
         const id = `${topic}.${s.criteria}`;
         return (
           <label key={id}>

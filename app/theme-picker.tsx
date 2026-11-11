@@ -12,6 +12,7 @@ export default function ThemePicker({ language }: { language: Language }) {
   useEffect(() => {
     try {
       const saved = validTheme(localStorage.getItem(themeStorageKey));
+      // oxlint-disable-next-line react/react-compiler -- hydrate browser-only state after mount (static export)
       setTheme(saved);
       document.documentElement.dataset.theme = saved;
     } catch {

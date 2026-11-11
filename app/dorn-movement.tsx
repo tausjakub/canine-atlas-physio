@@ -145,12 +145,10 @@ export default function DornMovementStudy({
         onSelectMovement={(kind) => {
           choose(kind);
           requestAnimationFrame(() =>
-            document
-              .getElementById('dorn-3d-lessons')
-              ?.scrollIntoView({
-                behavior: reduced ? 'auto' : 'smooth',
-                block: 'start',
-              }),
+            document.getElementById('dorn-3d-lessons')?.scrollIntoView({
+              behavior: reduced ? 'auto' : 'smooth',
+              block: 'start',
+            }),
           );
         }}
       />

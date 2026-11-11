@@ -69,7 +69,7 @@ export default function ExamDay({
     [revealed, setRevealed] = useState(false);
   const readiness = useChecklist('canine-atlas-exam-day-v1', checklistIds),
     practice = useChecklist('canine-atlas-exam-rehearsal-v1', rehearsalIds);
-  const module = examModules.find((m) => m.id === topic)!;
+  const topicModule = examModules.find((m) => m.id === topic)!;
   return (
     <article className="exam-day">
       <header className="exam-heading">
@@ -265,8 +265,8 @@ export default function ExamDay({
             </option>
           ))}
         </select>
-        <h3>{local(module.title, language)}</h3>
-        <p>{local(module.practice, language)}</p>
+        <h3>{local(topicModule.title, language)}</h3>
+        <p>{local(topicModule.practice, language)}</p>
         <label htmlFor="rehearsal-answer">
           {e(
             'Your outline (this round only; changing topic clears it)',
@@ -305,7 +305,7 @@ export default function ExamDay({
                 'Otázky pomáhají najít mezery; nejde o hodnoticí list zkoušejícího.',
               )}
             </p>
-            {module.quiz.map((q, i) => (
+            {topicModule.quiz.map((q, i) => (
               <details key={i}>
                 <summary>{local(q.question, language)}</summary>
                 <p>{local(q.answer, language)}</p>

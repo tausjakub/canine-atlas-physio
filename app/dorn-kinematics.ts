@@ -77,8 +77,8 @@ export function dornMovementPartRole(
     if (/^(humerus|Radius|Ulna)_/.test(id) || foreDistal(id)) return 'moving';
     if (/^Scapula_/i.test(id)) return 'fixed';
   } else if (kind === 'hind-digits') {
-    if (/^Phalanges_B/.test(id)) return 'moving';
-    if (/^Metatarsi_/.test(id)) return 'fixed';
+    if (id.startsWith('Phalanges_B')) return 'moving';
+    if (id.startsWith('Metatarsi_')) return 'fixed';
   } else if (kind === 'stifle') {
     if (/^(Tibia|Fibula)_/.test(id) || hindDistal(id)) return 'moving';
     if (/^(Femoris|Patella)_/.test(id)) return 'fixed';
@@ -89,7 +89,7 @@ export function dornMovementPartRole(
     if (foreDistal(id)) return 'moving';
     if (/^(Radius|Ulna)_/.test(id)) return 'fixed';
   } else if (kind === 'digits') {
-    if (/^Phalanx/.test(id)) return 'moving';
+    if (id.startsWith('Phalanx')) return 'moving';
     if (/^(Carpal|Os_metacarpale)/.test(id)) return 'fixed';
   }
   return 'context';
@@ -137,7 +137,7 @@ function digit(
       part.system === 'bone' &&
       left(part.id) &&
       (level === 'proximal'
-        ? /^Phalanxpmxinutlis/.test(part.id)
+        ? part.id.startsWith('Phalanxpmxinutlis')
         : part.id.startsWith(`Phalanx_${level}`)) &&
       new RegExp(`_digiti_${numeral}_L(?:_|$)`).test(part.id),
   );

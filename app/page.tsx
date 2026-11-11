@@ -14,9 +14,7 @@ import {
   ChevronRight,
   X,
   Dog,
-  Check,
   Info,
-  PanelLeftClose,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnatomyScene from './scene';
@@ -72,6 +70,7 @@ export default function Home() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(languageStorageKey);
+      // oxlint-disable-next-line react/react-compiler -- hydrate browser-only state after mount (static export)
       if (saved === 'cs' || saved === 'en') setLanguage(saved);
     } catch {}
   }, []);
@@ -108,6 +107,7 @@ export default function Home() {
     [card, setCard] = useState(0);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    // oxlint-disable-next-line react/react-compiler -- hydrate browser-only state after mount (static export)
     if (libraryEnabled && params.has('book')) setTab('library');
     else if (libraryEnabled && params.get('view') === 'library')
       setTab('library');
@@ -1058,6 +1058,8 @@ export default function Home() {
           }}
         />
       )}
+      {/* Backdrop click closes the modal; Escape is handled natively (onCancel). */}
+      {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
       <dialog
         ref={dialog}
         className="about-dialog"

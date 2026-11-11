@@ -8,9 +8,13 @@ import { cpSync, existsSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 
 const gated = process.env.ATLAS_GATE_BUILD === '1';
 const library = gated && existsSync('private-assets/library');
-const base = gated ? '' : (process.env.PAGES_BASE_PATH ?? '/canine-atlas-physio');
+const base = gated
+  ? ''
+  : (process.env.PAGES_BASE_PATH ?? '/canine-atlas-physio');
 if (base && !/^\/[a-zA-Z0-9_.-]+$/.test(base))
-  throw new Error('PAGES_BASE_PATH must be empty or a single /repository-name.');
+  throw new Error(
+    'PAGES_BASE_PATH must be empty or a single /repository-name.',
+  );
 
 rmSync('dist/client', { recursive: true, force: true });
 const result = spawnSync(
@@ -29,11 +33,16 @@ const result = spawnSync(
 if (result.status !== 0) process.exit(result.status ?? 1);
 // Pages mounts the artifact at the repository path, so remove the duplicate disk prefix.
 if (base) renameSync('dist/client' + base + '/_next', 'dist/client/_next');
-if (library) cpSync('private-assets/library', 'dist/client/library', { recursive: true });
+if (library)
+  cpSync('private-assets/library', 'dist/client/library', { recursive: true });
 writeFileSync('dist/client/.nojekyll', '');
 writeFileSync(
   'dist/client/pages-build.json',
-  JSON.stringify({ basePath: base, edition: gated ? 'private' : 'demo', library }),
+  JSON.stringify({
+    basePath: base,
+    edition: gated ? 'private' : 'demo',
+    library,
+  }),
 );
 if (gated && !library)
   console.warn(

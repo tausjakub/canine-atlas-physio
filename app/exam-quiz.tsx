@@ -131,6 +131,7 @@ export default function ExamQuiz({
     try {
       const restored = readMemory(localStorage.getItem(quizStorageKey));
       liveMemory.current = restored;
+      // oxlint-disable-next-line react/react-compiler -- hydrate browser-only state after mount (static export)
       setMemory(restored);
     } catch {
       setStorageError(true);
@@ -142,7 +143,7 @@ export default function ExamQuiz({
   const item = run?.items[run.cursor],
     question = item ? questionById.get(item.questionId) : undefined,
     answer = run?.answers[run.cursor];
-  const module = question
+  const topicModule = question
     ? examModules.find((m) => m.id === question.topic)
     : undefined;
   useEffect(() => {
@@ -490,7 +491,7 @@ export default function ExamQuiz({
               </button>
             </div>
           )}
-          <p className="quiz-topic-label">{module?.title[language]}</p>
+          <p className="quiz-topic-label">{topicModule?.title[language]}</p>
           <h2 className="quiz-question" ref={questionHeading} tabIndex={-1}>
             {question.prompt[language]}
           </h2>
@@ -590,11 +591,12 @@ export default function ExamQuiz({
                   <BookOpen size={15} />
                   {e('Review this lesson', 'Zopakovat tuto lekci')}
                 </button>
-                {module && (
+                {topicModule && (
                   <a
                     href={
-                      examSources[module.sources[0] as keyof typeof examSources]
-                        .url
+                      examSources[
+                        topicModule.sources[0] as keyof typeof examSources
+                      ].url
                     }
                     target="_blank"
                     rel="noreferrer"

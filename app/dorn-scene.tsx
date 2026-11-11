@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Axis3d, Bone, Layers, Minus, Plus, RotateCcw } from 'lucide-react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -157,8 +157,10 @@ function DornScene({
     [retry, setRetry] = useState(0),
     [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const settings = useRef<Settings>({ bend, muscles, plane, view, reset });
-  settings.current = { bend, muscles, plane, view, reset };
-  locale.current = language;
+  useLayoutEffect(() => {
+    settings.current = { bend, muscles, plane, view, reset };
+    locale.current = language;
+  });
   const overview = mode === 'overview';
 
   useEffect(() => {
@@ -167,7 +169,7 @@ function DornScene({
     let dead = false,
       dispose = () => {};
     setStatus('loading');
-    (async () => {
+    void (async () => {
       try {
         const { atlas, buffer } = await loadDogSource();
         if (dead) return;
@@ -633,7 +635,7 @@ function DornScene({
         update(settings.current);
         rendering();
         setStatus('ready');
-      } catch (error) {
+      } catch {
         if (!dead) {
           dispose();
           engine.current = null;
@@ -646,7 +648,7 @@ function DornScene({
       dispose();
       engine.current = null;
     };
-  }, [kind, mode, retry]);
+  }, [kind, mode, overview, retry]);
 
   useEffect(
     () => engine.current?.update(settings.current),
