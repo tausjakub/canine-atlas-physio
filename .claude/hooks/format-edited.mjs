@@ -10,6 +10,10 @@ const file = JSON.parse(input || '{}').tool_input?.file_path;
 if (!file) process.exit(0);
 
 const relative = path.relative(process.cwd(), file).split(path.sep).join('/');
-if (/^(app|components|lib|scripts|security)\/.*\.(tsx?|mjs|css)$/.test(relative))
-  spawnSync(process.execPath, ['node_modules/oxfmt/bin/oxfmt', relative], { stdio: 'ignore' });
+if (
+  /^(app|components|lib|scripts|security)\/.*\.(tsx?|mjs|css)$/.test(relative)
+)
+  spawnSync(process.execPath, ['node_modules/oxfmt/bin/oxfmt', relative], {
+    stdio: 'ignore',
+  });
 process.exit(0);

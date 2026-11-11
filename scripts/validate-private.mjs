@@ -190,7 +190,10 @@ assert.equal(
   'Removed file URLs must not receive the atlas SPA instead of 404',
 );
 assert(fs.readFileSync('.gitignore', 'utf8').includes('.env*'));
-const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
+const workflow = fs.readFileSync(
+  '.github/workflows/private-deploy.yml',
+  'utf8',
+);
 assert(
   !workflow.includes('deploy-pages@'),
   'Private branch must not publish unprotected Pages assets',
