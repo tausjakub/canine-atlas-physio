@@ -1,4 +1,5 @@
 'use client';
+import { revealLesson } from './reveal-lesson';
 import AnswerDetail from './answer-detail';
 import { useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import {
@@ -119,7 +120,7 @@ export default function ExamStudy({
     setActive(id);
     setQuery('');
     setScreen('lessons');
-    document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+    revealLesson();
   };
   const toggleReview = () => {
     if (!selected) return;
@@ -156,7 +157,7 @@ export default function ExamStudy({
             aria-pressed={screen === 'plan'}
             onClick={() => {
               setScreen('plan');
-              document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+              revealLesson();
             }}
           >
             <BookOpen size={18} />
@@ -177,7 +178,7 @@ export default function ExamStudy({
           aria-pressed={screen === 'exam-day'}
           onClick={() => {
             setScreen('exam-day');
-            document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+            revealLesson();
           }}
         >
           <BookOpen size={18} />
@@ -197,7 +198,7 @@ export default function ExamStudy({
           aria-pressed={screen === 'quiz'}
           onClick={() => {
             setScreen('quiz');
-            document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+            revealLesson();
           }}
         >
           <Check size={18} />
@@ -217,7 +218,7 @@ export default function ExamStudy({
           aria-pressed={screen === 'topics'}
           onClick={() => {
             setScreen('topics');
-            document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+            revealLesson();
           }}
         >
           <BookOpen size={18} />
@@ -281,7 +282,7 @@ export default function ExamStudy({
               onClick={() => {
                 setActive(m.id);
                 setScreen('lessons');
-                document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+                revealLesson();
               }}
               aria-current={
                 screen === 'lessons' && selected?.id === m.id
@@ -327,7 +328,7 @@ export default function ExamStudy({
                 else if (target === 'quiz' || target === 'exam-day')
                   setScreen(target);
                 else select(target);
-                document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+                revealLesson();
               }}
             />
           </Suspense>

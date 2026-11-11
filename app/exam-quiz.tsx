@@ -1,4 +1,5 @@
 'use client';
+import { revealLesson } from './reveal-lesson';
 import AnswerDetail from './answer-detail';
 import { sitePath } from './site-path';
 import { useEffect, useRef, useState } from 'react';
@@ -191,7 +192,7 @@ export default function ExamQuiz({
     setRun(next);
     setChoice('');
     setUnsure(false);
-    document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+    revealLesson();
   };
   const close = () => {
     liveRun.current = null;
