@@ -1,9 +1,18 @@
-import {examModules,type Bilingual} from './exam-data';
-import {photoData} from './study-visuals';
-export type Question={id:string;topic:string;criterion:string;prompt:Bilingual;choices:{id:string;text:Bilingual}[];correctId:string;explanation:Bilingual;photo?:{kind:keyof typeof photoData;mark:number}};
+import { examModules, type Bilingual } from './exam-data';
+import { photoData } from './study-visuals';
+export type Question = {
+  id: string;
+  topic: string;
+  criterion: string;
+  prompt: Bilingual;
+  choices: { id: string; text: Bilingual }[];
+  correctId: string;
+  explanation: Bilingual;
+  photo?: { kind: keyof typeof photoData; mark: number };
+};
 // One original question per mapped criterion. First authored choice is correct;
 // presentation order is shuffled per run, and answer identity never depends on language.
-const rows=`
+const rows = `
 anatomy|a|Which structure usually links bones and passively constrains joint motion?|Která struktura obvykle spojuje kosti a pasivně omezuje kloubní pohyb?|Ligament|Vaz|Muscle belly|Svalové bříško|Motor nerve|Motorický nerv
 anatomy|b|How is the canine thoracic limb attached to the trunk?|Jak je hrudní končetina psa připojena k trupu?|Through a muscular attachment|Prostřednictvím svalového spojení|Through a scapula–rib synovial joint|Synoviálním kloubem lopatky a žebra|Through fusion of scapula and vertebrae|Srůstem lopatky s obratli
 anatomy|c|Which structure primarily restrains cranial tibial translation relative to the femur?|Která struktura především omezuje kraniální posun tibie vůči femuru?|Cranial cruciate ligament|Kraniální zkřížený vaz|Patellar ligament|Čéškový vaz|Quadriceps tendon|Šlacha kvadricepsu
@@ -62,16 +71,53 @@ special|a|Which approach fits a patient with obesity and osteoarthritis?|Který 
 special|b|How should reduced jumping in an older cat be interpreted?|Jak posoudit omezené skákání starší kočky?|As a change that warrants assessment|Jako změnu vyžadující posouzení|As proof of normal aging without further assessment|Jako důkaz normálního stárnutí bez dalšího posouzení|As proof that joints are painless|Jako důkaz nebolestivých kloubů
 special|c|What takes priority for a critically ill patient?|Co má přednost u kriticky nemocného pacienta?|Medical stabilization and the critical-care plan|Zdravotní stabilizace a plán intenzivní péče|Completion of a routine exercise program|Dokončení běžného cvičebního programu|Comparison with healthy athletic performance|Porovnání s výkonem zdravého sportovce
 special|d|What determines exercise limits in cardiac disease?|Co určuje hranice zátěže při srdečním onemocnění?|Cardiac status and individual veterinary assessment|Srdeční stav a individuální veterinární posouzení|Age alone|Pouze věk|Whether the animal enjoys water|Zda má zvíře rádo vodu
-`.trim().split('\n');
-export const questions:Question[]=rows.map(row=>{
- const [topic,criterion,en,cs,...options]=row.split('|'),id=`${topic}-${criterion}-v1`,module=examModules.find(m=>m.id===topic),section=module?.sections.find(s=>s.criteria===criterion);
- if(!section||options.length!==6)throw Error(`Invalid quiz question: ${id}`);
- return {id,topic,criterion,prompt:{en,cs},choices:[0,1,2].map(n=>({id:`${id}-${n}`,text:{en:options[n*2],cs:options[n*2+1]}})),correctId:`${id}-0`,explanation:section.text};
+`
+  .trim()
+  .split('\n');
+export const questions: Question[] = rows.map((row) => {
+  const [topic, criterion, en, cs, ...options] = row.split('|'),
+    id = `${topic}-${criterion}-v1`,
+    module = examModules.find((m) => m.id === topic),
+    section = module?.sections.find((s) => s.criteria === criterion);
+  if (!section || options.length !== 6)
+    throw Error(`Invalid quiz question: ${id}`);
+  return {
+    id,
+    topic,
+    criterion,
+    prompt: { en, cs },
+    choices: [0, 1, 2].map((n) => ({
+      id: `${id}-${n}`,
+      text: { en: options[n * 2], cs: options[n * 2 + 1] },
+    })),
+    correctId: `${id}-0`,
+    explanation: section.text,
+  };
 });
-for(const kind of ['skeleton','stifle'] as const){
- const p=photoData[kind];p.marks.forEach((mark,index)=>{
-  const id=`photo-${kind}-${index+1}-v1`,names=[mark,...p.marks.filter(m=>m!==mark).slice(0,3)];
-  questions.push({id,topic:kind==='skeleton'?'anatomy':'orthopedics',criterion:kind==='skeleton'?'b–d':'b',prompt:{en:`Which structure is marked ${index+1}?`,cs:`Která struktura je označena číslem ${index+1}?`},choices:names.map((m,n)=>({id:`${id}-${n}`,text:{en:m.name[0],cs:m.name[1]}})),correctId:`${id}-0`,explanation:{en:`${index+1}: ${mark.name[0]}. ${p.description[0]}`,cs:`${index+1}: ${mark.name[1]}. ${p.description[1]}`},photo:{kind,mark:index}});
- });
+for (const kind of ['skeleton', 'stifle'] as const) {
+  const p = photoData[kind];
+  p.marks.forEach((mark, index) => {
+    const id = `photo-${kind}-${index + 1}-v1`,
+      names = [mark, ...p.marks.filter((m) => m !== mark).slice(0, 3)];
+    questions.push({
+      id,
+      topic: kind === 'skeleton' ? 'anatomy' : 'orthopedics',
+      criterion: kind === 'skeleton' ? 'b–d' : 'b',
+      prompt: {
+        en: `Which structure is marked ${index + 1}?`,
+        cs: `Která struktura je označena číslem ${index + 1}?`,
+      },
+      choices: names.map((m, n) => ({
+        id: `${id}-${n}`,
+        text: { en: m.name[0], cs: m.name[1] },
+      })),
+      correctId: `${id}-0`,
+      explanation: {
+        en: `${index + 1}: ${mark.name[0]}. ${p.description[0]}`,
+        cs: `${index + 1}: ${mark.name[1]}. ${p.description[1]}`,
+      },
+      photo: { kind, mark: index },
+    });
+  });
 }
-export const questionById=new Map(questions.map(q=>[q.id,q]));
+export const questionById = new Map(questions.map((q) => [q.id, q]));
