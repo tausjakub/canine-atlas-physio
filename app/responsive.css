@@ -1,0 +1,376 @@
+/*
+ * Responsive layer, loaded after every other stylesheet.
+ * --header-h is measured from the real header (see useHeaderHeight in
+ * app/page.tsx), so panes no longer rely on hardcoded header guesses.
+ */
+:root {
+  --header-h: 88px;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  overflow-x: hidden;
+}
+.atlas-app .workspace,
+.atlas-app .exam-shell {
+  height: calc(100dvh - var(--header-h));
+}
+.atlas-app .sidebar.mobile-open {
+  top: var(--header-h);
+}
+/* Visible keyboard focus everywhere. */
+.atlas-app :is(button, a, input, select, summary):focus-visible {
+  outline: 2px solid var(--theme-accent, #6bdfcb);
+  outline-offset: 2px;
+}
+/* Scrollable tab strip: no wrapping, no visible scrollbar, snaps to tabs. */
+.atlas-app .mode-tabs {
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+.atlas-app .mode-tabs::-webkit-scrollbar {
+  display: none;
+}
+.atlas-app .mode-tabs button {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ---------- Touch devices: comfortable tap targets ---------- */
+@media (pointer: coarse) {
+  .atlas-app .view-tools button {
+    width: 40px;
+    height: 40px;
+  }
+  .atlas-app .language-switch button {
+    min-width: 44px;
+    min-height: 40px;
+  }
+  .atlas-app .source-button {
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+  }
+  .atlas-app .explode-dock input[type='range'],
+  .atlas-app .opacity-label input[type='range'] {
+    min-height: 28px;
+  }
+  .atlas-app .structure-row,
+  .atlas-app .layer-row {
+    min-height: 44px;
+  }
+}
+
+/* ---------- Phones (portrait) ---------- */
+@media (max-width: 760px) {
+  .atlas-app .app-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    height: auto;
+    min-height: 0;
+    gap: 6px 8px;
+    padding: 10px 12px 0;
+  }
+  .atlas-app .app-header .brand {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .atlas-app .app-header .source-button {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 6px;
+  }
+  .atlas-app .header-preferences {
+    grid-column: 3;
+    grid-row: 1;
+    order: 0;
+    width: auto;
+    margin: 0;
+    gap: 6px;
+  }
+  .atlas-app .theme-picker {
+    flex: 0 1 auto;
+    max-width: 112px;
+  }
+  .atlas-app .theme-picker label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .atlas-app .theme-picker select {
+    max-width: 112px;
+    min-height: 40px;
+    font-size: 0.8rem;
+  }
+  .atlas-app .language-switch button {
+    padding: 6px 8px;
+  }
+  .atlas-app .app-header .mode-tabs {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: auto;
+    justify-content: flex-start;
+    min-height: 44px;
+    margin: 0 -12px;
+    padding: 0 6px;
+    gap: 2px;
+  }
+  .atlas-app .app-header .mode-tabs button {
+    padding: 0 10px;
+    font-size: 0.85rem;
+    min-height: 44px;
+  }
+  .atlas-app .brand p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Page scrolls as a whole on phones. */
+  .atlas-app .workspace,
+  .atlas-app .exam-shell {
+    height: auto;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .atlas-app .viewer {
+    height: clamp(480px, calc(100svh - var(--header-h)), 680px);
+    min-height: 480px;
+  }
+  /* Title left, "Layers & search" right on one row; tools rail below. */
+  .atlas-app .viewer-top {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 10px;
+    top: 16px;
+    left: 14px;
+    right: 14px;
+  }
+  .atlas-app .viewer-top > div {
+    min-width: 0;
+  }
+  .atlas-app .viewer-top h2 {
+    max-width: none;
+  }
+  .atlas-app .mobile-controls {
+    flex-shrink: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+  }
+  .atlas-app .view-tools {
+    top: 104px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    max-width: calc(100% - 20px);
+  }
+  .atlas-app .view-tools i {
+    width: 1px;
+    height: auto;
+    margin: 4px 2px;
+  }
+  .atlas-app .scene {
+    inset: 156px 0 150px;
+  }
+  .atlas-app .brand h1 {
+    white-space: nowrap;
+  }
+  .atlas-app .explode-dock {
+    bottom: 44px;
+    gap: 10px;
+    padding: 10px 12px;
+    width: calc(100% - 24px);
+  }
+  .atlas-app .explode-dock input {
+    margin: 8px 0;
+  }
+  .atlas-app .viewer-footer {
+    padding: 12px 8px;
+  }
+  .atlas-app .sidebar.mobile-open {
+    width: min(320px, 88vw);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .atlas-app .inspector {
+    padding: 24px 16px;
+  }
+}
+
+@media (max-width: 400px) {
+  .atlas-app .brand p {
+    display: none;
+  }
+  .atlas-app .view-tools button {
+    width: 36px;
+    height: 36px;
+  }
+}
+@media (max-width: 360px) {
+  .atlas-app .brand-mark {
+    width: 32px;
+    height: 32px;
+  }
+  .atlas-app .theme-picker,
+  .atlas-app .theme-picker select {
+    max-width: 92px;
+  }
+  .atlas-app .mobile-controls .label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+
+/* ---------- Short landscape screens (phones on their side) ---------- */
+@media (max-height: 520px) and (orientation: landscape) {
+  .atlas-app .app-header {
+    display: flex;
+    flex-wrap: nowrap;
+    height: auto;
+    min-height: 0;
+    gap: 10px;
+    padding: 6px 14px;
+  }
+  .atlas-app .app-header .brand {
+    flex: 0 0 auto;
+  }
+  .atlas-app .brand p,
+  .atlas-app .brand h1 span,
+  .atlas-app .theme-picker label {
+    display: none;
+  }
+  .atlas-app .brand-mark {
+    width: 32px;
+    height: 32px;
+  }
+  .atlas-app .app-header .mode-tabs {
+    order: 0;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    min-height: 44px;
+    justify-content: flex-start;
+  }
+  .atlas-app .app-header .mode-tabs svg {
+    display: none;
+  }
+  .atlas-app .header-preferences {
+    order: 0;
+    width: auto;
+    margin: 0;
+  }
+  .atlas-app .theme-picker,
+  .atlas-app .theme-picker select {
+    max-width: 120px;
+  }
+  .atlas-app .workspace {
+    height: calc(100dvh - var(--header-h));
+    min-height: 300px;
+  }
+  .atlas-app .viewer-top .eyebrow,
+  .atlas-app .viewer-top p,
+  .atlas-app .viewer-footer {
+    display: none;
+  }
+  .atlas-app .viewer-top {
+    top: 10px;
+  }
+  .atlas-app .view-tools {
+    top: 56px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-width: calc(100% - 24px);
+  }
+  .atlas-app .view-tools i {
+    width: 1px;
+    height: auto;
+  }
+  .atlas-app .scene {
+    inset: 96px 0 64px;
+  }
+  .atlas-app .view-tools button {
+    width: 34px;
+    height: 34px;
+  }
+  .atlas-app .explode-dock {
+    bottom: 8px;
+    width: min(320px, calc(100% - 24px));
+    gap: 8px;
+    padding: 4px 10px;
+  }
+  .atlas-app .explode-dock label {
+    font-size: 0.75rem;
+  }
+  .atlas-app .explode-dock input {
+    margin: 4px 0;
+  }
+  .atlas-app .explode-dock .range-captions {
+    display: none;
+  }
+}
+
+/* Honor the iPhone home indicator and notches. */
+@supports (padding: max(0px)) {
+  .atlas-app .app-header {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  .atlas-app .sidebar.mobile-open {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Narrow phones: the header row must fit brand, info, theme and language. */
+@media (max-width: 400px) {
+  .atlas-app .app-header {
+    gap: 6px;
+  }
+  .atlas-app .brand-mark {
+    display: none;
+  }
+  .atlas-app .brand h1 {
+    font-size: 1rem;
+  }
+  .atlas-app .theme-picker,
+  .atlas-app .theme-picker select {
+    max-width: 84px;
+  }
+  .atlas-app .language-switch button {
+    min-width: 40px;
+    padding: 4px 6px;
+  }
+}
+@media (max-width: 359px) {
+  .atlas-app .brand-mark {
+    display: grid;
+  }
+  .atlas-app .brand h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+@media (max-width: 620px) {
+  .atlas-app .viewer-top p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

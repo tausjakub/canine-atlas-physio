@@ -126,6 +126,21 @@ export default function Home() {
     }
   }, []);
   const [challenge, setChallenge] = useState(false);
+  // Panes size themselves with --header-h; the header wraps differently per width.
+  const header = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = header.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const update = () =>
+      document.documentElement.style.setProperty(
+        '--header-h',
+        `${Math.round(el.getBoundingClientRect().height)}px`,
+      );
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   const search = useRef<HTMLInputElement>(null),
     dialog = useRef<HTMLDialogElement>(null),
     inspector = useRef<HTMLElement>(null);
@@ -151,6 +166,7 @@ export default function Home() {
   }, [about]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobile(false);
       if (
         e.key === '/' &&
         !(e.target instanceof HTMLInputElement) &&
@@ -229,7 +245,7 @@ export default function Home() {
       : quizBase;
   return (
     <main className="atlas-app">
-      <header className="app-header">
+      <header className="app-header" ref={header}>
         <div className="brand">
           <span className="brand-mark">
             <Dog size={25} />
@@ -533,9 +549,14 @@ export default function Home() {
                   : t('Select a structure to explore')}
               </p>
             </div>
-            <button className="mobile-controls" onClick={() => setMobile(true)}>
-              <Layers3 size={17} />
-              {t('Layers & search')}
+            <button
+              className="mobile-controls"
+              aria-label={t('Layers & search')}
+              aria-expanded={mobile}
+              onClick={() => setMobile(true)}
+            >
+              <Layers3 size={17} aria-hidden="true" />
+              <span className="label">{t('Layers & search')}</span>
             </button>
           </div>
           {atlas &&
