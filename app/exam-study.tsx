@@ -1,6 +1,6 @@
 'use client';
 import AnswerDetail from './answer-detail';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import {
   ArrowUpRight,
   BookOpen,
@@ -20,7 +20,12 @@ import StudyChecklist from './study-checklist';
 import TheoryChapter, { theorySearchText } from './theory-chapter';
 import FurtherStudy from './further-study';
 import ExamDay from './exam-day';
-import PersonalPlan from './personal-plan';
+// The personal course plan holds the owner's own dates and venues: private build only.
+const showPlan = process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0';
+const PersonalPlan =
+  process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0'
+    ? lazy(() => import('./personal-plan'))
+    : () => null;
 const progressKey = 'canine-atlas-exam-reviewed-v1';
 export default function ExamStudy({
   language,
@@ -45,7 +50,7 @@ export default function ExamStudy({
     [storageError, setStorageError] = useState(false);
   const [screen, setScreen] = useState<
     'lessons' | 'topics' | 'quiz' | 'exam-day' | 'plan'
-  >(initialScreen);
+  >(initialScreen === 'plan' && !showPlan ? 'lessons' : initialScreen);
   useEffect(() => {
     try {
       const raw = JSON.parse(localStorage.getItem(progressKey) || '[]');
@@ -144,26 +149,28 @@ export default function ExamStudy({
             'Kvalifikace 43-001-R · psi a kočky',
           )}
         </p>
-        <button
-          className="exam-test-entry plan-entry"
-          aria-pressed={screen === 'plan'}
-          onClick={() => {
-            setScreen('plan');
-            document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
-          }}
-        >
-          <BookOpen size={18} />
-          <span>
-            {e('My path to the exam', 'Moje cesta ke zkoušce')}
-            <small>
-              {e(
-                'Your courses · a step-by-step plan',
-                'Tvoje kurzy · plán krok za krokem',
-              )}
-            </small>
-          </span>
-          <ChevronRight size={16} />
-        </button>
+        {showPlan && (
+          <button
+            className="exam-test-entry plan-entry"
+            aria-pressed={screen === 'plan'}
+            onClick={() => {
+              setScreen('plan');
+              document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+            }}
+          >
+            <BookOpen size={18} />
+            <span>
+              {e('My path to the exam', 'Moje cesta ke zkoušce')}
+              <small>
+                {e(
+                  'Your courses · a step-by-step plan',
+                  'Tvoje kurzy · plán krok za krokem',
+                )}
+              </small>
+            </span>
+            <ChevronRight size={16} />
+          </button>
+        )}
         <button
           className="exam-test-entry"
           aria-pressed={screen === 'exam-day'}
@@ -311,16 +318,18 @@ export default function ExamStudy({
       </aside>
       <div className="exam-content" id="exam-lesson">
         {screen === 'plan' && (
-          <PersonalPlan
-            language={language}
-            onOpen={(target) => {
-              if (target === 'practical') onPractical?.();
-              else if (target === 'quiz' || target === 'exam-day')
-                setScreen(target);
-              else select(target);
-              document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
-            }}
-          />
+          <Suspense fallback={null}>
+            <PersonalPlan
+              language={language}
+              onOpen={(target) => {
+                if (target === 'practical') onPractical?.();
+                else if (target === 'quiz' || target === 'exam-day')
+                  setScreen(target);
+                else select(target);
+                document.getElementById('exam-lesson')?.scrollTo({ top: 0 });
+              }}
+            />
+          </Suspense>
         )}
         {screen === 'exam-day' && (
           <ExamDay

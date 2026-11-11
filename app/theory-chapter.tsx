@@ -3,6 +3,7 @@ import { examModules, local } from './exam-data';
 import { criterionDepth } from './exam-depth';
 import type { Language } from './i18n';
 import { sitePath } from './site-path';
+import { libraryEnabled } from './edition';
 export function theorySearchText(topic: string) {
   return JSON.stringify(theoryChapters[topic] || {});
 }
@@ -117,24 +118,31 @@ export default function TheoryChapter({
         <p>{local(chapter.example, language)}</p>
       </aside>
       <p className="theory-reference">
-        <a
-          href={sitePath(
-            `/?book=${chapter.reading.book}&page=${chapter.reading.page}`,
-          )}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {e(
-            'Continue in the related textbook section',
-            'Pokračovat v souvisejícím oddílu učebnice',
-          )}{' '}
-          · {e('PDF page', 'strana PDF')} {chapter.reading.page} ↗
-        </a>
+        {libraryEnabled && (
+          <a
+            href={sitePath(
+              `/?book=${chapter.reading.book}&page=${chapter.reading.page}`,
+            )}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {e(
+              'Continue in the related textbook section',
+              'Pokračovat v souvisejícím oddílu učebnice',
+            )}{' '}
+            · {e('PDF page', 'strana PDF')} {chapter.reading.page} ↗
+          </a>
+        )}
         <small>
-          {e(
-            'Original explanatory synthesis, supported by the supplied rehabilitation textbooks and the topic references below. PDF page numbers differ from printed numbering.',
-            'Vlastní vysvětlující text opřený o dodané rehabilitační učebnice a zdroje tématu níže. Číslování PDF se liší od tištěných stran.',
-          )}
+          {libraryEnabled
+            ? e(
+                'Original explanatory synthesis, supported by the supplied rehabilitation textbooks and the topic references below. PDF page numbers differ from printed numbering.',
+                'Vlastní vysvětlující text opřený o dodané rehabilitační učebnice a zdroje tématu níže. Číslování PDF se liší od tištěných stran.',
+              )
+            : e(
+                'Original explanatory synthesis, supported by the topic references below. Use it alongside your prescribed course textbook.',
+                'Vlastní vysvětlující text opřený o zdroje tématu níže. Používej ho spolu s předepsanou učebnicí kurzu.',
+              )}
         </small>
       </p>
     </section>

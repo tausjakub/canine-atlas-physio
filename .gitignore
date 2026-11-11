@@ -40,3 +40,7 @@ next-env.d.ts
 # Private server environment and local verification files
 .dev.vars*
 tsconfig.tsbuildinfo
+
+# Licensed third-party material (private edition only; never commit or publish)
+/private-assets/
+*.pdf

@@ -5,6 +5,7 @@ import { practiceStations } from './practical-data';
 import { examModules, examUrl, local } from './exam-data';
 import { type Language } from './i18n';
 import { sitePath } from './site-path';
+import { libraryEnabled } from './edition';
 import { useChecklist } from './study-checklist';
 import StudyVisuals from './study-visuals';
 const checkIds = practiceStations.flatMap((s) =>
@@ -239,24 +240,28 @@ export default function PracticalStudy({
                 );
               })}
             </div>
-            <a
-              className="practice-book"
-              href={sitePath(
-                `/?book=${station.book.id}&page=${station.book.page}`,
-              )}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {e('Read in your book', 'Přečíst v knize')}:{' '}
-              {local(station.book.label, language)} ·{' '}
-              {e('PDF page', 'strana PDF')} {station.book.page} ↗
-            </a>
-            <small>
-              {e(
-                'PDF numbering, not printed page numbers. Opens in a new tab.',
-                'Číslování PDF, nikoli tištěných stran. Otevře se v nové kartě.',
-              )}
-            </small>
+            {libraryEnabled && (
+              <>
+                <a
+                  className="practice-book"
+                  href={sitePath(
+                    `/?book=${station.book.id}&page=${station.book.page}`,
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {e('Read in your book', 'Přečíst v knize')}:{' '}
+                  {local(station.book.label, language)} ·{' '}
+                  {e('PDF page', 'strana PDF')} {station.book.page} ↗
+                </a>
+                <small>
+                  {e(
+                    'PDF numbering, not printed page numbers. Opens in a new tab.',
+                    'Číslování PDF, nikoli tištěných stran. Otevře se v nové kartě.',
+                  )}
+                </small>
+              </>
+            )}
           </section>
         </article>
       </div>

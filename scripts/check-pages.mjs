@@ -27,22 +27,50 @@ for (const p of [
   ),
 ])
   assert(fs.existsSync(path.join(root, p)), p);
+const { edition = 'demo', library = false } = JSON.parse(
+  fs.readFileSync(path.join(root, 'pages-build.json'), 'utf8'),
+);
 const books = JSON.parse(fs.readFileSync('app/library-data.json', 'utf8'));
 assert(
   !books.some((book) => book.id === 'dorn-method-dogs'),
   'Removed Dorn document must not return to the library',
 );
-for (const name of fs.readdirSync(path.join(root, 'library')))
+// Walk the whole artifact: the public demo must not ship licensed material.
+const files = [];
+(function walk(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const file = path.join(dir, entry.name);
+    if (entry.isDirectory()) walk(file);
+    else files.push(path.relative(root, file).split(path.sep).join('/'));
+  }
+})(root);
+for (const name of files)
   assert(
-    !/^dorn-(?:method-dogs-.*\.pdf|preview-.*\.jpg)$/.test(name),
+    !/(^|\/)dorn-(?:method-dogs-.*\.pdf|preview-.*\.jpg)$/.test(name),
     'Removed Dorn document asset remains in the build: ' + name,
   );
 let count = 0;
-for (const book of books)
-  for (const section of book.parts) {
-    assert.equal(fs.statSync(path.join(root, section.url)).size, section.bytes);
-    count++;
-  }
+if (library) {
+  assert.equal(edition, 'private', 'The book library is private-only');
+  for (const book of books)
+    for (const section of book.parts) {
+      assert.equal(fs.statSync(path.join(root, section.url)).size, section.bytes);
+      count++;
+    }
+} else {
+  const pdfs = files.filter((name) => /\.pdf$/i.test(name));
+  assert.deepEqual(pdfs, [], 'PDF files must not ship without the private gate');
+  const bundles = files
+    .filter((name) => /\.(?:js|html)$/.test(name))
+    .map((name) => fs.readFileSync(path.join(root, name), 'utf8'))
+    .join('\n');
+  assert(!bundles.includes('?book='), 'Book reader links leaked into the build');
+  if (edition === 'demo')
+    assert(
+      !bundles.includes('/_auth/session'),
+      'Private session code leaked into the public demo',
+    );
+}
 // All runtime asset URLs must use the same deployment prefix as the bundles.
 for (const file of [
   'page',
@@ -68,5 +96,7 @@ console.log(
     assets +
     ' HTML assets, 3D model, study images and ' +
     count +
-    ' PDF sections.',
+    ' PDF sections (' +
+    edition +
+    ' edition).',
 );

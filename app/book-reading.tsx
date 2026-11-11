@@ -26,7 +26,7 @@ export function readingsFor(profile?: string, topic?: string): Reading[] {
     ? (mapping.profiles as Record<string, Reading[]>)[profile] || []
     : [];
 }
-export default function BookReading({
+function BookReadingLinks({
   profile,
   topic,
   language,
@@ -90,3 +90,11 @@ export default function BookReading({
     </section>
   );
 }
+
+// Replaced at build time; the public demo drops the links and the book data.
+const BookReading =
+  process.env.NEXT_PUBLIC_ATLAS_LIBRARY !== '0'
+    ? BookReadingLinks
+    : (_props: { profile?: string; topic?: string; language: Language }) =>
+        null;
+export default BookReading;

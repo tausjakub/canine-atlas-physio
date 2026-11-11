@@ -63,7 +63,9 @@ for (const r of [
   );
   assert(index >= 0);
   const section = book.parts[index];
-  assert(fs.existsSync(path.join(root, 'public', section.url)));
+  // PDFs are licensed material kept outside Git in private-assets/ (see .gitignore).
+  if (fs.existsSync(path.join(root, 'private-assets/library')))
+    assert(fs.existsSync(path.join(root, 'private-assets', section.url)));
   for (const language of ['cs', 'en']) {
     let cursor = 0;
     const values = [book.id, index, r.page];

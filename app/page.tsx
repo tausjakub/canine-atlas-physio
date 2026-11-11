@@ -1,6 +1,6 @@
 'use client';
 import { sitePath } from './site-path';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Bone,
   Layers3,
@@ -25,9 +25,19 @@ import ThemePicker from './theme-picker';
 import type { DogPose } from './poses';
 import ExamStudy from './exam-study';
 import PracticalStudy from './practical-study';
-import Library from './library';
-import DornMovementStudy from './dorn-movement';
 import PrivateSession from './private-session';
+import { libraryEnabled, privateEdition } from './edition';
+// Private-only views are split out so the public demo bundle never contains them.
+// The inline process.env checks are replaced at build time (vite.config.ts) so the
+// bundler can drop the dynamic imports entirely.
+const Library =
+  process.env.NEXT_PUBLIC_ATLAS_LIBRARY !== '0'
+    ? lazy(() => import('./library'))
+    : () => null;
+const DornMovementStudy =
+  process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0'
+    ? lazy(() => import('./dorn-movement'))
+    : () => null;
 import BookReading from './book-reading';
 import AnatomyChallenge from './anatomy-challenge';
 import { addLigaments, ligamentCount } from './ligaments';
@@ -98,9 +108,10 @@ export default function Home() {
     [card, setCard] = useState(0);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.has('book')) setTab('library');
-    else if (params.get('view') === 'library') setTab('library');
-    else if (params.get('view') === 'dorn') setTab('dorn');
+    if (libraryEnabled && params.has('book')) setTab('library');
+    else if (libraryEnabled && params.get('view') === 'library')
+      setTab('library');
+    else if (privateEdition && params.get('view') === 'dorn') setTab('dorn');
     else if (params.get('view') === 'practical') setTab('practical');
     else if (params.get('view') === 'plan') {
       setExamTarget({ topic: 'anatomy', criterion: '', screen: 'plan' });
@@ -263,26 +274,30 @@ export default function Home() {
             <Dog size={16} />
             {language === 'cs' ? 'Praxe' : 'Practical'}
           </button>
-          <button
-            className={tab === 'dorn' ? 'active' : ''}
-            onClick={() => {
-              setTab('dorn');
-              const url = new URL(window.location.href);
-              url.searchParams.set('view', 'dorn');
-              url.searchParams.delete('book');
-              window.history.replaceState(null, '', url);
-            }}
-          >
-            <BookOpen size={16} />
-            {language === 'cs' ? 'Dornova metoda' : 'Dorn method'}
-          </button>
-          <button
-            className={tab === 'library' ? 'active' : ''}
-            onClick={() => setTab('library')}
-          >
-            <BookOpen size={16} />
-            {language === 'cs' ? 'Knihovna' : 'Library'}
-          </button>
+          {privateEdition && (
+            <button
+              className={tab === 'dorn' ? 'active' : ''}
+              onClick={() => {
+                setTab('dorn');
+                const url = new URL(window.location.href);
+                url.searchParams.set('view', 'dorn');
+                url.searchParams.delete('book');
+                window.history.replaceState(null, '', url);
+              }}
+            >
+              <BookOpen size={16} />
+              {language === 'cs' ? 'Dornova metoda' : 'Dorn method'}
+            </button>
+          )}
+          {libraryEnabled && (
+            <button
+              className={tab === 'library' ? 'active' : ''}
+              onClick={() => setTab('library')}
+            >
+              <BookOpen size={16} />
+              {language === 'cs' ? 'Knihovna' : 'Library'}
+            </button>
+          )}
         </nav>
         <button
           className="source-button"
@@ -293,7 +308,7 @@ export default function Home() {
           <span>{t('Sources & scope')}</span>
         </button>
         <div className="header-preferences">
-          <PrivateSession language={language} />
+          {privateEdition && <PrivateSession language={language} />}
           <ThemePicker language={language} />
           <div
             className="language-switch"
@@ -990,8 +1005,16 @@ export default function Home() {
           }}
         />
       )}
-      {tab === 'library' && <Library language={language} />}
-      {tab === 'dorn' && <DornMovementStudy language={language} />}
+      {libraryEnabled && tab === 'library' && (
+        <Suspense fallback={null}>
+          <Library language={language} />
+        </Suspense>
+      )}
+      {tab === 'dorn' && (
+        <Suspense fallback={null}>
+          <DornMovementStudy language={language} />
+        </Suspense>
+      )}
       {tab === 'exam' && (
         <ExamStudy
           language={language}

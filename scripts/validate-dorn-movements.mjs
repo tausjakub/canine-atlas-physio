@@ -341,7 +341,11 @@ assert(
   !books.some((book) => book.id === 'dorn-method-dogs'),
   'removed book is absent from the library',
 );
-for (const directory of ['../public/library/', '../dist/client/library/']) {
+for (const directory of [
+  '../public/library/',
+  '../private-assets/library/',
+  '../dist/client/library/',
+]) {
   const location = new URL(directory, import.meta.url);
   if (fs.existsSync(location))
     assert(
