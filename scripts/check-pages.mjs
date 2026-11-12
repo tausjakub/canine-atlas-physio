@@ -27,6 +27,22 @@ for (const p of [
   ),
 ])
   assert(fs.existsSync(path.join(root, p)), p);
+// Cat and rabbit atlases: catalog byte counts must match their binaries, and
+// no third-party scan or sculpt geometry may ship.
+for (const species of ['cat', 'rabbit']) {
+  const atlas = JSON.parse(
+    fs.readFileSync(path.join(root, 'models', species, 'catalog.json'), 'utf8'),
+  );
+  assert.equal(
+    fs.statSync(path.join(root, atlas.binaryPath)).size,
+    atlas.bytes,
+  );
+  for (const name of fs.readdirSync(path.join(root, 'models', species)))
+    assert(
+      /^(catalog.json|anatomy.bin)$/.test(name),
+      'Unexpected species asset: ' + name,
+    );
+}
 const { edition = 'demo', library = false } = JSON.parse(
   fs.readFileSync(path.join(root, 'pages-build.json'), 'utf8'),
 );
@@ -84,6 +100,7 @@ if (library) {
 // All runtime asset URLs must use the same deployment prefix as the bundles.
 for (const file of [
   'page',
+  'native-species-atlas',
   'scene',
   'library',
   'book-reading',

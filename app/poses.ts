@@ -18,13 +18,61 @@ function turn(point: readonly number[], angle: number) {
     .multiply(new Matrix4().makeRotationZ(angle))
     .multiply(new Matrix4().makeTranslation(-point[0], -point[1], -point[2]));
 }
-export function poseRig(pose: DogPose) {
+type PoseAngles = Record<
+  | 'trunk'
+  | 'arm'
+  | 'forearm'
+  | 'forefoot'
+  | 'foretoes'
+  | 'thigh'
+  | 'shank'
+  | 'hindfoot'
+  | 'hindtoes'
+  | 'tail',
+  number
+>;
+// Species atlases supply their own joint centres and solved pose angles.
+export type PoseConfig = {
+  joints: Record<keyof typeof defaultJoints, number[]>;
+  foretoes: number[];
+  hindtoes: number[];
+  tail: number[];
+  lower: number;
+  angles?: Partial<Record<DogPose, PoseAngles>>;
+};
+const defaultJoints = poseJoints;
+export function poseRig(pose: DogPose, config?: PoseConfig) {
+  const poseJoints = config?.joints || defaultJoints;
   const sit = pose === 'sitting',
     lie = pose === 'lying';
+  const a = config?.angles?.[pose];
+  if (config && a) {
+    const trunk = turn(poseJoints.shoulder, a.trunk);
+    if (lie)
+      trunk.premultiply(new Matrix4().makeTranslation(0, -config.lower, 0));
+    const arm = trunk.clone().multiply(turn(poseJoints.shoulder, a.arm)),
+      forearm = arm.clone().multiply(turn(poseJoints.elbow, a.forearm)),
+      forefoot = forearm.clone().multiply(turn(poseJoints.carpus, a.forefoot));
+    const thigh = trunk.clone().multiply(turn(poseJoints.hip, a.thigh)),
+      shank = thigh.clone().multiply(turn(poseJoints.stifle, a.shank)),
+      hindfoot = shank.clone().multiply(turn(poseJoints.hock, a.hindfoot));
+    return {
+      trunk,
+      arm,
+      forearm,
+      forefoot,
+      foretoes: forefoot.clone().multiply(turn(config.foretoes, a.foretoes)),
+      thigh,
+      shank,
+      hindfoot,
+      hindtoes: hindfoot.clone().multiply(turn(config.hindtoes, a.hindtoes)),
+      tail: trunk.clone().multiply(turn(config.tail, a.tail)),
+    };
+  }
   const trunk = sit
     ? turn(poseJoints.shoulder, 0.62)
     : lie
-      ? new Matrix4().makeTranslation(0, -0.27, 0)
+      ? new Matrix4().makeTranslation(0, -(config?.lower ?? 0.27), 0)
       : new Matrix4();
   const arm = trunk
     .clone()
@@ -44,13 +92,18 @@ export function poseRig(pose: DogPose) {
     .multiply(turn(poseJoints.hock, sit ? 1.59 : lie ? 1.85 : 0));
   const foretoes = forefoot
     .clone()
-    .multiply(turn([0.175, 0.025, 0], lie ? -1.2 : 0));
+    .multiply(turn(config?.foretoes || [0.175, 0.025, 0], lie ? -1.2 : 0));
   const hindtoes = hindfoot
     .clone()
-    .multiply(turn([-0.531, 0.027, 0], sit ? -1.44 : lie ? -1.405 : 0));
+    .multiply(
+      turn(
+        config?.hindtoes || [-0.531, 0.027, 0],
+        sit ? -1.44 : lie ? -1.405 : 0,
+      ),
+    );
   const tail = trunk
     .clone()
-    .multiply(turn([-0.342, 0.494, 0], sit ? -0.95 : 0));
+    .multiply(turn(config?.tail || [-0.342, 0.494, 0], sit ? -0.95 : 0));
   return {
     trunk,
     arm,
@@ -78,8 +131,8 @@ export function poseSegment(part: Part): keyof ReturnType<typeof poseRig> {
     return 'hindfoot';
   return 'trunk';
 }
-export function poseMatrix(part: Part, pose: DogPose) {
-  return poseRig(pose)[poseSegment(part)].clone();
+export function poseMatrix(part: Part, pose: DogPose, config?: PoseConfig) {
+  return poseRig(pose, config)[poseSegment(part)].clone();
 }
 export function posePoint(point: readonly number[], matrix: Matrix4) {
   return new Vector3(...(point as [number, number, number])).applyMatrix4(
@@ -127,9 +180,10 @@ export function deformSoftVertices(
   rest: Float32Array,
   bindings: Influence[][],
   pose: DogPose,
+  config?: PoseConfig,
 ) {
   if (pose === 'standing') return rest.slice();
-  const rig = poseRig(pose),
+  const rig = poseRig(pose, config),
     output = new Float32Array(rest.length),
     point = new Vector3();
   for (let i = 0; i < rest.length; i += 3) {

@@ -19,6 +19,8 @@ import {
 import { Button } from '@/components/ui/button';
 import AnatomyScene from './scene';
 import PoseControls from './pose-controls';
+import { SpeciesPicker, type Species } from './species-atlas';
+import NativeSpeciesAtlas from './native-species-atlas';
 import ThemePicker from './theme-picker';
 import type { DogPose } from './poses';
 import ExamStudy from './exam-study';
@@ -126,6 +128,15 @@ export default function Home() {
     }
   }, []);
   const [challenge, setChallenge] = useState(false);
+  const [species, setSpecies] = useState<Species>('dog');
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get('species');
+    if (value === 'cat' || value === 'rabbit') {
+      setSpecies(value);
+      setTab('explore');
+    }
+  }, []);
+  const otherSpecies = tab === 'explore' && species !== 'dog';
   // Panes size themselves with --header-h; the header wraps differently per width.
   const header = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -203,6 +214,7 @@ export default function Home() {
   );
   const count = atlas?.parts.filter((p) => isShown(p, state)).length || 0;
   const choose = (id: string) => {
+    setSpecies('dog');
     setState((s) => ({
       ...s,
       selected: id,
@@ -350,9 +362,31 @@ export default function Home() {
           </div>
         </div>
       </header>
+      {tab === 'explore' && (
+        <SpeciesPicker
+          species={species}
+          language={language}
+          onChange={(value) => {
+            setSpecies(value);
+            const url = new URL(window.location.href);
+            url.searchParams.set('species', value);
+            url.searchParams.delete('view');
+            url.searchParams.delete('book');
+            window.history.replaceState(null, '', url);
+          }}
+        />
+      )}
+      {otherSpecies && (
+        <NativeSpeciesAtlas
+          key={species}
+          species={species}
+          language={language}
+        />
+      )}
       <div
         className="workspace"
         style={
+          otherSpecies ||
           tab === 'library' ||
           tab === 'dorn' ||
           tab === 'exam' ||
@@ -560,6 +594,7 @@ export default function Home() {
             </button>
           </div>
           {atlas &&
+            !otherSpecies &&
             tab !== 'library' &&
             tab !== 'dorn' &&
             tab !== 'exam' &&

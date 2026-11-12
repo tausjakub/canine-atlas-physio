@@ -13,7 +13,13 @@ export type Part = {
   radius?: number;
   anatomicalRegion?: string;
 };
-export type Atlas = { parts: Part[]; bytes: number };
+export type Atlas = {
+  parts: Part[];
+  bytes: number;
+  binaryPath?: string;
+  poseConfig?: import('./poses').PoseConfig;
+  species?: 'cat' | 'rabbit';
+};
 export type SceneState = {
   systems: System[];
   selected: string | null;
@@ -25,6 +31,7 @@ export type SceneState = {
   reset: number;
   rotate: boolean;
   pose?: DogPose;
+  focusSelected?: boolean;
 };
 export const systems: { id: System; name: string; color: string }[] = [
   { id: 'bone', name: 'Skeleton', color: '#e6d5ad' },

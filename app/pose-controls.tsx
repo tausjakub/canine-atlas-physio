@@ -4,11 +4,14 @@ export default function PoseControls({
   pose,
   onChange,
   language,
+  animal = 'dog',
 }: {
   pose: DogPose;
   onChange: (pose: DogPose) => void;
   language: Language;
+  animal?: 'dog' | 'cat' | 'rabbit';
 }) {
+  const dog = animal === 'dog';
   const cs = language === 'cs';
   const names = cs
     ? { standing: 'Stoj', sitting: 'Sed', lying: 'Leh' }
@@ -16,9 +19,25 @@ export default function PoseControls({
   return (
     <section
       className="pose-controls"
-      aria-label={cs ? 'Základní polohy psa' : 'Basic dog poses'}
+      aria-label={
+        dog
+          ? cs
+            ? 'Základní polohy psa'
+            : 'Basic dog poses'
+          : cs
+            ? 'Schematické polohy'
+            : 'Schematic poses'
+      }
     >
-      <h2>{cs ? 'Polohy psa' : 'Dog poses'}</h2>
+      <h2>
+        {dog
+          ? cs
+            ? 'Polohy psa'
+            : 'Dog poses'
+          : cs
+            ? 'Polohy modelu'
+            : 'Model poses'}
+      </h2>
       <div role="group" aria-label={cs ? 'Vybrat polohu' : 'Choose a pose'}>
         {dogPoses.map((p) => (
           <button key={p} aria-pressed={pose === p} onClick={() => onChange(p)}>
