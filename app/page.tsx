@@ -20,7 +20,6 @@ import { Button } from '@/components/ui/button';
 import AnatomyScene from './scene';
 import PoseControls from './pose-controls';
 import { SpeciesPicker, type Species } from './species-atlas';
-import NativeSpeciesAtlas from './native-species-atlas';
 import ThemePicker from './theme-picker';
 import type { DogPose } from './poses';
 import ExamStudy from './exam-study';
@@ -138,6 +137,35 @@ export default function Home() {
     }
   }, []);
   const otherSpecies = tab === 'explore' && species !== 'dog';
+  // Cat and rabbit catalogs load on first use and render in the same explorer.
+  const [speciesAtlas, setSpeciesAtlas] = useState<
+    Partial<Record<Species, Atlas>>
+  >({});
+  useEffect(() => {
+    if (species === 'dog' || speciesAtlas[species]) return;
+    const abort = new AbortController();
+    fetch(sitePath(`/models/${species}/catalog.json`), { signal: abort.signal })
+      .then((r) => {
+        if (!r.ok) throw Error('The anatomy catalogue could not be loaded.');
+        return r.json();
+      })
+      .then((data) =>
+        setSpeciesAtlas((all) => ({ ...all, [species]: data as Atlas })),
+      )
+      .catch((e) => {
+        if (e.name !== 'AbortError') setError(e.message);
+      });
+    return () => abort.abort();
+  }, [species, speciesAtlas]);
+  const view = otherSpecies ? (speciesAtlas[species] ?? null) : atlas;
+  const layerCount = Math.max(
+    -1,
+    ...(view?.parts.map((p) => (p as { layer?: number }).layer ?? -1) ?? [-1]),
+  );
+  const [peel, setPeel] = useState(0);
+  const presentSystems = systems.filter((sys) =>
+    view ? view.parts.some((p) => p.system === sys.id) : true,
+  );
   // Panes size themselves with --header-h; the header wraps differently per width.
   const header = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -192,11 +220,11 @@ export default function Home() {
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, []);
-  const selected = atlas?.parts.find((p) => p.id === state.selected),
+  const selected = view?.parts.find((p) => p.id === state.selected),
     note = selected ? detailFor(selected, language) : undefined;
   const results = useMemo(
     () =>
-      atlas?.parts
+      view?.parts
         .filter(
           (p) =>
             (area === 'All regions' || region(p) === area) &&
@@ -211,11 +239,10 @@ export default function Home() {
             language,
           ),
         ) || [],
-    [atlas, query, area, language],
+    [view, query, area, language],
   );
-  const count = atlas?.parts.filter((p) => isShown(p, state)).length || 0;
+  const count = view?.parts.filter((p) => isShown(p, state)).length || 0;
   const choose = (id: string) => {
-    setSpecies('dog');
     setState((s) => ({
       ...s,
       selected: id,
@@ -237,6 +264,7 @@ export default function Home() {
       reset: s.reset + 1,
     }));
   const reset = () => {
+    setPeel(0);
     setState((s) => ({ ...initial, reset: s.reset + 1 }));
     setQuery('');
     setArea('All regions');
@@ -369,6 +397,7 @@ export default function Home() {
           language={language}
           onChange={(value) => {
             setSpecies(value);
+            reset();
             const url = new URL(window.location.href);
             url.searchParams.set('species', value);
             url.searchParams.delete('view');
@@ -377,17 +406,9 @@ export default function Home() {
           }}
         />
       )}
-      {otherSpecies && (
-        <NativeSpeciesAtlas
-          key={species}
-          species={species}
-          language={language}
-        />
-      )}
       <div
         className="workspace"
         style={
-          otherSpecies ||
           tab === 'library' ||
           tab === 'dorn' ||
           tab === 'exam' ||
@@ -426,10 +447,11 @@ export default function Home() {
             pose={state.pose || 'standing'}
             onChange={changePose}
             language={language}
+            animal={otherSpecies ? species : 'dog'}
           />
           <div className="section-title">
             <h2>{t('Layers')}</h2>
-            <span>{systems.length}</span>
+            <span>{presentSystems.length}</span>
           </div>
           <div className="presets">
             <button
@@ -458,24 +480,26 @@ export default function Home() {
             >
               {t('Skeleton')}
             </button>
-            <button
-              onClick={() =>
-                setState((s) => ({
-                  ...s,
-                  systems: ['bone', 'ligament'],
-                  selected: null,
-                  isolate: false,
-                  hidden: [],
-                  explode: 0,
-                  reset: s.reset + 1,
-                }))
-              }
-            >
-              {t('Bones + ligaments')}
-            </button>
+            {presentSystems.some((sys) => sys.id === 'ligament') && (
+              <button
+                onClick={() =>
+                  setState((s) => ({
+                    ...s,
+                    systems: ['bone', 'ligament'],
+                    selected: null,
+                    isolate: false,
+                    hidden: [],
+                    explode: 0,
+                    reset: s.reset + 1,
+                  }))
+                }
+              >
+                {t('Bones + ligaments')}
+              </button>
+            )}
           </div>
           <div className="layer-list">
-            {systems.map((sys) => (
+            {presentSystems.map((sys) => (
               <button
                 key={sys.id}
                 className="layer-row"
@@ -485,8 +509,7 @@ export default function Home() {
                 <span className="layer-dot" style={{ background: sys.color }} />
                 <span>{t(sys.name)}</span>
                 <small>
-                  {atlas?.parts.filter((p) => p.system === sys.id).length ??
-                    '—'}
+                  {view?.parts.filter((p) => p.system === sys.id).length ?? '—'}
                 </small>
                 <span
                   className={`switch ${state.systems.includes(sys.id) ? 'on' : ''}`}
@@ -511,6 +534,48 @@ export default function Home() {
               }
             />
           </label>
+          {layerCount > 0 && view && (
+            <label className="opacity-label peel-label">
+              {language === 'cs'
+                ? 'Odkrývat po vrstvách'
+                : 'Peel layer by layer'}{' '}
+              <output>
+                {peel === 0 ? (language === 'cs' ? 'vše' : 'all') : `−${peel}`}
+              </output>
+              <input
+                aria-label={
+                  language === 'cs'
+                    ? 'Odkrývat svalové vrstvy'
+                    : 'Peel muscle layers'
+                }
+                type="range"
+                min="0"
+                max={layerCount}
+                step="1"
+                value={peel}
+                onChange={(e) => {
+                  const v = +e.target.value;
+                  setPeel(v);
+                  setState((s) => ({
+                    ...s,
+                    systems: s.systems.includes('muscle')
+                      ? s.systems
+                      : [...s.systems, 'muscle'],
+                    hidden: view.parts
+                      .filter(
+                        (p) =>
+                          p.system === 'muscle' &&
+                          ((p as { layer?: number }).layer ?? 0) >
+                            layerCount - v,
+                      )
+                      .map((p) => p.id),
+                    selected: null,
+                    isolate: false,
+                  }));
+                }}
+              />
+            </label>
+          )}
           <div className="section-title">
             <h2>{t('Browse anatomy')}</h2>
             <span>{results.length}</span>
@@ -551,7 +616,7 @@ export default function Home() {
             ))}
             {!results.length && (
               <p className="empty">
-                {atlas
+                {view
                   ? t(
                       'No matching structures. Try a muscle name or choose all regions.',
                     )
@@ -562,7 +627,9 @@ export default function Home() {
           <div className="side-foot">
             <span className="live-dot" />
             {t('{count} pieces · {count} study notes', {
-              count: noteCoverage.pieces + ligamentCount,
+              count: otherSpecies
+                ? (view?.parts.length ?? 0)
+                : noteCoverage.pieces + ligamentCount,
             })}
           </div>
         </aside>
@@ -575,7 +642,7 @@ export default function Home() {
                   ? t('Isolated structure')
                   : state.explode > 0
                     ? t('Exploded anatomy')
-                    : 'Canis lupus familiaris'}
+                    : (view?.scientificName ?? 'Canis lupus familiaris')}
               </h2>
               <p>
                 {t('Visible pieces: {count}', { count })} <span>·</span>{' '}
@@ -594,16 +661,16 @@ export default function Home() {
               <span className="label">{t('Layers & search')}</span>
             </button>
           </div>
-          {atlas &&
-            !otherSpecies &&
+          {view &&
             tab !== 'library' &&
             tab !== 'dorn' &&
             tab !== 'exam' &&
             tab !== 'practical' &&
             !(tab === 'study' && challenge) && (
               <AnatomyScene
+                key={otherSpecies ? species : 'dog'}
                 language={language}
-                atlas={atlas}
+                atlas={view}
                 state={state}
                 onSelect={choose}
               />
@@ -614,14 +681,14 @@ export default function Home() {
               <button onClick={() => location.reload()}>{t('Retry')}</button>
             </div>
           )}
-          {atlas && count === 0 && (
+          {view && count === 0 && (
             <div className="load-card">
               <strong>{t('No structures visible')}</strong>
               <p>{t('Turn on a layer or restore the anatomy.')}</p>
               <button onClick={reset}>{t('Restore anatomy')}</button>
             </div>
           )}
-          {atlas?.parts.some(
+          {view?.parts.some(
             (p) => p.system === 'ligament' && isShown(p, state),
           ) && (
             <div className="ligament-legend" role="note">
@@ -817,6 +884,7 @@ export default function Home() {
                 onClick={() => {
                   const p = atlas?.parts.find((p) => quiz.match.test(p.id));
                   if (p) {
+                    setSpecies('dog');
                     choose(p.id);
                     setTab('explore');
                     setState((s) => ({
@@ -1081,6 +1149,7 @@ export default function Home() {
           onPractical={() => setTab('practical')}
           onExplore={(id) => {
             if (atlas?.parts.some((p) => p.id === id)) {
+              setSpecies('dog');
               choose(id);
               setTab('explore');
               setState((s) => ({

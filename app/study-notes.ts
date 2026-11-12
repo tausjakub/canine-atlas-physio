@@ -28,7 +28,74 @@ export const noteCoverage = {
   profiles: Object.keys(profiles).length,
   qualified: Object.values(pieces).filter((p) => p.warning).length,
 };
+type Bilingual = { cs: string; en: string };
+// Cat and rabbit parts carry their own bilingual study card in the catalog.
+export type SpeciesStudy = {
+  location: Bilingual;
+  connections: Bilingual;
+  nerve: Bilingual | null;
+  difference: Bilingual;
+  recall: Bilingual;
+  answer: Bilingual;
+  reference: string;
+  depth: 'deep' | 'superficial';
+};
+export type SpeciesPart = Part & {
+  label: Bilingual;
+  action: Bilingual;
+  study: SpeciesStudy | null;
+  layer?: number;
+};
+export function isSpeciesPart(part: Part): part is SpeciesPart {
+  return 'label' in part && 'study' in part;
+}
+function speciesNote(part: SpeciesPart, language: Language) {
+  const s = part.study,
+    cs = language === 'cs',
+    pick = (b: Bilingual | null | undefined) => (b ? b[language] : '');
+  const side = part.id.endsWith('_L')
+    ? cs
+      ? 'Vlevo'
+      : 'Left'
+    : part.id.endsWith('_R')
+      ? cs
+        ? 'Vpravo'
+        : 'Right'
+      : cs
+        ? 'Střední čára'
+        : 'Midline';
+  return {
+    title: part.label[language].replace(/ · (vlevo|vpravo|left|right)$/, ''),
+    overview: pick(s?.location),
+    location: pick(s?.location),
+    attachments: pick(s?.connections),
+    function: pick(part.action),
+    nerve:
+      pick(s?.nerve) ||
+      (cs ? 'Neuplatňuje se (kost).' : 'Not applicable (bone).'),
+    physio: cs
+      ? 'Sledujte vztah struktury k okolním kloubům. Pohyb v zatížené končetině se může lišit od izolovaného pohybu; polohy modelu ukazují prostorové vztahy, nikoli bezpečný rozsah pohybu živého zvířete.'
+      : 'Follow the structure’s relationship to neighbouring joints. Weight-bearing function may differ from isolated movement; model poses show spatial relationships, not a safe range of motion for a living animal.',
+    recall: s ? `${pick(s.recall)} ${pick(s.answer)}` : '',
+    sources: [] as string[],
+    profile: '',
+    side,
+    modelNote: pick(s?.difference),
+    warning: '',
+    references: s
+      ? [
+          {
+            title: cs
+              ? 'Anatomický podklad k dalšímu studiu'
+              : 'Anatomical reference for further study',
+            url: s.reference,
+          },
+        ]
+      : [],
+  };
+}
 export function detailFor(part: Part, language: Language = 'en') {
+  if (isSpeciesPart(part)) return speciesNote(part, language);
   const guide = ligamentDetail(part, language);
   if (guide) return guide;
   const localized = language === 'cs' ? dataCs : data;
@@ -47,6 +114,7 @@ export function detailFor(part: Part, language: Language = 'en') {
   };
 }
 export function structureName(part: Part, language: Language) {
+  if (isSpeciesPart(part)) return part.label[language];
   const guide = ligamentDetail(part, language);
   if (guide) return `${guide.title} · ${guide.side}`;
   if (language === 'en') return displayName(part.id);

@@ -570,12 +570,12 @@ LAYER = {0: ('nejhlubší vrstva přímo na kosti', 'deepest layer, directly on 
          4: ('nejpovrchovější vrstva pod kůží', 'most superficial layer, beneath the skin')}
 
 
-def table(S):
+def table(S, rows=None, include_mapped=False):
     sp = S['species']
     code = 'c' if sp == 'cat' else 'r'
     out = []
-    for r in ROWS:
-        if code not in r['sp']:
+    for r in rows or ROWS:
+        if code not in r['sp'] or (r['shape'] == 'mapped' and not include_mapped):
             continue
         if sp == 'rabbit' and r.get('rabbit_tail'):
             r = dict(r, w=r['w'] * 0.8)

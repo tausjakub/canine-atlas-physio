@@ -16,6 +16,10 @@ const pair = (cs, en) => ({ cs, en });
 const sources = {
   cat: [
     {
+      title: 'MusculoskeletalDog (geometry source, MIT)',
+      url: 'https://github.com/vittorione94/MusculoskeletalDog',
+    },
+    {
       title: 'University of Minnesota · Carnivore anatomy (dog and cat)',
       url: 'https://vanat.ahc.umn.edu/carnLabs/',
     },
@@ -25,6 +29,10 @@ const sources = {
     },
   ],
   rabbit: [
+    {
+      title: 'MusculoskeletalDog (geometry source, MIT)',
+      url: 'https://github.com/vittorione94/MusculoskeletalDog',
+    },
     {
       title: 'Mukhopadhyay & Wagner · Rabbit muscular anatomy (Clemson)',
       url: 'https://open.clemson.edu/rabbit/2/',
@@ -54,6 +62,22 @@ const side = (id) =>
 function boneLabel(id) {
   const n = id.replace(/_[LR]$/, '');
   const rules = [
+    [
+      /^Ribcage$/,
+      () =>
+        pair(
+          'Hrudní koš s hrudními obratli',
+          'Rib cage with thoracic vertebrae',
+        ),
+    ],
+    [
+      /^Sesamoid_carpal$/,
+      () => pair('Sezamská kost zápěstí', 'Carpal sesamoid bone'),
+    ],
+    [
+      /^Femoris_fabella_(\d)$/,
+      (m) => pair(`Fabela ${m[1]}`, `Fabella ${m[1]}`),
+    ],
     [/^MergedSkull$/, () => pair('Lebka', 'Skull')],
     [/^Jaw$/, () => pair('Polovina dolní čelisti', 'Hemimandible')],
     [
@@ -255,15 +279,17 @@ for (const species of ['cat', 'rabbit']) {
     sources: sources[species],
     scientificName: rabbit ? 'Oryctolagus cuniculus' : 'Felis catus',
     scope: pair(
-      `Vlastní 3D model vytvořený pro tento atlas v Blenderu: ${parts.length - muscles} kostních částí a ${muscles} samostatných svalů (obě strany), seřazených od nejhlubší vrstvy po povrchovou. Tvary svalů vycházejí z úponů na modelovaných kostech; jde o studijní pomůcku, ne o CT, sken ani odborně ověřenou disekci. Chybí cévy, nervy, vazy, orgány, kožní a mimické svaly a drobné svaly tlapek.`,
-      `Original 3D model built in Blender for this atlas: ${parts.length - muscles} skeletal pieces and ${muscles} separate muscles (both sides), layered from deepest to most superficial. Muscle shapes are derived from attachments on the modelled bones; this is a study aid, not a CT, scan or expert-validated dissection. Vessels, nerves, ligaments, organs, cutaneous and facial muscles and small paw muscles are omitted.`,
+      `3D model vytvořený v Blenderu přenesením profesionálního psího modelu MusculoskeletalDog (MIT) na proporce druhu ${rabbit ? 'králík domácí' : 'kočka domácí'}: ${parts.length - muscles} kostních částí a ${muscles} samostatných svalů (obě strany) s druhovými názvy, vrstvami a doplněnými svaly, které pes nemá. Jde o studijní pomůcku, ne o CT, sken ani odborně ověřenou disekci; tvary kostí a svalů zůstávají částečně psí. Chybí cévy, nervy, vazy a orgány.`,
+      `3D model built in Blender by retargeting the professional MusculoskeletalDog model (MIT) onto ${rabbit ? 'domestic rabbit' : 'domestic cat'} proportions: ${parts.length - muscles} skeletal pieces and ${muscles} separate muscles (both sides) with species names, layers and added muscles the dog lacks. This is a study aid, not a CT, scan or expert-validated dissection; bone and muscle shapes remain partly canine. Vessels, nerves, ligaments and organs are omitted.`,
     ),
     created: new Date().toISOString().slice(0, 10),
-    geometryRevision: 3,
+    geometryRevision: 4,
     geometryOrigin: pair(
-      'Parametrická geometrie z Blenderu (scripts/blender); anatomické zdroje určují názvy, vrstvy a úpony, nikoli souřadnice.',
-      'Parametric Blender geometry (scripts/blender); anatomical references inform names, layers and attachments, not coordinates.',
+      'Odvozeno z MusculoskeletalDog, © 2025 Vittorio La Barbera, licence MIT (models/LICENSE-MODEL.txt), přeneseno skripty scripts/blender. Anatomické zdroje určují názvy, vrstvy a úpony.',
+      'Derived from MusculoskeletalDog, © 2025 Vittorio La Barbera, MIT licence (models/LICENSE-MODEL.txt), retargeted by scripts/blender. Anatomical references inform names, layers and attachments.',
     ),
+    attribution:
+      'MusculoskeletalDog by Vittorio La Barbera (MIT), https://github.com/vittorione94/MusculoskeletalDog',
   };
   const dir = new URL(`public/models/${species}/`, root);
   fs.mkdirSync(dir, { recursive: true });

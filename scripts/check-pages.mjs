@@ -100,7 +100,6 @@ if (library) {
 // All runtime asset URLs must use the same deployment prefix as the bundles.
 for (const file of [
   'page',
-  'native-species-atlas',
   'scene',
   'library',
   'book-reading',

@@ -146,7 +146,9 @@ for (const species of ['cat', 'rabbit']) {
   projections.push(...views);
   assert.equal(
     atlas.parts.filter((p) => p.id.startsWith('Carpal_')).length,
-    species === 'cat' ? 14 : 18,
+    // Cat: intermedioradiale, ulnare, accessorium, I-IV. Rabbit: radiale and
+    // intermedium separate; the small os carpi centrale is not modelled.
+    species === 'cat' ? 14 : 16,
   );
   assert.equal(
     atlas.parts.filter((p) =>
@@ -165,81 +167,31 @@ for (const species of ['cat', 'rabbit']) {
     'soleus',
   ])
     assert(atlas.parts.some((p) => p.id === 'm_' + id + '_L'));
+  // The cat and rabbit render in the dog's explorer: its name and note
+  // functions must produce complete bilingual notes for every part.
+  const { detailFor, structureName } = load('study-notes');
   for (const language of ['cs', 'en']) {
-    let cursor = 0,
-      values = [];
-    const hooks = {
-      ...React,
-      useEffect: () => {},
-      useState: (init) => {
-        const n = cursor++;
-        if (!(n in values))
-          values[n] =
-            n === 0 ? atlas : typeof init === 'function' ? init() : init;
-        return [
-          values[n],
-          (v) => (values[n] = typeof v === 'function' ? v(values[n]) : v),
-        ];
-      },
-    };
-    const Component = loader(hooks)(
-        'native-species-atlas',
-      ).SchematicSpeciesAtlas,
-      render = () => {
-        cursor = 0;
-        return Component({ species, language });
-      };
-    let tree = render();
-    let html = renderToStaticMarkup(tree);
-    assert(html.includes(atlas.scientificName));
-    assert(!html.includes('<iframe'));
-    assert(!html.includes('undefined'));
-    find(tree, (n) => n.props?.animal === species).props.onChange('sitting');
-    tree = render();
-    const muscleButton = find(
-      tree,
-      (n) =>
-        n.props?.className === 'layer-row' &&
-        n.props.children[1].props.children ===
-          (language === 'cs' ? 'Svaly' : 'Muscles'),
-    );
-    assert(muscleButton);
-    muscleButton.props.onClick();
-    tree = render();
-    assert.equal(values[3].pose, 'sitting');
-    assert(!values[3].systems.includes('muscle'));
-    muscleButton.props.onClick();
-    tree = render();
-    assert.equal(values[3].pose, 'sitting');
-    find(tree, (n) => n.props?.className === 'structure-row ').props.onClick();
-    tree = render();
-    const selected = atlas.parts.find((p) => p.id === values[3].selected);
-    assert(selected);
-    html = renderToStaticMarkup(tree);
-    assert(html.includes(selected.action[language]));
-    const actions = find(tree, (n) => n.props?.className === 'native-actions');
-    actions.props.children[0].props.onClick();
-    assert(values[3].isolate);
-    assert.equal(atlas.parts.filter((p) => isShown(p, values[3])).length, 1);
-    actions.props.children[1].props.onClick();
-    assert(values[3].hidden.includes(selected.id));
-    assert.equal(values[3].selected, null);
-    tree = render();
-    const dissection = find(
-      tree,
-      (n) => n.props?.className === 'native-dissection',
-    );
-    dissection.props.children[1].props.onClick();
-    tree = render();
-    assert.equal(values[3].pose, 'sitting');
-    assert(
-      atlas.parts
-        .filter((p) => isShown(p, values[3]) && p.system === 'muscle')
-        .every((p) => p.study.depth === 'deep'),
-    );
-    assert(values[3].hidden.length > 0);
-    dissection.props.children[2].props.onClick();
-    assert.equal(values[3].hidden.length, 0);
+    for (const p of atlas.parts) {
+      const name = structureName(p, language);
+      assert(name && !name.includes('undefined'), p.id + ' name');
+      const note = detailFor(p, language);
+      assert(note.title?.length > 1, `${p.id} title ${language}`);
+      assert(note.nerve?.length > 3, `${p.id} nerve ${language}`);
+      for (const field of [
+        'overview',
+        'location',
+        'attachments',
+        'function',
+        'physio',
+        'recall',
+      ])
+        assert(note[field]?.length > 10, `${p.id} ${field} ${language}`);
+      assert(
+        note.references.length &&
+          note.references.every((r) => r.url.startsWith('https://')),
+        p.id + ' references',
+      );
+    }
     const picker = renderToStaticMarkup(
       React.createElement(load('species-atlas').SpeciesPicker, {
         species,
@@ -249,6 +201,28 @@ for (const species of ['cat', 'rabbit']) {
     );
     assert.equal((picker.match(/aria-pressed="true"/g) || []).length, 1);
   }
+  // Layer peeling (page.tsx): step v hides muscles with layer > max - v.
+  const muscles = atlas.parts.filter((p) => p.system === 'muscle');
+  assert(
+    muscles.every(
+      (p) => Number.isInteger(p.layer) && p.layer >= 0 && p.layer <= 4,
+    ),
+    'muscle layers',
+  );
+  const top = Math.max(...muscles.map((p) => p.layer));
+  for (let v = 0; v <= top; v++) {
+    const shown = muscles.filter((p) => p.layer <= top - v);
+    assert(
+      shown.length > 0 && shown.length < muscles.length + (v === 0 ? 1 : 0),
+      'peel step ' + v,
+    );
+  }
+  const state = {
+    ...load('anatomy').initial,
+    isolate: true,
+    selected: muscles[0].id,
+  };
+  assert.equal(atlas.parts.filter((p) => isShown(p, state)).length, 1);
   console.log(
     'PASS: ' +
       species +

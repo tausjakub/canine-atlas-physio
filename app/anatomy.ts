@@ -19,6 +19,7 @@ export type Atlas = {
   binaryPath?: string;
   poseConfig?: import('./poses').PoseConfig;
   species?: 'cat' | 'rabbit';
+  scientificName?: string;
 };
 export type SceneState = {
   systems: System[];

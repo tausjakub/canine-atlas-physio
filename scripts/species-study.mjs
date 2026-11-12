@@ -313,11 +313,25 @@ const muscles = {
 };
 const bones = [
   [
+    /Sesamoid|fabella/,
+    'Drobná sezamská kost uložená ve šlaše nebo kloubním pouzdře.',
+    'A small sesamoid bone embedded in a tendon or joint capsule.',
+    'Mění směr tahu šlachy a chrání ji v místě, kde přechází přes kloub.',
+    'Redirects tendon pull and protects the tendon where it crosses a joint.',
+  ],
+  [
+    /^Ribcage$/,
+    'Hrudní koš tvoří hrudní obratle, žebra a žeberní chrupavky; v modelu jsou spojeny v jednu část.',
+    'The rib cage comprises the thoracic vertebrae, ribs and costal cartilages; the model keeps them as one piece.',
+    'Pravá žebra dosahují hrudní kosti, nepravá žeberního oblouku, poslední žebra jsou volná. Mezižeberní svaly a bránice pohybují hrudníkem při dýchání.',
+    'Sternal ribs reach the sternum, asternal ribs the costal arch, and the last ribs are floating. Intercostal muscles and the diaphragm move the thorax in breathing.',
+  ],
+  [
     /MergedSkull/,
     'Mozkovna a obličejová část. Otvory, švy a jednotlivé lebeční kosti nejsou rozlišeny.',
     'Braincase and facial region. Foramina, sutures and individual cranial bones are not separated.',
-    'Navazuje na atlas a dolní čelist. Zuby v modelu chybí.',
-    'Articulates with the atlas and mandible. Teeth are omitted.',
+    'Navazuje na atlas a dolní čelist. Horní zuby jsou součástí lebky.',
+    'Articulates with the atlas and mandible. Upper teeth are part of the skull piece.',
   ],
   [
     /Jaw/,
