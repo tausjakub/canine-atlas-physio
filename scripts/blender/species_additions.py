@@ -33,16 +33,16 @@ def _lm(bones, side):
         'fib.head': max(fib, key=lambda v: v.y) + lat * 0.002,
         'calc.tuber': max(cal, key=lambda v: v.y),
         'tib.cd_mid': lerp_axis(tib, 0.45) + Vector((-0.006, 0, 0)) + lat * 0.004,
-        'hum.lat_dist': lerp_axis(hum, 0.72) + lat * 0.005 + Vector((0.003, 0, 0)),
+        'hum.lat_dist': lerp_axis(hum, 0.72) + lat * 0.002,
         'hum.med_epi': min(hum, key=lambda v: v.y * 0.2 + s * v.z) + Vector((0, 0.002, 0)),
         'rad.dist_med': min(rad, key=lambda v: v.y - s * v.z * 0.5),
-        'rad.mid_cr': lerp_axis(rad, 0.45) + Vector((0.006, 0, 0)),
-        'uln.mid_cd': lerp_axis(rad, 0.5) + Vector((-0.007, 0, 0)) - lat * 0.002,
+        'rad.mid_cr': lerp_axis(rad, 0.45) + Vector((0.0025, 0, 0)),
+        'uln.mid_cd': lerp_axis(rad, 0.5) + Vector((-0.004, 0, 0)) - lat * 0.002,
         'carp.palm': c(acc) + Vector((-0.002, -0.004, 0)),
         'pat.lat': c(pat) + lat * 0.004,
         'fem.lat_mid': lerp_axis(fem, 0.5) + lat * 0.012 + Vector((-0.008, 0, 0)),
-        'tail.base': c(_verts(bones['Ca_3'])) + lat * 0.004,
-        'tail.base2': c(_verts(bones['Ca_5'])) + lat * 0.003,
+        'tail.base': c(_verts(bones['Ca_2'])) + lat * 0.004,
+        'tail.base2': c(_verts(bones['Ca_3'])) + lat * 0.003,
     }
     return L
 

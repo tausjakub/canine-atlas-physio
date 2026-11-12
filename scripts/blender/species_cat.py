@@ -47,8 +47,8 @@ S = {
                      'ramus_base': (0.22, -0.22, 0.23), 'coronoid': (0.34, 0.08, 0.25), 'condyle': (0.14, -0.12, 0.23),
                      'h': 0.13, 'w': 0.024, 'ramus_w': 0.11},
     },
-    'joints': {'shoulder': (0.150, 0.180, 0.034), 'scap_dorsal': (0.116, 0.228, 0.024), 'carpus': (0.142, 0.040, 0.030),
-               'elbow_z': (0, 0, 0.036), 'hip': (-0.170, 0.190, 0.036), 'hock': (-0.212, 0.070, 0.034), 'stifle_z': (0, 0, 0.044)},
+    'joints': {'shoulder': (0.150, 0.192, 0.034), 'scap_dorsal': (0.118, 0.215, 0.024), 'carpus': (0.142, 0.040, 0.030),
+               'elbow_z': (0, 0, 0.036), 'hip': (-0.170, 0.190, 0.036), 'hock': (-0.235, 0.060, 0.034), 'stifle_z': (0, 0, 0.044)},
     'len': {'humerus': 0.098, 'radius': 0.092, 'olecranon': 0.016, 'femur': 0.112, 'tibia': 0.118},
     'radius': {'humerus': 0.0045, 'radius': 0.0032, 'ulna': 0.0028, 'femur': 0.0050, 'tibia': 0.0042, 'fibula': 0.0012},
     'scapula': {'outline': [(0.10, 0.07), (0.30, 0.20), (0.62, 0.30), (0.88, 0.27), (1.0, 0.12), (1.0, -0.15),
@@ -78,10 +78,10 @@ S = {
     # Retargeting the dog model: target landmarks not covered above and girth
     # multipliers per body segment (relative to the trunk-length scale).
     'retarget': {
-        'fore_toe': (0.163, 0.006, 0.028), 'hind_toe': (-0.185, 0.006, 0.030), 'orbit': 0.6, 'jaw_close': 1.9,
-        'girth': {'cranium': 1.25, 'face': 0.95, 'neck': 0.9, 'thorax': 0.8, 'lumbar': 0.85, 'pelvis': 0.85, 'tail': 0.85,
+        'fore_toe': (0.163, 0.006, 0.028), 'hind_toe': (-0.185, 0.006, 0.030), 'orbit': 0.6, 'jaw_close': 1.4,
+        'girth': {'cranium': 1.25, 'face': 0.95, 'neck': 1.0, 'thorax': 0.82, 'lumbar': 0.84, 'pelvis': 0.85, 'tail': 0.85,
                   'scap': 0.85, 'arm': 0.8, 'forearm': 0.75, 'manus': 0.85, 'thigh': 0.85, 'crus': 0.8, 'pes': 0.85},
-        'width': {'cranium': 1.35, 'face': 1.1},
+        'width': {'cranium': 1.15, 'face': 1.05},
     },
     'skull': build_skull,
     'limbs': build_limbs,

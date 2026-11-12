@@ -132,7 +132,7 @@ def label_muscles(parts, S):
         if p['system'] != 'muscle':
             out.append(p)
             continue
-        key = species_map.DOG_TO_KEY.get(p.get('profile'))
+        key = species_map.SPECIES_OVERRIDES[species].get(p.get('profile')) or species_map.DOG_TO_KEY.get(p.get('profile'))
         if not key or key not in entries:
             missing.add(p.get('profile') or p['id'])
             bpy.data.objects.remove(p['ob'])

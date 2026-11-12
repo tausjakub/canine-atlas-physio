@@ -66,6 +66,12 @@ DOG_TO_KEY = {
     'levator_caudae_longus': 'tail_dorsal', 'levator_caudae_brevis': 'tail_dorsal', 'depressor_caudae_brevis': 'tail_ventral',
 }
 
+# Species-specific targets that differ from DOG_TO_KEY.
+SPECIES_OVERRIDES = {
+    'cat': {'extensor_digitorum_lat': 'fibularis_tertius'},
+    'rabbit': {},
+}
+
 # Structures present in the dog model but absent from the procedural table.
 # Same field order as muscles_table.M; shape 'mapped' = never generated.
 MAP_ROWS = [
@@ -94,7 +100,7 @@ MAP_ROWS = [
       ('okraj očnice', 'orbital margin', 'oční víčka', 'eyelids'),
       'n. facialis (VII)'),
     M('levator_labii_superioris', 3, H, 'mapped', [], [], ('Zdvihač horního pysku', 'Levator labii superioris'),
-      ('Zvedá horní pysk a rozšiřuje nosní dírku.', 'Raises the upper lip and dilates the nostril.'),
+      ('Zvedá horní pysk.', 'Raises the upper lip.'),
       ('horní čelist před očnicí', 'maxilla rostral to the orbit', 'horní pysk a nos', 'upper lip and nose'),
       'n. facialis (VII)'),
     M('caninus', 3, H, 'mapped', [], [], ('Špičákový sval', 'Caninus'),

@@ -85,13 +85,14 @@ def target_landmarks(S):
     occ, ros = V(h['occiput']), V(h['rostrum'])
     L['head'] = {'occiput': occ, 'orbit': occ.lerp(ros, R['orbit']), 'rostrum': ros}
     sp = S['spine']
-    L['spine'] = {'C_1': V(sp['C1']), 'C_7': V(sp['C7']), 'L_1': V(sp['L1']), 'L_7': V(sp['Ln']), 'Ca_1': V(S['tail'][0])}
+    L['spine'] = {'C_1': V(sp['C1']), 'C_7': V(sp['C7']), 'L_1': V(sp['L1']), 'L_7': V(sp['Ln']), 'Ca_1': None}
     # The dog has 21 caudal vertebrae; a shorter species tail maps the first n
     # onto its tail and compresses the rest into the tip (they are removed later).
     n = S['vertebrae'][4]
-    main = catmull([V(p) for p in S['tail']], n)
+    main = catmull([V(p) for p in S['tail']], n + 1)[1:]
     step = (main[-1] - main[-2]).normalized() * 0.0004
     L['tail'] = main + [main[-1] + step * (i + 1) for i in range(21 - n)]
+    L['spine']['Ca_1'] = L['tail'][0]
     return L
 
 
@@ -201,10 +202,13 @@ def rigid_segment(pid, segs):
 CANDIDATES = {
     'Head': {'cranium', 'face', 'neck'},
     'Neck & trunk': {'neck', 'thorax', 'lumbar', 'pelvis', 'tail', 'cranium'},
-    'Forelimb': {'scap', 'arm', 'forearm', 'manus', 'neck', 'thorax'},
+    'Forelimb': {'scap', 'arm', 'forearm', 'manus', 'thorax'},
+    'NeckLimb': {'scap', 'arm', 'forearm', 'neck', 'thorax', 'cranium'},
     'Hindlimb': {'thigh', 'crus', 'pes', 'lumbar', 'pelvis', 'tail'},
 }
 
+
+NECK_LIMB = {'brachiocephalicus', 'omotransversarius', 'trapezius', 'rhomboideus', 'sternocephalicus'}
 
 # Muscles linking trunk and limb must follow both (dog study-data profiles).
 LIMB_GIRDLE = {
@@ -286,7 +290,7 @@ def warp(parts, segs, power=4.0, eps=0.004):
             me.update()
             continue
         sd = side_of(p['id'])
-        allowed = CANDIDATES[p.get('region', 'Neck & trunk')]
+        allowed = CANDIDATES['NeckLimb' if p.get('profile') in NECK_LIMB else p.get('region', 'Neck & trunk')]
         cand = [s for s in segs if s.name.split('_')[0].rstrip('0123456789') in allowed
                 and (s.side is None or sd is None or s.side == sd)]
         for v in me.vertices:
