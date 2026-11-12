@@ -132,6 +132,7 @@ export default function Home() {
   useEffect(() => {
     const value = new URLSearchParams(window.location.search).get('species');
     if (value === 'cat' || value === 'rabbit') {
+      // oxlint-disable-next-line react/react-compiler -- read the URL after mount (static export)
       setSpecies(value);
       setTab('explore');
     }

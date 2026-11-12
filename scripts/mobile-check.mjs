@@ -56,6 +56,8 @@ const viewports = [
 // View query parameters supported by app/page.tsx.
 const views = [
   { name: 'explore', query: '' },
+  { name: 'cat', query: 'species=cat' },
+  { name: 'rabbit', query: 'species=rabbit' },
   { name: 'exam', query: 'view=exam' },
   { name: 'topics', query: 'view=topics' },
   { name: 'exam-day', query: 'view=exam-day' },

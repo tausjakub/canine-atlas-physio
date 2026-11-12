@@ -44,3 +44,4 @@ tsconfig.tsbuildinfo
 # Licensed third-party material (private edition only; never commit or publish)
 /private-assets/
 *.pdf
+__pycache__/
