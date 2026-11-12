@@ -78,7 +78,7 @@ S = {
     # Retargeting the dog model: target landmarks not covered above and girth
     # multipliers per body segment (relative to the trunk-length scale).
     'retarget': {
-        'fore_toe': (0.163, 0.006, 0.028), 'hind_toe': (-0.185, 0.006, 0.030), 'orbit': 0.6, 'jaw_close': 1.4,
+        'fore_toe': (0.163, 0.006, 0.028), 'hind_toe': (-0.185, 0.006, 0.030), 'hind_mtp': (-0.212, 0.013, 0.031), 'orbit': 0.6, 'jaw_close': 1.2,
         'girth': {'cranium': 1.25, 'face': 0.95, 'neck': 1.0, 'thorax': 0.82, 'lumbar': 0.84, 'pelvis': 0.85, 'tail': 0.85,
                   'scap': 0.85, 'arm': 0.8, 'forearm': 0.75, 'manus': 0.85, 'thigh': 0.85, 'crus': 0.8, 'pes': 0.85},
         'width': {'cranium': 1.15, 'face': 1.05},

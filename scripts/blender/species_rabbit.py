@@ -1,7 +1,7 @@
 """Oryctolagus cuniculus: authored proportions for an adult domestic rabbit
 (~3 kg) in a resting crouch.
 
-Features: vertebral formula C7 T12 L7 S4, ~16 caudal; 12 rib pairs (7
+Features: vertebral formula C7 T12 L7 S4, ~16 caudal; 12 rib pairs usually (the retargeted model shows the 13-pair variant) (7
 sternal); long lumbar transverse processes; long narrow skull with large
 orbits, fenestrated maxilla and two pairs of upper incisors (peg teeth);
 well-developed clavicle; carpus 9; fused distal tibia and fibula; third
@@ -80,7 +80,7 @@ S = {
                (0.053, 0.051), (0.052, 0.051), (0.050, 0.048), (0.035, 0.032), (0.020, 0.018)])],
     'linea': [(0.03, 0.058, 0), (-0.02, 0.064, 0), (-0.07, 0.072, 0), (-0.11, 0.098, 0), (-0.127, 0.103, 0)],
     'retarget': {
-        'fore_toe': (0.178, 0.004, 0.024), 'hind_toe': (-0.085, 0.004, 0.028), 'orbit': 0.45, 'jaw_close': 1.4,
+        'fore_toe': (0.178, 0.004, 0.024), 'hind_toe': (-0.085, 0.004, 0.028), 'hind_mtp': (-0.112, 0.008, 0.029), 'orbit': 0.45, 'jaw_close': 0.95,
         'girth': {'cranium': 1.0, 'face': 0.95, 'neck': 1.0, 'thorax': 0.85, 'lumbar': 0.9, 'pelvis': 0.95, 'tail': 1.2,
                   'scap': 0.8, 'arm': 0.75, 'forearm': 0.7, 'manus': 0.8, 'thigh': 1.0, 'crus': 0.95, 'pes': 0.9},
         'width': {'cranium': 1.0, 'face': 0.8},

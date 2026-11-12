@@ -46,6 +46,8 @@ def dog_landmarks(parts):
         L[side]['scap_dorsal'] = top
         dist = [ob for i, ob in by.items() if re.match(rf'Phalanx_distalis_digiti_(III|IV)_{side}', i)]
         L[side]['fore_toe'] = sum((_centre(o) for o in dist), Vector()) / len(dist)
+        mts = [_verts(ob) for i, ob in by.items() if re.match(rf'Metatarsi_{side}_[23]$', i)]
+        L[side]['hind_mtp'] = sum((min(vs, key=lambda v: v.y) for vs in mts), Vector()) / len(mts)
         hdist = [ob for i, ob in by.items() if re.match(rf'Phalanges_B_3_{side}_[23]$', i)]
         L[side]['hind_toe'] = sum((_centre(o) for o in hdist), Vector()) / len(hdist)
     sk = _verts(by['MergedSkull'])
@@ -80,7 +82,8 @@ def target_landmarks(S):
         st = ik(hip, hock, S['len']['femur'], S['len']['tibia'], -1)
         st.z = s * J['stifle_z'][2]
         L[side] = {'shoulder': sh, 'elbow': el, 'carpus': ca, 'hip': hip, 'stifle': st, 'hock': hock,
-                   'scap_dorsal': P('scap_dorsal'), 'fore_toe': P('fore_toe'), 'hind_toe': P('hind_toe')}
+                   'scap_dorsal': P('scap_dorsal'), 'fore_toe': P('fore_toe'), 'hind_toe': P('hind_toe'),
+                   'hind_mtp': P('hind_mtp')}
     h = S['head']
     occ, ros = V(h['occiput']), V(h['rostrum'])
     L['head'] = {'occiput': occ, 'orbit': occ.lerp(ros, R['orbit']), 'rostrum': ros}
@@ -157,24 +160,34 @@ def segments(src, tgt, S):
     idx = [0, 5, 10, 15, 20]
     for a, b in zip(idx, idx[1:]):
         segs.append(Segment(f'tail{a}', st[a], st[b], tt[a], tt[b], g('tail') * (1 - a / 30), width=w('tail') * (1 - a / 30)))
+    pelvis = next(sg for sg in segs if sg.name == 'pelvis')
     for side in ('L', 'R'):
         s, t = src[side], tgt[side]
+        # The hip follows the warped pelvis so the femoral head stays in the
+        # acetabulum; the stifle is re-solved for the species' bone lengths.
+        hip = pelvis.apply(s['hip'])
+        hip.z = t['hip'].z
+        t['hip'] = hip
+        st = ik(hip, t['hock'], S['len']['femur'], S['len']['tibia'], -1)
+        st.z = t['stifle'].z
+        t['stifle'] = st
         for name, a, b in (('scap', 'scap_dorsal', 'shoulder'), ('arm', 'shoulder', 'elbow'), ('forearm', 'elbow', 'carpus'),
                            ('manus', 'carpus', 'fore_toe'), ('thigh', 'hip', 'stifle'), ('crus', 'stifle', 'hock'),
-                           ('pes', 'hock', 'hind_toe')):
+                           ('pes', 'hock', 'hind_mtp'), ('hdigits', 'hind_mtp', 'hind_toe')):
             segs.append(Segment(f'{name}_{side}', s[a], s[b], t[a], t[b], g(name), side=side, width=w(name)))
     return segs
 
 
 # Approximate body radius around each dog segment axis (dog units, metres).
 RADIUS = {'cranium': 0.04, 'face': 0.028, 'neck': 0.045, 'thorax': 0.105, 'lumbar': 0.065, 'pelvis': 0.055, 'tail': 0.008,
-          'scap': 0.02, 'arm': 0.022, 'forearm': 0.014, 'manus': 0.008, 'thigh': 0.03, 'crus': 0.018, 'pes': 0.01}
+          'scap': 0.02, 'arm': 0.022, 'forearm': 0.014, 'manus': 0.008, 'thigh': 0.03, 'crus': 0.018, 'pes': 0.01,
+          'hdigits': 0.006}
 
 RIGID = [
-    (r'^C_\d', 'neck'), (r'^Ribcage', 'thorax'), (r'^L_\d', 'lumbar'), (r'^(Sacrum|Pelvis)', 'pelvis'),
+    (r'^C_\d', 'neck'), (r'^(Ribcage|T_\d|Rib_|Sternum)', 'thorax'), (r'^L_\d', 'lumbar'), (r'^(Sacrum|Pelvis)', 'pelvis'),
     (r'^Scapula_', 'scap'), (r'^humerus_', 'arm'), (r'^(Radius|Ulna)_', 'forearm'),
     (r'^(Carpal|Os_metacarpale|Phalanx)', 'manus'), (r'^(Femoris|Patella)', 'thigh'),
-    (r'^(Tibia|Fibula)_', 'crus'), (r'^(Tarsus|Calcaneal|Tibial_tarsal|Metatarsi|Phalanges_B)', 'pes'),
+    (r'^(Tibia|Fibula)_', 'crus'), (r'^Phalanges_B', 'hdigits'), (r'^(Tarsus|Calcaneal|Tibial_tarsal|Metatarsi)', 'pes'),
 ]
 
 
@@ -192,7 +205,7 @@ def rigid_segment(pid, segs):
     for pat, name in RIGID:
         if re.match(pat, pid):
             sd = side_of(pid)
-            return by.get(f'{name}_{sd}') if name in ('scap', 'arm', 'forearm', 'manus', 'thigh', 'crus', 'pes') else by[name]
+            return by.get(f'{name}_{sd}') if name in ('scap', 'arm', 'forearm', 'manus', 'thigh', 'crus', 'pes', 'hdigits') else by[name]
     return None
 
 
@@ -204,9 +217,12 @@ CANDIDATES = {
     'Neck & trunk': {'neck', 'thorax', 'lumbar', 'pelvis', 'tail', 'cranium'},
     'Forelimb': {'scap', 'arm', 'forearm', 'manus', 'thorax'},
     'NeckLimb': {'scap', 'arm', 'forearm', 'neck', 'thorax', 'cranium'},
-    'Hindlimb': {'thigh', 'crus', 'pes', 'lumbar', 'pelvis', 'tail'},
+    'Hindlimb': {'thigh', 'crus', 'pes', 'hdigits', 'lumbar', 'pelvis', 'tail'},
 }
 
+
+# Abdominal wall: also follows the thigh near the groin (closes the inguinal gap).
+ABDOMINAL = {'obliquus_ext_abdominis', 'obliquus_int_abdominis', 'tranversus_abdominis', 'rectus_abdominis'}
 
 NECK_LIMB = {'brachiocephalicus', 'omotransversarius', 'trapezius', 'rhomboideus', 'sternocephalicus'}
 
@@ -273,7 +289,7 @@ def region_of(part, segs):
         return 'Head'
     if s in ('scap', 'arm', 'forearm', 'manus'):
         return 'Forelimb'
-    if s in ('thigh', 'crus', 'pes'):
+    if s in ('thigh', 'crus', 'pes', 'hdigits'):
         return 'Hindlimb'
     return 'Neck & trunk'
 
@@ -291,6 +307,8 @@ def warp(parts, segs, power=4.0, eps=0.004):
             continue
         sd = side_of(p['id'])
         allowed = CANDIDATES['NeckLimb' if p.get('profile') in NECK_LIMB else p.get('region', 'Neck & trunk')]
+        if p.get('profile') in ABDOMINAL:
+            allowed = allowed | {'thigh'}
         cand = [s for s in segs if s.name.split('_')[0].rstrip('0123456789') in allowed
                 and (s.side is None or sd is None or s.side == sd)]
         for v in me.vertices:

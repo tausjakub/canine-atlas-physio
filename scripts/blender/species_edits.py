@@ -152,3 +152,73 @@ def label_muscles(parts, S):
     if missing:
         print('WARN unmapped dog muscles dropped:', ', '.join(sorted(missing)), flush=True)
     return out
+
+
+# Dog muscles that are two (or more) named muscles in the species.
+# (dog-derived key, method, parameter, key of the + side, key of the - side)
+SPLITS = {
+    'cat': [
+        ('brachiocephalicus', 'axis', 0.45, 'clavotrapezius', 'clavobrachialis'),
+        ('trapezius', 'vertebra', 'T_4', 'acromiotrapezius', 'spinotrapezius'),
+        ('pectoralis_minor', 'xfrac', 0.3, 'pectoralis_minor', 'xiphihumeralis'),
+    ],
+    'rabbit': [
+        ('brachiocephalicus', 'axis', 0.45, 'clavotrapezius', 'clavobrachialis'),
+        ('trapezius', 'vertebra', 'T_4', 'acromiotrapezius', 'spinotrapezius'),
+    ],
+}
+# The cranial of the two superficial pectoral pieces is the feline pectoantebrachialis.
+RENAME_CRANIAL = {'cat': [('pectoralis_major', 'pectoantebrachialis')], 'rabbit': []}
+
+
+def split_muscles(parts, S):
+    import numpy as np
+    species = S['species']
+    entries = {m['id']: m for m in muscles_table.table(S, muscles_table.ROWS + species_map.MAP_ROWS, include_mapped=True)}
+
+    def meta(key):
+        e = entries[key]
+        return {'label': e['label'], 'action': e['action'], 'study': e['study'],
+                'layer': e['layer'], 'depth': e['study']['depth'], 'key': key}
+
+    bones = {p['id']: p['ob'] for p in parts if p['system'] == 'bone'}
+    for key, method, param, plus, minus in SPLITS[species]:
+        for p in [q for q in parts if q.get('meta', {}).get('key') == key]:
+            ob = p['ob']
+            co = np.array([v.co[:] for v in ob.data.vertices])
+            if method == 'axis':
+                c = co.mean(0)
+                w, vec = np.linalg.eigh(np.cov((co - c).T))
+                d = Vector(vec[:, -1])
+                if d.x < 0:
+                    d = -d  # towards the head
+                proj = (co - c) @ np.array(d[:])
+                origin = Vector(c) + d * (proj.max() - param * (proj.max() - proj.min()))
+                normal = d
+            elif method == 'vertebra':
+                vs = [v.co for v in bones[param].data.vertices]
+                origin = sum(vs, Vector()) / len(vs)
+                normal = Vector((1, 0, 0))
+            else:
+                x0, x1 = co[:, 0].min(), co[:, 0].max()
+                origin = Vector((x0 + param * (x1 - x0), 0, 0))
+                normal = Vector((1, 0, 0))
+            sd = p['id'][-2:] if p['id'][-2:] in ('_L', '_R') else ''
+            new = _bisect(ob, origin, normal, f'm_{plus}{sd}')
+            for o, k in ((new, plus), (ob, minus)):
+                o.name = f'm_{k}{sd}'
+            p['id'], p['meta'] = ob.name, meta(minus)
+            parts.append({'id': new.name, 'system': 'muscle', 'ob': new, 'profile': None,
+                          'region': p['region'], 'meta': meta(plus)})
+    for key, new_key in RENAME_CRANIAL[species]:
+        for sd in ('_L', '_R'):
+            pieces = [q for q in parts if q.get('meta', {}).get('key') == key and q['id'].endswith(sd)]
+            if len(pieces) < 2:
+                continue
+            front = max(pieces, key=lambda q: sum((v.co.x for v in q['ob'].data.vertices)) / len(q['ob'].data.vertices))
+            front['meta'] = meta(new_key)
+            front['id'] = front['ob'].name = f'm_{new_key}{sd}'
+            rest = [q for q in pieces if q is not front]
+            for i, q in enumerate(rest):
+                q['id'] = q['ob'].name = f'm_{key}{sd}' if i == 0 else f'm_{key}_{i + 1}{sd}'
+    return parts

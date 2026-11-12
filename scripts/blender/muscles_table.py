@@ -586,11 +586,16 @@ def table(S, rows=None, include_mapped=False):
         o_cs, o_en, i_cs, i_en = r['oi']
         act_cs, act_en = r['action']
         lay_cs, lay_en = LAYER[r['layer']]
-        diff = r['note'] or SPECIES_NOTE[sp]
+        note = r['note']
+        # A note about the other species belongs on that species' page only.
+        other = ('rabbit',) if sp == 'cat' else ('cat', 'feline')
+        if note and any(w in note[1].lower() for w in other):
+            note = None
+        diff = note or SPECIES_NOTE[sp]
         if sp == 'rabbit' and r['rt'] and r['rt'] != r['name']:
             diff = (diff[0] + f' U kočky: {r["name"][0]}.', diff[1] + f' In the cat: {r["name"][1]}.')
         elif sp == 'cat' and r['rt'] and r['rt'] != r['name']:
-            diff = (diff[0] + f' U králíka a psa: {r["rt"][0]}.', diff[1] + f' In the rabbit and dog: {r["rt"][1]}.')
+            diff = (diff[0] + f' U králíka: {r["rt"][0]}.', diff[1] + f' In the rabbit: {r["rt"][1]}.')
         m['label'] = {'cs': name[0], 'en': name[1]}
         m['action'] = {'cs': act_cs, 'en': act_en}
         m['study'] = {

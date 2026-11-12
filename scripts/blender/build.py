@@ -48,6 +48,10 @@ if not PROCEDURAL:
     for m in (muscles_table, species_map, dog_import, retarget, polish, species_edits):
         importlib.reload(m)
     dog = dog_import.load_dog(ROOT, col)
+    import dog_edits
+    importlib.reload(dog_edits)
+    dog = dog_edits.split_ribcage(dog)
+    dog_edits.edit_teeth(dog, species)
     src = retarget.dog_landmarks(dog)
     tgt = retarget.target_landmarks(S)
     segs = retarget.segments(src, tgt, S)
@@ -58,15 +62,18 @@ if not PROCEDURAL:
     print(f'retarget: {len(dog)} parts in {time.time() - t0:.1f}s', flush=True)
     dog = species_edits.edit_bones(dog, S)
     dog = species_edits.label_muscles(dog, S)
+    dog = species_edits.split_muscles(dog, S)
     import species_additions
     importlib.reload(species_additions)
     dog = species_additions.add_muscles(dog, S, col)
     polish.polish(dog, S)
+    species_additions.add_incisors(dog, S, col)
     print(f'polish: {time.time() - t0:.1f}s', flush=True)
     parts = [(p['id'], p['system'], p['region'], p['ob'], p.get('meta')) for p in dog]
     F = {'L': {'joints': {k: tgt['L'][k] for k in ('shoulder', 'elbow', 'carpus', 'hip', 'stifle', 'hock')}}}
-    F['L']['joints']['foretoes'] = tgt['L']['fore_toe']
-    F['L']['joints']['hindtoes'] = tgt['L']['hind_toe']
+    # Toe pivots for the app's pose rig: metacarpo-/metatarsophalangeal joints.
+    F['L']['joints']['foretoes'] = tgt['L']['carpus'].lerp(tgt['L']['fore_toe'], 0.6)
+    F['L']['joints']['hindtoes'] = tgt['L']['hind_mtp']
     F['Ca_1'] = type('P', (), {'a': tgt['spine']['Ca_1']})
 else:
     bones, F, centres = skeleton.build_skeleton(S, col)
@@ -158,6 +165,11 @@ if '--render' in argv:
             hide = tuple(pid for pid, system, _, _, meta in parts if system == 'muscle' and meta and meta.get('depth') == 'superficial')
         elif mode == 'bones':
             hide = tuple(pid for pid, system, _, _, _ in parts if system == 'muscle')
+        elif mode.startswith('B:'):
+            # Bones of one region only.
+            reg_ = mode[2:]
+            hide = tuple(pid for pid, system, region, _, _ in parts if system != 'bone' or region != reg_)
+            mode = mode.replace(':', '-')
         elif mode.startswith('R:'):
             # Only one anatomical region (bones and muscles), optionally deep only.
             reg_, _, deep = mode[2:].partition(':')

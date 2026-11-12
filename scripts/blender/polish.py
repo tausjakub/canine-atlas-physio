@@ -15,7 +15,9 @@ def polish(parts, S):
     q = S.get('polish', {})
     bones = [p['ob'] for p in parts if p['system'] == 'bone']
     for ob in bones:
-        decimate(ob, q.get('bone_tris', 1500) if tri_count(ob) < 40000 else q.get('big_bone_tris', 16000))
+        # Keep detailed bones detailed (skull, vertebrae); only trim heavy ones.
+        n = tri_count(ob)
+        decimate(ob, max(q.get('bone_tris', 600), min(n, int(n * q.get('bone_factor', 0.5)))))
     tree = bvh_of(bones)
     for p in parts:
         if p['system'] != 'muscle':
