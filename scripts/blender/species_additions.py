@@ -156,10 +156,11 @@ def add_incisors(parts, S, col):
     # (along ax, along up) metres from each tooth's own base.
     du = (tip - ltip).dot(up)
     da = (tip - ltip).dot(ax)
-    bite_u = -0.5 * du  # from the upper base down to the bite
-    upper = [(0.0026, [(-0.008, 0.003), (0.001, -0.25 * du), (-0.0005, bite_u)], 0.0032, 0.0024),
+    # Upper incisors overlap the lowers labially, ending below the lower tips.
+    bite_u = -(du + 0.004)
+    upper = [(0.0026, [(-0.008, 0.003), (0.0015, -0.3 * du - 0.001), (0.001, bite_u)], 0.0032, 0.0024),
              (0.0050, [(-0.006, 0.002), (-0.002, -0.002), (-0.003, -0.004)], 0.0009, 0.0008)]
-    lower = [(0.0022, [(-0.012, -0.003), (da - 0.001, 0.2 * du), (da - 0.002, 0.5 * du - 0.0006)], 0.0027, 0.002)]
+    lower = [(0.0022, [(-0.012, -0.003), (da - 0.003, 0.2 * du), (da - 0.0045, 0.0035)], 0.0027, 0.002)]
     for ob, base, teeth in ((sk, tip, upper), (jw, ltip, lower)):
         b = Builder()
         for z, pts, rx, ry in teeth:

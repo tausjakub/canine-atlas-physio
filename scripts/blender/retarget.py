@@ -164,7 +164,7 @@ def segments(src, tgt, S):
         Segment('pelvis', ss['Ca_1'], ss['L_7'], ts['Ca_1'], ts['L_7'], g('pelvis'), width=w('pelvis')),
     ]
     st, tt = src['tail'], tgt['tail']
-    idx = [0, 5, 10, 15, 20]
+    idx = list(range(0, 21, 2))  # short segments follow the tail curve without kinks
     for a, b in zip(idx, idx[1:]):
         segs.append(Segment(f'tail{a}', st[a], st[b], tt[a], tt[b], g('tail') * (1 - a / 30), width=w('tail') * (1 - a / 30)))
     pelvis = next(sg for sg in segs if sg.name == 'pelvis')
@@ -207,7 +207,7 @@ def rigid_segment(pid, segs):
     by = {s.name: s for s in segs}
     if pid.startswith('Ca_'):
         n = int(pid[3:])
-        key = max((a for a in (0, 5, 10, 15) if n - 1 >= a), default=0)
+        key = min(18, (n - 1) // 2 * 2)  # segments start every 2 vertebrae, last is tail18
         return by[f'tail{key}']
     for pat, name in RIGID:
         if re.match(pat, pid):

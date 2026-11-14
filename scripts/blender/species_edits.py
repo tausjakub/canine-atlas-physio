@@ -275,7 +275,7 @@ def clip_tail(parts, S):
     c = lambda o: sum((o.matrix_world @ v.co for v in o.data.vertices), Vector()) / len(o.data.vertices)
     a, b = c(by[f'Ca_{n - 1}']), c(by[f'Ca_{n}'])
     normal = (b - a).normalized()
-    origin = b + (b - a) * 0.5
+    origin = a + (b - a) * 0.5  # before the blend into the squashed tip
     out = []
     for p in parts:
         if p['system'] == 'muscle' and p['id'].startswith('m_tail_'):
