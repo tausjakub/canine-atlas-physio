@@ -68,8 +68,9 @@ DOG_TO_KEY = {
 
 # Species-specific targets that differ from DOG_TO_KEY.
 SPECIES_OVERRIDES = {
-    'cat': {'extensor_digitorum_lat': 'fibularis_tertius'},
-    'rabbit': {},
+    'cat': {},
+    # The rabbit has no canine teeth; the dog's caninus becomes its upper-lip levator.
+    'rabbit': {'caninus': 'levator_labii_superioris'},
 }
 
 # Structures present in the dog model but absent from the procedural table.
@@ -106,7 +107,7 @@ MAP_ROWS = [
     M('caninus', 3, H, 'mapped', [], [], ('Špičákový sval', 'Caninus'),
       ('Zvedá horní pysk nad špičák.', 'Raises the upper lip over the canine tooth.'),
       ('horní čelist', 'maxilla', 'horní pysk', 'upper lip'),
-      'n. facialis (VII)'),
+      'n. facialis (VII)', sp='c'),
     M('zygomaticus', 3, H, 'mapped', [], [], ('Jařmový sval', 'Zygomaticus'),
       ('Táhne koutek úst kaudálně.', 'Draws the angle of the mouth caudally.'),
       ('fascie ušního boltce a jařmové oblasti', 'auricular and zygomatic fascia', 'koutek úst', 'angle of the mouth'),
@@ -212,7 +213,8 @@ MAP_ROWS = [
     M('extensor_digitorum_lateralis_pedis', 1, P, 'mapped', [], [], ('Laterální natahovač prstů pánevní končetiny', 'Lateral digital extensor (pelvic limb)'),
       ('Extenze pátého prstu.', 'Extends the fifth digit.'),
       ('proximální fibula', 'proximal fibula', 'pátý prst', 'fifth digit'),
-      'n. fibularis superficialis'),
+      'n. fibularis superficialis',
+      note=('Starší příručky anatomie kočky jej uvádějí jako m. peroneus tertius.', 'Older cat dissection manuals call it peroneus tertius.')),
     M('flexor_digitorum_profundus_pedis', 0, P, 'mapped', [], [], ('Hluboký ohybač prstů pánevní končetiny', 'Deep digital flexor (pelvic limb)'),
       ('Flexe prstů a extenze hlezna.', 'Flexes the digits and extends the hock.'),
       ('kaudální plocha tibie a fibuly', 'caudal tibia and fibula', 'distální články prstů', 'distal phalanges'),

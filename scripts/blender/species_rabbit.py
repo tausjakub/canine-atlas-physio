@@ -1,7 +1,7 @@
 """Oryctolagus cuniculus: authored proportions for an adult domestic rabbit
 (~3 kg) in a resting crouch.
 
-Features: vertebral formula C7 T12 L7 S4, ~16 caudal; 12 rib pairs usually (the retargeted model shows the 13-pair variant) (7
+Features: vertebral formula C7 T12 L7 S4, ~16 caudal; 12 rib pairs (7
 sternal); long lumbar transverse processes; long narrow skull with large
 orbits, fenestrated maxilla and two pairs of upper incisors (peg teeth);
 well-developed clavicle; carpus 9; fused distal tibia and fibula; third
@@ -81,9 +81,12 @@ S = {
     'linea': [(0.03, 0.058, 0), (-0.02, 0.064, 0), (-0.07, 0.072, 0), (-0.11, 0.098, 0), (-0.127, 0.103, 0)],
     'retarget': {
         'fore_toe': (0.178, 0.004, 0.024), 'hind_toe': (-0.085, 0.004, 0.028), 'hind_mtp': (-0.112, 0.008, 0.029), 'orbit': 0.45, 'jaw_close': 0.95,
-        'girth': {'cranium': 1.0, 'face': 0.95, 'neck': 1.0, 'thorax': 0.85, 'lumbar': 0.9, 'pelvis': 0.95, 'tail': 1.2,
+        'girth': {'cranium': 1.0, 'face': 1.18, 'neck': 1.0, 'thorax': 0.85, 'lumbar': 0.9, 'pelvis': 0.95, 'tail': 1.5,
                   'scap': 0.8, 'arm': 0.75, 'forearm': 0.7, 'manus': 0.8, 'thigh': 1.0, 'crus': 0.95, 'pes': 0.9},
-        'width': {'cranium': 1.0, 'face': 0.8},
+        'width': {'cranium': 0.95, 'face': 0.6},
+        # Post-warp head shaping (fractions of skull length).
+        'head_shape': {'orbit_at': 0.45, 'orbit_up': 0.06, 'orbit_radius': 0.36, 'orbit_grow': 0.9,
+                       'nasal': (0.5, 1.0, 0.04)},
     },
     'skull': build_skull,
     'limbs': build_limbs,

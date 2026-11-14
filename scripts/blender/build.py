@@ -62,7 +62,10 @@ if not PROCEDURAL:
     print(f'retarget: {len(dog)} parts in {time.time() - t0:.1f}s', flush=True)
     dog = species_edits.edit_bones(dog, S)
     dog = species_edits.label_muscles(dog, S)
+    dog = species_edits.split_midline(dog)
     dog = species_edits.split_muscles(dog, S)
+    import species_additions as _sa
+    _sa.reshape_head(dog, S)
     import species_additions
     importlib.reload(species_additions)
     dog = species_additions.add_muscles(dog, S, col)

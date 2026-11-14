@@ -65,9 +65,11 @@ def _lm(bones, side):
     pel = [v for v in _verts(bones['Pelvis']) if v.z * s > 0]
     L['pel.tc'] = max(pel, key=lambda v: v.x + 0.5 * v.y) + lat * 0.002
     L['fem.gt'] = max(fem, key=lambda v: v.y) + lat * 0.003
+    L['clav'] = max(hum, key=lambda v: v.x + v.y) + Vector((0.006, 0.006, 0))
     sk = _verts(bones['MergedSkull'])
     occ = min(sk, key=lambda v: v.x - 0.5 * v.y)
     L['occ'] = Vector((occ.x + 0.003, occ.y, 0)) + lat * 0.007
+    L['mastoid'] = Vector((occ.x + 0.006, occ.y - 0.012, 0)) + lat * 0.012
     for n in (2, 4, 6, 9, 12):
         rv = [v for v in _verts(bones[f'Rib_{n}_{side}'])]
         topy = max(v.y for v in rv)
@@ -87,6 +89,7 @@ ADD = {
         ('iliocostalis', ['pel.tc'], ['rib2.angle'], ['rib12.angle', 'rib9.angle', 'rib6.angle', 'rib4.angle'], 6, 3),
         ('semispinalis_capitis', ['T2.sp'], ['occ'], ['C6.d', 'C4.d', 'C2.d'], 7, 4),
         ('piriformis', ['sac.lat'], ['fem.gt'], [], 7, 3),
+        ('cleidomastoideus', ['clav'], ['mastoid'], [], 4, 2.5),
     ],
     'rabbit': [
         ('soleus', ['fib.head'], ['calc.tuber'], ['tib.cd_mid'], 5, 3),
@@ -94,8 +97,42 @@ ADD = {
         ('iliocostalis', ['pel.tc'], ['rib2.angle'], ['rib12.angle', 'rib9.angle', 'rib6.angle', 'rib4.angle'], 6, 3),
         ('semispinalis_capitis', ['T2.sp'], ['occ'], ['C6.d', 'C4.d', 'C2.d'], 7, 4),
         ('piriformis', ['sac.lat'], ['fem.gt'], [], 7, 3),
+        ('cleidomastoideus', ['clav'], ['mastoid'], [], 4, 2.5),
     ],
 }
+
+
+def reshape_head(parts, S):
+    """Rabbit: large lateral orbits and an arched nasal profile, applied
+    identically to the skull and the head tissue so they stay registered."""
+    R = S['retarget'].get('head_shape')
+    if not R:
+        return
+    h = S['head']
+    occ, ros = Vector(h['occiput']), Vector(h['rostrum'])
+    L = (ros - occ).length
+    ax = (ros - occ).normalized()
+    up = (Vector((0, 1, 0)) - ax * ax.y).normalized()
+    oc = occ + ax * (R['orbit_at'] * L) + up * (R['orbit_up'] * L)
+    rad, grow = R['orbit_radius'] * L, R['orbit_grow']
+    na, nb, lift = R['nasal'][0] * L, R['nasal'][1] * L, R['nasal'][2] * L
+    for p in parts:
+        if p['id'] not in ('MergedSkull', 'Jaw') and p.get('region') != 'Head':
+            continue
+        me = p['ob'].data
+        for v in me.vertices:
+            d = v.co - oc
+            a, u = d.dot(ax), d.dot(up)
+            r = (a * a + u * u) ** 0.5
+            if 1e-6 < r < rad:
+                k = grow * (1 - r / rad) ** 2
+                v.co = v.co + (ax * a + up * u) * (k)
+            # Arch the dorsal nasal profile between na and nb along the head axis.
+            t = (v.co - occ).dot(ax)
+            if na < t < nb and (v.co - occ).dot(up) > 0:
+                s = (t - na) / (nb - na)
+                v.co = v.co + up * (lift * 4 * s * (1 - s))
+        me.update()
 
 
 def add_incisors(parts, S, col):
@@ -115,9 +152,9 @@ def add_incisors(parts, S, col):
     import bmesh
     import bpy
     # (object, base point, [(z, control points as (along ax, along up) metres, half-width, half-depth)])
-    upper = [(0.0024, [(-0.006, 0.003), (0.0015, -0.003), (-0.001, -0.012)], 0.0022, 0.0016),
+    upper = [(0.0024, [(-0.009, 0.004), (0.0005, -0.002), (-0.002, -0.014)], 0.003, 0.0021),
              (0.0046, [(-0.007, 0.002), (-0.002, -0.002), (-0.003, -0.005)], 0.0007, 0.0006)]
-    lower = [(0.0020, [(-0.011, -0.003), (0.0, 0.001), (-0.0018, 0.008)], 0.0018, 0.0014)]
+    lower = [(0.0020, [(-0.014, -0.004), (-0.002, 0.0), (-0.004, 0.009)], 0.0025, 0.0019)]
     for ob, base, teeth in ((sk, tip, upper), (jw, ltip, lower)):
         b = Builder()
         for z, pts, rx, ry in teeth:

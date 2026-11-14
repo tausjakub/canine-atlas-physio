@@ -522,7 +522,7 @@ export function studyFor(id, system, region, species) {
           : 'https://vanat.ahc.umn.edu/carnLabs/'
       : system === 'bone'
         ? id.startsWith('Carpal')
-          ? 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7738720/'
+          ? 'https://open.clemson.edu/rabbit/'
           : region === 'Hindlimb'
             ? 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6702901/'
             : 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5129783/'
@@ -555,8 +555,8 @@ export function studyFor(id, system, region, species) {
           'The cat has 13 rib pairs, greater forearm rotation and a developed brachioradialis. Soleus is present in the hindlimb; simply renaming the dog atlas is inappropriate.',
         )
       : b(
-          'Králík má obvykle 12 párů žeber (13 je známá varianta, kterou tento model ukazuje), 9 zápěstních kostí (model nerozlišuje malou centrální kost) a 6 zánártních kostí na končetině. Distální srůst tibie a fibuly, hlodavé řezáky bez špičáků a silná pánevní končetina jej odlišují od kočky.',
-          'Rabbits usually have 12 rib pairs (13 is a recognised variant, shown in this model), 9 carpal bones (the small central carpal is not separated here) and 6 tarsal bones per limb. Distal tibiofibular fusion, gnawing incisors without canines and the powerful hindlimb distinguish it from the cat.',
+          'Králík má 12 párů žeber, 9 zápěstních kostí (model nerozlišuje malou centrální kost) a 6 zánártních kostí na končetině. Distální srůst tibie a fibuly, hlodavé řezáky bez špičáků a silná pánevní končetina jej odlišují od kočky.',
+          'Rabbits have 12 rib pairs, 9 carpal bones (the small central carpal is not separated here) and 6 tarsal bones per limb. Distal tibiofibular fusion, gnawing incisors without canines and the powerful hindlimb distinguish it from the cat.',
         );
   return {
     location,

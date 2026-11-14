@@ -18,6 +18,8 @@ myology for Felis catus and Oryctolagus cuniculus. This is a study aid: the
 attachment geometry is an authored approximation, not a dissection record.
 """
 
+import re
+
 H, N, F, P = 'Head', 'Neck & trunk', 'Forelimb', 'Hindlimb'
 
 
@@ -47,9 +49,10 @@ ROWS = [
       ('příčelistní (paracondylární) výběžek', 'paracondylar (jugular) process', 'ventrální okraj dolní čelisti', 'ventral border of the mandible'),
       'n. mandibularis (V3) a n. facialis (VII)', via=[('mand.angle', 0, -0.006, -0.004)], w=5, h=4),
     M('masseter', 3, H, 'sheet', ['sk.zyg_rost', 'sk.zyg_cd'], ['mand.body_mid', 'mand.angle'], ('Žvýkací sval', 'Masseter'),
-      ('Zavírá čelisti; u králíka umožňuje mlecí pohyb do stran.', 'Closes the jaw; in the rabbit drives the lateral grinding stroke.'),
+      ('Zavírá čelisti a posouvá dolní čelist při žvýkání.', 'Closes the jaw and moves the mandible during chewing.'),
       ('jařmový oblouk', 'zygomatic arch', 'laterální plocha ramene a úhlu dolní čelisti', 'lateral ramus and angle of the mandible'),
-      'n. mandibularis (V3)', h=4, grid=(10, 12), conform_to='all', rabbit_scale=1.4),
+      'n. mandibularis (V3)', h=4, grid=(10, 12), conform_to='all', rabbit_scale=1.4,
+      note=('U králíka je mohutný a pohání mlecí pohyb dolní čelisti do stran.', 'In the rabbit it is massive and drives the lateral grinding stroke of the mandible.')),
     # ------------------------------------------------------------ neck: deep
     M('longus_capitis', 0, N, 'belly', [('#C_5', -1, 1.5)], ['sk.basi'], ('Dlouhý sval hlavy', 'Longus capitis'),
       ('Ohýbá hlavu a krk ventrálně.', 'Flexes the head and neck ventrally.'),
@@ -228,7 +231,7 @@ ROWS = [
     M('xiphihumeralis', 2, N, 'sheet', [('$', 1.0, 0, 1), ('$', 0.88, 0, 1)], [('@hum', 0.25, 1.0, 0)], ('Xiphihumeralis', 'Xiphihumeralis'),
       ('Zatahuje hrudní končetinu.', 'Retracts the forelimb.'),
       ('mečovitý výběžek', 'xiphoid process', 'proximální humerus', 'proximal humerus'),
-      'nn. pectorales', h=1.0, sp='c'),
+      'nn. pectorales', h=1.0),
     M('pectoralis_major', 3, N, 'sheet', [('$', 0.0, 0, 1.5), ('$', 0.35, 0, 1.5)], ['hum.crest', ('@hum', 0.55, 1.2, 0.2)],
       ('Velký prsní sval', 'Pectoralis major'),
       ('Přitahuje hrudní končetinu k trupu.', 'Adducts the forelimb.'),
@@ -237,7 +240,7 @@ ROWS = [
     M('pectoantebrachialis', 4, N, 'belly', [('$', 0.0, 0.5, 1.5)], ['uln.prox_med'], ('Pectoantebrachialis', 'Pectoantebrachialis'),
       ('Přitahuje hrudní končetinu.', 'Adducts the forelimb.'),
       ('rukojeť hrudní kosti', 'manubrium', 'fascie předloktí', 'antebrachial fascia'),
-      'nn. pectorales', w=7, h=1.5, square=4, sp='c'),
+      'nn. pectorales', w=7, h=1.5, square=4),
     # ------------------------------------------------------------ forelimb
     M('subscapularis', 0, F, 'fan', [('@sca', 0.02, 0.9, -1.5), ('@sca', 0.02, -0.95, -1.5)], ['hum.lt'], ('Podlopatkový sval', 'Subscapularis'),
       ('Mediální stabilizátor ramene; addukce.', 'Medial stabiliser of the shoulder; adduction.'),
@@ -553,18 +556,60 @@ ROWS = [
 ]
 
 
+# Species context per region, shown when a muscle has no note of its own.
 SPECIES_NOTE = {
-    'cat': ('Kočka má volnou klíční kost a výrazné rozdělení trapézového, deltového a prsního svalu; názvy se proto liší od psa.',
-            'The cat has a floating clavicle and distinct divisions of the trapezius, deltoid and pectoral muscles; names therefore differ from the dog.'),
-    'rabbit': ('Králík má mohutné svaly pánevní končetiny pro skokový pohyb a velký žvýkací sval; spánkový sval je malý.',
-               'The rabbit has powerful pelvic-limb muscles for saltatory locomotion and a large masseter; the temporalis is small.'),
+    'cat': {
+        H: ('Kočka má krátkou obličejovou část lebky, velké očnice a silný spánkový sval; chrup je čistě masožravý (I3/3 C1/1 P3/2 M1/1).',
+            'The cat has a short face, large orbits and a strong temporalis; its dentition is purely carnivorous (I3/3 C1/1 P3/2 M1/1).'),
+        N: ('Kočičí trapézový sval tvoří tři samostatné části (clavo-, acromio- a spinotrapezius) a prsní svaly čtyři; klíční kost je volná ve svalovině.',
+            'The feline trapezius forms three separate muscles (clavo-, acromio- and spinotrapezius) and the pectorals four; the clavicle floats in the musculature.'),
+        F: ('Kočka má volnější rotaci předloktí než pes, vyvinutý m. brachioradialis a m. palmaris longus a zatažitelné drápy.',
+            'The cat has freer forearm rotation than the dog, a developed brachioradialis and palmaris longus, and retractile claws.'),
+        P: ('Na pánevní končetině kočky je přítomen m. soleus a m. caudofemoralis, které psí model postrádá.',
+            'The feline pelvic limb has a soleus and a caudofemoralis, both absent from the dog model.'),
+    },
+    'rabbit': {
+        H: ('Králík má hlodavé řezáky bez špičáků, dlouhou mezeru (diastema), velké očnice a mohutný žvýkací sval; spánkový sval je malý.',
+            'The rabbit has gnawing incisors without canines, a long diastema, large orbits and a massive masseter; the temporalis is small.'),
+        N: ('Králík má dlouhou bederní páteř s velkými příčnými výběžky a 12 párů žeber.',
+            'The rabbit has a long lumbar spine with large transverse processes and 12 rib pairs.'),
+        F: ('Hrudní končetina králíka je krátká a slouží hlavně k opoře a hrabání; klíční kost je dobře vyvinutá.',
+            'The rabbit forelimb is short and serves mainly for support and digging; the clavicle is well developed.'),
+        P: ('Pánevní končetina králíka je mohutná pro skokový pohyb, s dlouhou nohou a distálně srostlou tibií a fibulou.',
+            'The rabbit pelvic limb is powerful for saltatory locomotion, with a long foot and distally fused tibia and fibula.'),
+    },
 }
-REFS = {
-    'cat': {H: 'https://vanat.ahc.umn.edu/carnLabs/Lab23/Lab23.html', N: 'https://vanat.ahc.umn.edu/carnLabs/Lab08/Lab08.html',
-            F: 'https://vanat.ahc.umn.edu/carnLabs/Lab03/Lab03.html', P: 'https://vanat.ahc.umn.edu/carnLabs/Lab05/Lab05.html'},
-    'rabbit': {H: 'https://open.clemson.edu/rabbit/2/', N: 'https://open.clemson.edu/rabbit/2/',
-               F: 'https://open.clemson.edu/rabbit/2/', P: 'https://pubmed.ncbi.nlm.nih.gov/2921772/'},
-}
+UMN = 'https://vanat.ahc.umn.edu/carnLabs/Lab{0:02d}/Lab{0:02d}.html'
+FACIAL = {'buccinator', 'orbicularis_oris', 'orbicularis_oculi', 'levator_labii_superioris', 'caninus', 'zygomaticus',
+          'retractor_anguli_oculi', 'interscutularis'}
+EPAXIAL = {'longissimus', 'longissimus_capitis', 'longissimus_cervicis', 'longissimus_lumborum', 'iliocostalis', 'multifidus',
+           'spinalis', 'semispinalis_capitis', 'splenius', 'rectus_capitis_dorsalis_major', 'rectus_capitis_dorsalis_minor',
+           'obliquus_capitis_caudalis', 'obliquus_capitis_cranialis', 'tail_dorsal'}
+FOREARM = {'extensor_carpi_radialis', 'extensor_carpi_radialis_longus', 'extensor_carpi_radialis_brevis', 'extensor_carpi_ulnaris',
+           'extensor_digitorum_communis', 'extensor_digitorum_lateralis', 'abductor_pollicis_longus', 'extensor_pollicis',
+           'supinator', 'pronator_teres', 'pronator_quadratus', 'flexor_carpi_radialis', 'flexor_carpi_ulnaris',
+           'flexor_digitorum_superficialis', 'flexor_digitorum_profundus', 'brachioradialis', 'palmaris_longus', 'interossei_manus'}
+CRUS = {'gastrocnemius', 'soleus', 'plantaris', 'popliteus', 'tibialis_cranialis', 'tibialis_caudalis', 'fibularis_longus',
+        'fibularis_brevis', 'extensor_digitorum_longus', 'extensor_digitorum_lateralis_pedis', 'flexor_hallucis_longus',
+        'flexor_digitorum_longus', 'flexor_digitorum_profundus_pedis', 'extensor_digitorum_brevis', 'interossei_pedis'}
+CAUDAL_HIP = {'gemelli', 'obturator_internus', 'obturator_externus', 'quadratus_femoris', 'piriformis', 'articularis_coxae'}
+
+
+def reference(sp, region, key):
+    """University of Minnesota carnivore lab for the cat; Clemson atlas or the rabbit hindlimb study for the rabbit."""
+    if sp == 'rabbit':
+        return 'https://pubmed.ncbi.nlm.nih.gov/2921772/' if region == P else 'https://open.clemson.edu/rabbit/2/'
+    if region == H:
+        n = 22 if key in FACIAL else 23
+    elif region == F:
+        n = 4 if key in FOREARM else 3
+    elif region == P:
+        n = 7 if key in CRUS else 6 if key in CAUDAL_HIP else 5
+    else:
+        n = 9 if key in EPAXIAL else 8
+    return UMN.format(n)
+
+
 LAYER = {0: ('nejhlubší vrstva přímo na kosti', 'deepest layer, directly on bone'), 1: ('hluboká vrstva', 'deep layer'),
          2: ('střední vrstva', 'intermediate layer'), 3: ('povrchová vrstva', 'superficial layer'),
          4: ('nejpovrchovější vrstva pod kůží', 'most superficial layer, beneath the skin')}
@@ -588,10 +633,10 @@ def table(S, rows=None, include_mapped=False):
         lay_cs, lay_en = LAYER[r['layer']]
         note = r['note']
         # A note about the other species belongs on that species' page only.
-        other = ('rabbit',) if sp == 'cat' else ('cat', 'feline')
-        if note and any(w in note[1].lower() for w in other):
+        other = r'\brabbit' if sp == 'cat' else r'\bcat\b|feline'
+        if note and re.search(other, note[1].lower()):
             note = None
-        diff = note or SPECIES_NOTE[sp]
+        diff = note or SPECIES_NOTE[sp][r['region']]
         if sp == 'rabbit' and r['rt'] and r['rt'] != r['name']:
             diff = (diff[0] + f' U kočky: {r["name"][0]}.', diff[1] + f' In the cat: {r["name"][1]}.')
         elif sp == 'cat' and r['rt'] and r['rt'] != r['name']:
@@ -608,7 +653,7 @@ def table(S, rows=None, include_mapped=False):
             'recall': {'cs': f'Odkud kam vede {name[0].lower()} a jaký pohyb vykonává?',
                        'en': f'Where does the {name[1].lower()} run from and to, and what does it do?'},
             'answer': {'cs': f'Z: {o_cs}; na: {i_cs}. {act_cs}', 'en': f'From the {o_en} to the {i_en}. {act_en}'},
-            'reference': REFS[sp][r['region']],
+            'reference': reference(sp, r['region'], r['id']),
             'depth': 'deep' if r['layer'] < 3 else 'superficial',
         }
         out.append(m)

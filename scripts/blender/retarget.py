@@ -58,7 +58,7 @@ def dog_landmarks(parts):
     ros = sum(front, Vector()) / len(front)
     occ.z = ros.z = 0
     L['head'] = {'occiput': occ, 'orbit': occ.lerp(ros, 0.45), 'rostrum': ros}
-    L['spine'] = {k: _centre(by[k]) for k in ('C_1', 'C_7', 'L_1', 'L_7')}
+    L['spine'] = {k: _centre(by[k]) for k in ('C_1', 'C_7', 'L_1', 'L_7', 'T_12')}
     L['spine']['Ca_1'] = _centre(by['Ca_1'])
     L['tail'] = [_centre(by[f'Ca_{i}']) for i in range(1, 22) if f'Ca_{i}' in by]
     for k in list(L['spine']):
@@ -89,6 +89,12 @@ def target_landmarks(S):
     L['head'] = {'occiput': occ, 'orbit': occ.lerp(ros, R['orbit']), 'rostrum': ros}
     sp = S['spine']
     L['spine'] = {'C_1': V(sp['C1']), 'C_7': V(sp['C7']), 'L_1': V(sp['L1']), 'L_7': V(sp['Ln']), 'Ca_1': None}
+    # Thoracolumbar junction: the dog's T12-L1 span (which holds T13) maps onto
+    # two vertebral spacings for 13 thoracic vertebrae, onto one for 12, so a
+    # species with 12 has no gap once the dog's T13 is removed.
+    nt = S['vertebrae'][1]
+    step = (L['spine']['L_1'] - L['spine']['C_7']) / (nt + 1)
+    L['spine']['T_12'] = L['spine']['L_1'] - step * (2 if nt >= 13 else 1)
     # The dog has 21 caudal vertebrae; a shorter species tail maps the first n
     # onto its tail and compresses the rest into the tip (they are removed later).
     n = S['vertebrae'][4]
@@ -152,7 +158,8 @@ def segments(src, tgt, S):
         Segment('cranium', sh['occiput'], sh['orbit'], th['occiput'], th['orbit'], g('cranium'), width=w('cranium')),
         Segment('face', sh['orbit'], sh['rostrum'], th['orbit'], th['rostrum'], g('face'), width=w('face')),
         Segment('neck', ss['C_7'], ss['C_1'], ts['C_7'], ts['C_1'], g('neck'), width=w('neck')),
-        Segment('thorax', ss['L_1'], ss['C_7'], ts['L_1'], ts['C_7'], g('thorax'), width=w('thorax')),
+        Segment('thorax', ss['T_12'], ss['C_7'], ts['T_12'], ts['C_7'], g('thorax'), width=w('thorax')),
+        Segment('tl', ss['L_1'], ss['T_12'], ts['L_1'], ts['T_12'], g('thorax'), width=w('thorax')),
         Segment('lumbar', ss['L_7'], ss['L_1'], ts['L_7'], ts['L_1'], g('lumbar'), width=w('lumbar')),
         Segment('pelvis', ss['Ca_1'], ss['L_7'], ts['Ca_1'], ts['L_7'], g('pelvis'), width=w('pelvis')),
     ]
@@ -179,7 +186,7 @@ def segments(src, tgt, S):
 
 
 # Approximate body radius around each dog segment axis (dog units, metres).
-RADIUS = {'cranium': 0.04, 'face': 0.028, 'neck': 0.045, 'thorax': 0.105, 'lumbar': 0.065, 'pelvis': 0.055, 'tail': 0.008,
+RADIUS = {'cranium': 0.04, 'face': 0.028, 'neck': 0.045, 'thorax': 0.105, 'tl': 0.1, 'lumbar': 0.065, 'pelvis': 0.055, 'tail': 0.008,
           'scap': 0.02, 'arm': 0.022, 'forearm': 0.014, 'manus': 0.008, 'thigh': 0.03, 'crus': 0.018, 'pes': 0.01,
           'hdigits': 0.006}
 
@@ -214,10 +221,10 @@ def rigid_segment(pid, segs):
 # its own limb chain plus the girdle it attaches to.
 CANDIDATES = {
     'Head': {'cranium', 'face', 'neck'},
-    'Neck & trunk': {'neck', 'thorax', 'lumbar', 'pelvis', 'tail', 'cranium'},
-    'Forelimb': {'scap', 'arm', 'forearm', 'manus', 'thorax'},
+    'Neck & trunk': {'neck', 'thorax', 'tl', 'lumbar', 'pelvis', 'tail', 'cranium'},
+    'Forelimb': {'scap', 'arm', 'forearm', 'manus', 'thorax', 'tl'},
     'NeckLimb': {'scap', 'arm', 'forearm', 'neck', 'thorax', 'cranium'},
-    'Hindlimb': {'thigh', 'crus', 'pes', 'hdigits', 'lumbar', 'pelvis', 'tail'},
+    'Hindlimb': {'thigh', 'crus', 'pes', 'hdigits', 'tl', 'lumbar', 'pelvis', 'tail'},
 }
 
 

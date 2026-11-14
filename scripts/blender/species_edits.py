@@ -99,7 +99,12 @@ def edit_bones(parts, S):
         out.append(p)
     if species == 'rabbit':
         keep = []
+        nt = S['vertebrae'][1]
         for p in out:
+            m = re.match(r'^(?:T_|Rib_)(\d+)', p['id'])
+            if m and int(m.group(1)) > nt:
+                bpy.data.objects.remove(p['ob'])
+                continue
             m = re.match(r'^Ca_(\d+)$', p['id'])
             if m and int(m.group(1)) > S['vertebrae'][4]:
                 bpy.data.objects.remove(p['ob'])
@@ -161,14 +166,17 @@ SPLITS = {
         ('brachiocephalicus', 'axis', 0.45, 'clavotrapezius', 'clavobrachialis'),
         ('trapezius', 'vertebra', 'T_4', 'acromiotrapezius', 'spinotrapezius'),
         ('pectoralis_minor', 'xfrac', 0.3, 'pectoralis_minor', 'xiphihumeralis'),
+        ('flexor_digitorum_profundus_pedis', 'lateral', 0, 'flexor_hallucis_longus', 'flexor_digitorum_longus'),
     ],
     'rabbit': [
         ('brachiocephalicus', 'axis', 0.45, 'clavotrapezius', 'clavobrachialis'),
         ('trapezius', 'vertebra', 'T_4', 'acromiotrapezius', 'spinotrapezius'),
+        ('pectoralis_minor', 'xfrac', 0.3, 'pectoralis_minor', 'xiphihumeralis'),
+        ('flexor_digitorum_profundus_pedis', 'lateral', 0, 'flexor_hallucis_longus', 'flexor_digitorum_longus'),
     ],
 }
 # The cranial of the two superficial pectoral pieces is the feline pectoantebrachialis.
-RENAME_CRANIAL = {'cat': [('pectoralis_major', 'pectoantebrachialis')], 'rabbit': []}
+RENAME_CRANIAL = {'cat': [('pectoralis_major', 'pectoantebrachialis')], 'rabbit': [('pectoralis_major', 'pectoantebrachialis')]}
 
 
 def split_muscles(parts, S):
@@ -199,14 +207,18 @@ def split_muscles(parts, S):
                 vs = [v.co for v in bones[param].data.vertices]
                 origin = sum(vs, Vector()) / len(vs)
                 normal = Vector((1, 0, 0))
+            elif method == 'lateral':
+                # Lateral (+) and medial (-) halves of a limb muscle.
+                origin = Vector(co.mean(0))
+                normal = Vector((0, 0, -1 if p['id'].endswith('_L') else 1))
             else:
                 x0, x1 = co[:, 0].min(), co[:, 0].max()
                 origin = Vector((x0 + param * (x1 - x0), 0, 0))
                 normal = Vector((1, 0, 0))
             sd = p['id'][-2:] if p['id'][-2:] in ('_L', '_R') else ''
+            ob.name = f'm_{minus}{sd}'
             new = _bisect(ob, origin, normal, f'm_{plus}{sd}')
-            for o, k in ((new, plus), (ob, minus)):
-                o.name = f'm_{k}{sd}'
+            new.name = f'm_{plus}{sd}'
             p['id'], p['meta'] = ob.name, meta(minus)
             parts.append({'id': new.name, 'system': 'muscle', 'ob': new, 'profile': None,
                           'region': p['region'], 'meta': meta(plus)})
@@ -222,3 +234,31 @@ def split_muscles(parts, S):
             for i, q in enumerate(rest):
                 q['id'] = q['ob'].name = f'm_{key}{sd}' if i == 0 else f'm_{key}_{i + 1}{sd}'
     return parts
+
+
+# Muscles that are genuinely single structures across the midline.
+UNPAIRED = {'diaphragma', 'interscutularis'}
+
+
+def split_midline(parts):
+    """The dog source merges some paired muscles across the midline (trapezius,
+    pectorals, mylohyoid, both orbicularis oculi). Give every paired muscle a
+    left and a right piece; one-sided pieces just get their side suffix."""
+    out = []
+    for p in parts:
+        if p['system'] != 'muscle' or p['id'].endswith(('_L', '_R')) or p['meta']['key'] in UNPAIRED:
+            out.append(p)
+            continue
+        ob = p['ob']
+        zs = [v.co.z for v in ob.data.vertices]
+        base = p['id'].replace('.', '_')
+        if max(zs) < 0.002 or min(zs) > -0.002:
+            sd = '_L' if max(zs) < 0.002 else '_R'
+            p['id'] = ob.name = base + sd
+            out.append(p)
+            continue
+        right = _bisect(ob, Vector((0, 0, 0)), Vector((0, 0, 1)), base + '_R')
+        p['id'] = ob.name = base + '_L'
+        out.append(p)
+        out.append(dict(p, id=right.name, ob=right))
+    return out
