@@ -26,5 +26,7 @@ def polish(parts, S):
         n = tri_count(ob)
         subdivide(ob, 1)
         smooth(ob, 2, 0.35)
-        push_out(ob, tree, 0.0003, iterations=2)
+        push_out(ob, tree, 0.0006, iterations=2)
         decimate(ob, max(q.get('muscle_min', 600), min(q.get('muscle_max', 4000), n * q.get('muscle_factor', 2.2))))
+        # Decimation and relaxing pull vertices back into bone; a last unsmoothed push keeps them out.
+        push_out(ob, tree, 0.0005, iterations=1, relax=False)

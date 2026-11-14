@@ -234,7 +234,7 @@ def bvh_of(objs):
     return BVHTree.FromPolygons(verts, polys, all_triangles=False)
 
 
-def push_out(ob, tree, gap, iterations=2, falloff=None):
+def push_out(ob, tree, gap, iterations=2, falloff=None, relax=True):
     """Move vertices lying inside deeper structures onto their surface.
 
     Keeps a muscle draped over bone and deeper muscle instead of
@@ -256,7 +256,8 @@ def push_out(ob, tree, gap, iterations=2, falloff=None):
         ob.data.update()
         if not moved:
             break
-        smooth(ob, 2, 0.35)
+        if relax:
+            smooth(ob, 2, 0.35)
     return ob
 
 

@@ -226,7 +226,7 @@ ROWS = [
       ('Malý prsní sval', 'Pectoralis minor'),
       ('Přitahuje a zatahuje hrudní končetinu; nese trup.', 'Adducts and retracts the forelimb; supports the trunk.'),
       ('tělo hrudní kosti', 'body of the sternum', 'proximální humerus', 'proximal humerus'),
-      'nn. pectorales', h=3, rt=('Hluboký prsní sval', 'Pectoralis profundus'),
+      'nn. pectorales', h=3,
       note=('Kočičí názvosloví (major, minor, xiphihumeralis, pectoantebrachialis) neodpovídá lidskému; jde o části povrchového a hlubokého prsního svalu.', 'Feline names (major, minor, xiphihumeralis, pectoantebrachialis) do not match human ones; they are parts of the superficial and deep pectorals.')),
     M('xiphihumeralis', 2, N, 'sheet', [('$', 1.0, 0, 1), ('$', 0.88, 0, 1)], [('@hum', 0.25, 1.0, 0)], ('Xiphihumeralis', 'Xiphihumeralis'),
       ('Zatahuje hrudní končetinu.', 'Retracts the forelimb.'),
@@ -236,7 +236,7 @@ ROWS = [
       ('Velký prsní sval', 'Pectoralis major'),
       ('Přitahuje hrudní končetinu k trupu.', 'Adducts the forelimb.'),
       ('rukojeť a kraniální hrudní kost', 'manubrium and cranial sternum', 'hřeben velkého hrbolku humeru', 'crest of the greater tubercle'),
-      'nn. pectorales', h=2, rt=('Povrchový prsní sval', 'Pectoralis superficialis')),
+      'nn. pectorales', h=2),
     M('pectoantebrachialis', 4, N, 'belly', [('$', 0.0, 0.5, 1.5)], ['uln.prox_med'], ('Pectoantebrachialis', 'Pectoantebrachialis'),
       ('Přitahuje hrudní končetinu.', 'Adducts the forelimb.'),
       ('rukojeť hrudní kosti', 'manubrium', 'fascie předloktí', 'antebrachial fascia'),
@@ -592,6 +592,13 @@ FOREARM = {'extensor_carpi_radialis', 'extensor_carpi_radialis_longus', 'extenso
 CRUS = {'gastrocnemius', 'soleus', 'plantaris', 'popliteus', 'tibialis_cranialis', 'tibialis_caudalis', 'fibularis_longus',
         'fibularis_brevis', 'extensor_digitorum_longus', 'extensor_digitorum_lateralis_pedis', 'flexor_hallucis_longus',
         'flexor_digitorum_longus', 'flexor_digitorum_profundus_pedis', 'extensor_digitorum_brevis', 'interossei_pedis'}
+# UMN Lab01: superficial thorax and extrinsic forelimb; Lab02: neck and remaining extrinsic; Lab06: cranial crus.
+GIRDLE = {'trapezius', 'clavotrapezius', 'acromiotrapezius', 'spinotrapezius', 'pectoralis_major', 'pectoralis_minor',
+          'xiphihumeralis', 'pectoantebrachialis', 'latissimus_dorsi', 'brachiocephalicus', 'levator_scapulae_ventralis'}
+NECK_EXTRINSIC = {'rhomboideus', 'rhomboideus_capitis', 'rhomboideus_cervicis', 'rhomboideus_thoracis', 'serratus_ventralis',
+                  'serratus_ventralis_cervicis', 'serratus_ventralis_thoracis'}
+CRUS_CRANIAL = {'tibialis_cranialis', 'extensor_digitorum_longus', 'fibularis_longus', 'fibularis_brevis',
+                'extensor_digitorum_lateralis_pedis', 'extensor_digitorum_brevis'}
 CAUDAL_HIP = {'gemelli', 'obturator_internus', 'obturator_externus', 'quadratus_femoris', 'piriformis', 'articularis_coxae'}
 
 
@@ -604,9 +611,9 @@ def reference(sp, region, key):
     elif region == F:
         n = 4 if key in FOREARM else 3
     elif region == P:
-        n = 7 if key in CRUS else 6 if key in CAUDAL_HIP else 5
+        n = 6 if key in CRUS_CRANIAL else 7 if key in CRUS else 6 if key in CAUDAL_HIP else 5
     else:
-        n = 9 if key in EPAXIAL else 8
+        n = 1 if key in GIRDLE else 2 if key in NECK_EXTRINSIC else 9 if key in EPAXIAL else 8
     return UMN.format(n)
 
 

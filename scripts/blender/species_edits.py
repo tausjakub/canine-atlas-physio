@@ -262,3 +262,27 @@ def split_midline(parts):
         out.append(p)
         out.append(dict(p, id=right.name, ob=right))
     return out
+
+
+def clip_tail(parts, S):
+    """A species with fewer caudal vertebrae than the dog gets the surplus dog
+    vertebrae squashed into its tail tip; cut the tail muscles off there so they
+    do not fold into a crumpled flap."""
+    n = S['vertebrae'][4]
+    by = {p['id']: p['ob'] for p in parts if p['system'] == 'bone'}
+    if f'Ca_{n}' not in by or f'Ca_{n - 1}' not in by:
+        return parts
+    c = lambda o: sum((o.matrix_world @ v.co for v in o.data.vertices), Vector()) / len(o.data.vertices)
+    a, b = c(by[f'Ca_{n - 1}']), c(by[f'Ca_{n}'])
+    normal = (b - a).normalized()
+    origin = b + (b - a) * 0.5
+    out = []
+    for p in parts:
+        if p['system'] == 'muscle' and p['id'].startswith('m_tail_'):
+            if all((v.co - origin).dot(normal) > 0 for v in p['ob'].data.vertices):
+                bpy.data.objects.remove(p['ob'])
+                continue
+            tip = _bisect(p['ob'], origin, normal, p['id'] + '_tip')
+            bpy.data.objects.remove(tip)
+        out.append(p)
+    return out

@@ -151,10 +151,15 @@ def add_incisors(parts, S, col):
     print('incisors: tip', tuple(round(c, 4) for c in tip), 'ltip', tuple(round(c, 4) for c in ltip), 'ax', tuple(round(c, 3) for c in ax), 'up', tuple(round(c, 3) for c in up), flush=True)
     import bmesh
     import bpy
-    # (object, base point, [(z, control points as (along ax, along up) metres, half-width, half-depth)])
-    upper = [(0.0024, [(-0.009, 0.004), (0.0005, -0.002), (-0.002, -0.014)], 0.003, 0.0021),
-             (0.0046, [(-0.007, 0.002), (-0.002, -0.002), (-0.003, -0.005)], 0.0007, 0.0006)]
-    lower = [(0.0020, [(-0.014, -0.004), (-0.002, 0.0), (-0.004, 0.009)], 0.0025, 0.0019)]
+    # Upper and lower incisors meet at a bite point between the premaxilla and
+    # mandible tips; roots run back into the bone. Control points are
+    # (along ax, along up) metres from each tooth's own base.
+    du = (tip - ltip).dot(up)
+    da = (tip - ltip).dot(ax)
+    bite_u = -0.5 * du  # from the upper base down to the bite
+    upper = [(0.0026, [(-0.008, 0.003), (0.001, -0.25 * du), (-0.0005, bite_u)], 0.0032, 0.0024),
+             (0.0050, [(-0.006, 0.002), (-0.002, -0.002), (-0.003, -0.004)], 0.0009, 0.0008)]
+    lower = [(0.0022, [(-0.012, -0.003), (da - 0.001, 0.2 * du), (da - 0.002, 0.5 * du - 0.0006)], 0.0027, 0.002)]
     for ob, base, teeth in ((sk, tip, upper), (jw, ltip, lower)):
         b = Builder()
         for z, pts, rx, ry in teeth:
