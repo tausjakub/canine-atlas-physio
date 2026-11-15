@@ -45,3 +45,6 @@ tsconfig.tsbuildinfo
 /private-assets/
 *.pdf
 __pycache__/
+
+# local knowledge graph (graphify)
+graphify-out/
