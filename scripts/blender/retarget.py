@@ -343,7 +343,7 @@ def warp(parts, segs, power=4.0, eps=0.004, trees=None):
             allowed = allowed | {'thigh'}
         cand = [s for s in segs if s.name.split('_')[0].rstrip('0123456789') in allowed
                 and (s.side is None or sd is None or s.side == sd)]
-        dist = (lambda s, co: bone_distance(trees, s, co)) if p.get('region') in ('Forelimb', 'Hindlimb') else (lambda s, co: s.distance(co))
+        dist = (lambda s, co: s.distance(co)) if p.get('region') == 'Head' else (lambda s, co: bone_distance(trees, s, co))
         for v in me.vertices:
             co = v.co.copy()
             ws = sorted(((1.0 / (dist(s, co) + eps) ** power, s) for s in cand), key=lambda x: -x[0])[:3]

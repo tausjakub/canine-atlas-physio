@@ -159,8 +159,11 @@ def add_incisors(parts, S, col):
     # Upper incisors overlap the lowers labially, ending below the lower tips.
     bite_u = -(du + 0.004)
     upper = [(0.0026, [(-0.008, 0.003), (0.0015, -0.3 * du - 0.001), (0.001, bite_u)], 0.0032, 0.0024),
-             (0.0050, [(-0.006, 0.002), (-0.002, -0.002), (-0.003, -0.004)], 0.0009, 0.0008)]
-    lower = [(0.0022, [(-0.012, -0.003), (da - 0.003, 0.2 * du), (da - 0.0045, 0.0035)], 0.0027, 0.002)]
+             # Peg teeth: short, directly behind the large incisors.
+             (0.0030, [(-0.006, 0.002), (-0.003, -0.001), (-0.0035, -0.0025)], 0.0012, 0.0010)]
+    # Lower incisors: long and procumbent, erupting from the front of the
+    # mandible and curving up so the tips occlude behind the upper crowns.
+    lower = [(0.0020, [(-0.014, -0.004), (da - 0.004, -0.002), (da - 0.0055, du + 0.001)], 0.0026, 0.0021)]
     for ob, base, teeth in ((sk, tip, upper), (jw, ltip, lower)):
         b = Builder()
         for z, pts, rx, ry in teeth:
