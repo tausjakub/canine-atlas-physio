@@ -3,7 +3,9 @@ import './globals.css';
 import './theme-palette.css';
 import './theme-ui.css';
 import './responsive.css';
+import { sitePath } from './site-path';
 export const metadata: Metadata = {
+  manifest: sitePath('/manifest.webmanifest'),
   title: 'Canine Atlas · Anatomy for movement',
   description:
     'Explore canine bones and muscles in 3D and study movement anatomy for canine physiotherapy.',

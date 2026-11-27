@@ -389,3 +389,13 @@ body {
     text-overflow: ellipsis;
   }
 }
+@media (max-width: 760px) {
+  .compare-grid {
+    left: 8px;
+    right: 8px;
+    grid-template-columns: 1fr;
+  }
+  .dental-chart {
+    grid-template-columns: 1fr;
+  }
+}

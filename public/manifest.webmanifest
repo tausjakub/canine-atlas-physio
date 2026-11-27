@@ -1,0 +1,11 @@
+{
+  "name": "Canine Atlas · Anatomy for movement",
+  "short_name": "Canine Atlas",
+  "description": "3D canine, feline and rabbit anatomy for study.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e1720",
+  "theme_color": "#0e1720",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

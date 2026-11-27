@@ -206,6 +206,34 @@ export default function Home() {
   const [myNotes, setMyNotes] = useState<Record<string, string>>({});
   const [due, setDue] = useState<string[]>([]);
   const [dental, setDental] = useState(false);
+  const [offline, setOffline] = useState('');
+  useEffect(() => {
+    // Offline support for the public demo only; the private edition stays online behind its gate.
+    if (
+      process.env.NODE_ENV === 'production' &&
+      !privateEdition &&
+      'serviceWorker' in navigator
+    )
+      navigator.serviceWorker.register(sitePath('/sw.js')).catch(() => {});
+  }, []);
+  // Fetch every model pack once so the service worker caches it for offline use.
+  const saveOffline = async () => {
+    setOffline(t('Saving…'));
+    const files = ['', '/cat', '/rabbit'].flatMap((dir) =>
+      ['', '/organs', '/clinical'].flatMap((layer) => [
+        `/models${dir}${layer}/catalog.json`,
+        `/models${dir}${layer}/anatomy.bin`,
+      ]),
+    );
+    try {
+      await Promise.all(
+        files.map((f) => fetch(sitePath(f)).then((r) => r.arrayBuffer())),
+      );
+      setOffline(t('Saved for offline use in this browser.'));
+    } catch {
+      setOffline(t('Could not save everything; try again online.'));
+    }
+  };
   const [compare, setCompare] = useState(false);
   useEffect(() => {
     try {
@@ -933,6 +961,9 @@ export default function Home() {
               <button onClick={() => setDental(true)}>
                 {t('Dental chart')}
               </button>
+              {!privateEdition && (
+                <button onClick={saveOffline}>{t('Save for offline')}</button>
+              )}
             </div>
             <div className="presets">
               <button
@@ -961,6 +992,7 @@ export default function Home() {
                 </>
               )}
             </div>
+            {offline && <p aria-live="polite">{offline}</p>}
             {Object.keys(myNotes).length > 0 && (
               <button className="text-link" onClick={exportNotes}>
                 {t('Export my notes')} ({Object.keys(myNotes).length})
