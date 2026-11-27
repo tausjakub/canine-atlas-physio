@@ -398,13 +398,199 @@ body {
     text-overflow: ellipsis;
   }
 }
+/* Species comparison: five scenes over the whole viewer, 3 + 2. */
+.atlas-app .compare-grid {
+  inset: 116px 12px 130px 70px;
+  grid-template-rows: auto repeat(2, minmax(0, 1fr));
+  z-index: 3;
+}
+.atlas-app .compare-head {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--tone-96a8b6, #96a8b6);
+}
+.atlas-app .compare-head button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 12px;
+}
+.atlas-app .compare-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  color: var(--tone-8799a8, #8799a8);
+}
 @media (max-width: 760px) {
   .compare-grid {
     left: 8px;
     right: 8px;
     grid-template-columns: 1fr;
   }
+  .atlas-app .compare-grid {
+    grid-template-rows: auto;
+    grid-auto-rows: 240px;
+    overflow-y: auto;
+  }
   .dental-chart {
     grid-template-columns: 1fr;
   }
+}
+/* Labelled sheet and region handout: a dialog over the app, printable alone. */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgb(4 10 16 / 72%);
+  display: grid;
+  place-items: start center;
+  overflow-y: auto;
+  padding: 32px 16px;
+}
+.sheet-panel {
+  width: min(1100px, 100%);
+  background: #fff;
+  color: #111;
+  border-radius: 12px;
+  padding: 20px 24px 12px;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 45%);
+}
+.sheet-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.sheet-bar h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.sheet-bar div {
+  display: flex;
+  gap: 8px;
+}
+.sheet-bar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #c8d0d6;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #111;
+  background: #f3f6f8;
+}
+.sheet-figure {
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+.sheet-figure figure {
+  position: relative;
+  margin: 0;
+  background: #1b2530;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.sheet-figure img {
+  width: 100%;
+  display: block;
+}
+.sheet-figure b {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffcf4a;
+  color: #111;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #111;
+}
+.sheet-figure ol {
+  columns: 2;
+  font-size: 0.85rem;
+  margin: 10px 0 0;
+}
+.sheet-note {
+  font-size: 0.75rem;
+  color: #555;
+}
+@media print {
+  body:has(.sheet-backdrop) > :not(.sheet-backdrop) {
+    display: none !important;
+  }
+  .sheet-backdrop {
+    position: static;
+    background: none;
+    padding: 0;
+    overflow: visible;
+  }
+  .sheet-panel {
+    box-shadow: none;
+    padding: 0;
+  }
+  .sheet-bar div {
+    display: none;
+  }
+}
+/* Dental chart: drawn teeth (buccal outlines), crowns meeting at the bite. */
+.dental-chart .dental-row {
+  gap: 2px;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.dental-chart .q3 .dental-row,
+.dental-chart .q4 .dental-row {
+  align-items: flex-start;
+}
+.dental-chart .tooth-draw {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 2px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font: 11px monospace;
+  color: var(--tone-96a8b6, #96a8b6);
+  min-width: 26px;
+}
+.dental-chart .tooth-draw.lower {
+  flex-direction: column-reverse;
+}
+.dental-chart .tooth-draw:hover {
+  border-color: var(--line);
+}
+.dental-chart .tooth-draw .crown {
+  fill: #f3eedf;
+  stroke: #6d6656;
+  stroke-width: 1;
+}
+.dental-chart .tooth-draw .root {
+  fill: #c7b48c;
+  stroke: #6d6656;
+  stroke-width: 1;
+}
+.dental-chart .tooth-draw .reserve {
+  fill: #ddd3bb;
+  stroke: #6d6656;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+.dental-chart .tooth-draw[aria-pressed='true'] {
+  border-color: var(--mint);
+  background: var(--tone-234e43, #234e43);
+  color: var(--tone-a2edda, #a2edda);
+}
+.dental-chart .tooth-draw[aria-pressed='true'] .crown {
+  fill: #a2edda;
 }

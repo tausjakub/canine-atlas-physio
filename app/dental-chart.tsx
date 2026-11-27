@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { type Language } from './i18n';
 import { shuffle } from './quiz-engine';
+import { toothShape } from './tooth-shapes';
 
 type Species = 'dog' | 'cat' | 'rabbit' | 'ferret' | 'guinea_pig';
 // Tooth positions present per arch (upper, lower), by Triadan position number.
@@ -162,8 +163,8 @@ export default function DentalChart({
           {e('Dental formula', 'Zubní vzorec')}:{' '}
           <strong>{formula[sp].text}</strong>.{' '}
           {e(
-            'The chart is drawn as if facing the animal: its right side is on your left.',
-            'Diagram je kreslen při pohledu proti zvířeti: jeho pravá strana je vlevo.',
+            'The chart is drawn as if facing the animal: its right side is on your left. Teeth are schematic side views (roots darker); rabbit and guinea pig teeth grow continuously and have no closed roots.',
+            'Diagram je kreslen při pohledu proti zvířeti: jeho pravá strana je vlevo. Zuby jsou schematické boční pohledy (kořeny tmavší); zuby králíka a morčete trvale rostou a nemají uzavřené kořeny.',
           )}
         </p>
         <div className="dental-chart">
@@ -178,15 +179,34 @@ export default function DentalChart({
                   .sort((a, b) => (q === 1 || q === 4 ? b - a : a - b))
                   .map((pos) => {
                     const c = code(q, pos);
+                    const shape = toothShape(sp, pos, upper);
                     return (
                       <button
                         key={c}
                         aria-pressed={picked === c}
                         aria-label={ask.length ? `${c.slice(1)}` : describe(c)}
-                        className={`tooth t${pos <= 3 ? 'i' : pos === 4 ? 'c' : pos <= 8 ? 'p' : 'm'}`}
+                        className={`tooth-draw${upper ? '' : ' lower'}`}
                         onClick={() => choose(c)}
                       >
-                        {ask.length ? '' : c}
+                        <svg
+                          viewBox={`-1 -1 ${shape.w + 2} 102`}
+                          width={shape.w * 1.7}
+                          height={96}
+                          aria-hidden="true"
+                        >
+                          <g
+                            transform={
+                              upper ? undefined : 'matrix(1 0 0 -1 0 100)'
+                            }
+                          >
+                            <path
+                              className={shape.open ? 'reserve' : 'root'}
+                              d={shape.roots}
+                            />
+                            <path className="crown" d={shape.crown} />
+                          </g>
+                        </svg>
+                        <span>{ask.length ? '' : c}</span>
                       </button>
                     );
                   })}

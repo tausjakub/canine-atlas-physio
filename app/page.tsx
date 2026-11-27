@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnatomyScene, { type SceneTools, type Snapshot } from './scene';
+import SheetDialog, { type SheetFigure } from './sheet-dialog';
 import PoseControls from './pose-controls';
 import { SpeciesPicker, type Species } from './species-atlas';
 import ThemePicker from './theme-picker';
@@ -359,9 +360,9 @@ export default function Home() {
   >({});
   useEffect(() => {
     // The comparative view needs every species; otherwise only the chosen one.
-    const wanted = (compare ? (['cat', 'rabbit'] as const) : [species]).filter(
-      (sp) => sp !== 'dog' && !speciesAtlas[sp],
-    );
+    const wanted = (
+      compare ? (['cat', 'rabbit', 'ferret', 'guinea_pig'] as const) : [species]
+    ).filter((sp) => sp !== 'dog' && !speciesAtlas[sp]);
     if (!wanted.length) return;
     const abort = new AbortController();
     for (const sp of wanted)
@@ -658,37 +659,29 @@ export default function Home() {
       `${t('Region handout')}: ${t(area)}`,
     );
   };
+  // Starts undefined: the i18n validator stubs useState(null) with the atlas.
+  const [sheet, setSheet] = useState<{
+    title: string;
+    figures: SheetFigure[];
+  }>();
   const openSheet = (snaps: Snapshot[], title: string) => {
     if (!view) return;
-    const name = (id: string) => {
-      const part = view.parts.find((p) => p.id === id);
-      return part ? structureName(part, language) : id;
-    };
-    const esc = (s: string) =>
-      s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
-    const figures = snaps
-      .map((snap) => {
-        const marks = snap.marks
-          .map(
-            (m, i) =>
-              `<b style="left:${(m.x * 100).toFixed(2)}%;top:${(m.y * 100).toFixed(2)}%">${i + 1}</b>`,
-          )
-          .join('');
-        const key = snap.marks
-          .map((m) => {
-            const part = view.parts.find((p) => p.id === m.id);
-            const latin = part && latinName(part);
-            return `<li>${esc(name(m.id))}${latin ? ` <i>${esc(latin)}</i>` : ''}</li>`;
-          })
-          .join('');
-        return `<figure><img src="${snap.image}" alt="">${marks}</figure><ol>${key}</ol>`;
-      })
-      .join('');
-    const html = `<!doctype html><meta charset="utf-8"><title>${esc(title)}</title><style>body{font:14px sans-serif;margin:24px;color:#111}figure{position:relative;margin:0;background:#1b2530}img{width:100%;display:block}b{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#ffcf4a;color:#111;font-size:12px;display:grid;place-items:center;border:2px solid #111}ol{columns:2}@media print{.no{display:none}}</style><p class="no"><button onclick="print()">${esc(t('Print'))}</button> <button onclick="document.querySelectorAll('ol').forEach(o=>o.hidden=!o.hidden)">${esc(t('Hide key'))}</button></p><h1>${esc(title)}</h1>${figures}<p><small>Canine Atlas · ${esc(t('Educational reference'))}</small></p>`;
-    window.open(
-      URL.createObjectURL(new Blob([html], { type: 'text/html' })),
-      '_blank',
-    );
+    const byId = new Map(view.parts.map((p) => [p.id, p]));
+    setSheet({
+      title,
+      figures: snaps.map((snap) => ({
+        image: snap.image,
+        marks: snap.marks.map((m) => {
+          const part = byId.get(m.id);
+          return {
+            x: m.x,
+            y: m.y,
+            name: part ? structureName(part, language) : m.id,
+            latin: (part && latinName(part)) || undefined,
+          };
+        }),
+      })),
+    });
   };
   const reset = () => {
     setPeel(0);
@@ -889,6 +882,8 @@ export default function Home() {
             <h2>{t('Movement')}</h2>
           </div>
           <MotionControls
+            key={species}
+            species={species}
             language={language}
             resetKey={motionReset}
             stance={stance}
@@ -1496,15 +1491,26 @@ export default function Home() {
             )}
           {compare && tab === 'explore' && atlas && (
             <div className="compare-grid">
+              <p className="compare-head">
+                <span>
+                  {t(
+                    'Same view, layers and selection in every species. Click a structure to find it in all of them.',
+                  )}
+                </span>
+                <button onClick={() => setCompare(false)}>{t('Close')}</button>
+              </p>
               {(
                 [
                   ['dog', atlas, 'Dog'],
                   ['cat', speciesAtlas.cat, 'Cat'],
                   ['rabbit', speciesAtlas.rabbit, 'Rabbit'],
+                  ['ferret', speciesAtlas.ferret, 'Ferret'],
+                  ['guinea_pig', speciesAtlas.guinea_pig, 'Guinea pig'],
                 ] as const
               ).map(([sp, a, name]) => (
                 <div key={sp} className="compare-cell">
                   <span>{t(name)}</span>
+                  {!a && <em className="compare-loading">{t('Loading')}…</em>}
                   {a && (
                     <AnatomyScene
                       key={`compare-${sp}`}
@@ -1517,6 +1523,20 @@ export default function Home() {
                 </div>
               ))}
             </div>
+          )}
+          {sheet && (
+            <SheetDialog
+              title={sheet.title}
+              figures={sheet.figures}
+              labels={{
+                print: t('Print'),
+                hideKey: t('Hide key'),
+                showKey: t('Show key'),
+                close: t('Close'),
+                note: `Canine Atlas · ${t('Educational reference')}`,
+              }}
+              onClose={() => setSheet(undefined)}
+            />
           )}
           {error && (
             <div role="alert" className="load-card">

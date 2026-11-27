@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import type { Joint, Motion } from './poses';
 import { type Language, translate } from './i18n';
-import { type GaitKind, romMotion, romReference } from './gait';
+import { type GaitKind, romMotion, romReference, speciesGaits } from './gait';
 export type GaitState = { kind: GaitKind; playing: boolean; phase?: number };
 
 // Slider limits (offset from standing, degrees) and the direction of positive values.
@@ -27,12 +27,14 @@ const jointNames: Record<Joint, string> = {
 };
 
 export default function MotionControls({
+  species,
   language,
   onGait,
   onRom,
   stance,
   resetKey,
 }: {
+  species: string;
   language: Language;
   // The scene animates the gait itself; the controls only say what to play.
   onGait: (gait: GaitState | null) => void;
@@ -67,7 +69,7 @@ export default function MotionControls({
   return (
     <div className="viewer-tools">
       <div className="presets" role="group" aria-label={t('Gait')}>
-        {(['walk', 'trot', 'gallop'] as const).map((g) => (
+        {(speciesGaits[species] ?? speciesGaits.dog).map((g) => (
           <button
             key={g}
             aria-pressed={gait === g}
@@ -76,7 +78,15 @@ export default function MotionControls({
               play(g, true);
             }}
           >
-            {t({ walk: 'Walk', trot: 'Trot', gallop: 'Gallop' }[g])}
+            {t(
+              {
+                walk: 'Walk',
+                trot: 'Trot',
+                gallop: 'Gallop',
+                hop: 'Hop',
+                bound: 'Bound',
+              }[g],
+            )}
           </button>
         ))}
         {gait && (

@@ -247,17 +247,17 @@ const only = process.argv[2];
 const SKULL_CREDITS = {
   cat: {
     title:
-      'Felis catus 603, Mammal Research Institute PAS, Open Forest Data (CC BY 4.0)',
-    url: 'https://doi.org/10.48370/OFD/6WP439',
+      'Domestic cat (Felis catus) CT, courtesy of Dr Tobias Schwarz, prepared by Brian Mather, Royal (Dick) School of Veterinary Studies, The University of Edinburgh (CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/7c99ca836d834c39872ecf5e9b5e2087',
   },
   rabbit: {
     title:
-      'Oryctolagus cuniculus MZB 97-0280, Museu de Ciències Naturals de Barcelona (CC BY 4.0)',
+      'Oryctolagus cuniculus MZB 97-0280, Museu de Ciències Naturals de Barcelona (CC BY 4.0); mandible placed on the articulated rabbit skull 178.05 of the RISD Nature Lab (CC BY 4.0)',
     url: 'https://sketchfab.com/3d-models/6640c63cf58341758e99255cec1a8976',
   },
   ferret: {
     title:
-      'Mustela putorius (European polecat, wild form of the ferret) 27896, Mammal Research Institute PAS, Open Forest Data (CC BY 4.0)',
+      'Mustela putorius (European polecat, wild form of the ferret) 27896, skull and mandible articulated, Mammal Research Institute PAS, Open Forest Data (CC BY 4.0)',
     url: 'https://doi.org/10.48370/OFD/RWXIPA',
   },
   guinea_pig: {
