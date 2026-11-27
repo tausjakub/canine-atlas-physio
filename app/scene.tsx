@@ -3,7 +3,7 @@ import { sitePath } from './site-path';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { type Atlas, type SceneState, isShown, systems } from './anatomy';
+import { type Atlas, type SceneState, isShown, partColor } from './anatomy';
 import { type Language, translate } from './i18n';
 import {
   dogPoses,
@@ -52,14 +52,25 @@ export default function AnatomyScene({
     const abort = new AbortController();
     async function init() {
       try {
-        const response = await fetch(
-          sitePath(atlas.binaryPath || '/models/anatomy.bin'),
-          {
+        const main = atlas.binaryPath || '/models/anatomy.bin';
+        const paths = [
+          main,
+          ...new Set(
+            atlas.parts.flatMap((p) =>
+              p.binaryPath && p.binaryPath !== main ? [p.binaryPath] : [],
+            ),
+          ),
+        ];
+        const buffers = new Map<string, ArrayBuffer>();
+        for (const path of paths) {
+          const response = await fetch(sitePath(path), {
             signal: abort.signal,
-          },
-        );
-        if (!response.ok) throw Error('The anatomy file could not be loaded.');
-        const buffer = await response.arrayBuffer();
+          });
+          if (!response.ok)
+            throw Error('The anatomy file could not be loaded.');
+          buffers.set(path, await response.arrayBuffer());
+        }
+        const buffer = buffers.get(main)!;
         if (dead) return;
         if (buffer.byteLength !== atlas.bytes)
           throw Error('The anatomy download is incomplete.');
@@ -118,23 +129,24 @@ export default function AnatomyScene({
               )
             : new THREE.BufferGeometry();
           if (!p.path) {
+            const source = buffers.get(p.binaryPath ?? main) ?? buffer;
             g.setAttribute(
               'position',
               new THREE.BufferAttribute(
-                new Float32Array(buffer, p.vertexOffset, p.vertexCount * 3),
+                new Float32Array(source, p.vertexOffset, p.vertexCount * 3),
                 3,
               ),
             );
             g.setIndex(
               new THREE.BufferAttribute(
-                new Uint32Array(buffer, p.indexOffset, p.indexCount),
+                new Uint32Array(source, p.indexOffset, p.indexCount),
                 1,
               ),
             );
             g.computeVertexNormals();
           }
           g.computeBoundingBox();
-          const color = systems.find((s) => s.id === p.system)!.color;
+          const color = partColor(p);
           const m = new THREE.Mesh(
             g,
             new THREE.MeshStandardMaterial({
@@ -271,11 +283,7 @@ export default function AnatomyScene({
             const p = m.userData.part;
             m.visible = isShown(p, s);
             const selected = p.id === s.selected;
-            m.material.color.set(
-              selected
-                ? '#67e0d0'
-                : systems.find((t) => t.id === p.system)!.color,
-            );
+            m.material.color.set(selected ? '#67e0d0' : partColor(p));
             // Species atlases shade neighbouring muscles slightly differently
             // so individual bellies stay distinguishable.
             if (!selected && atlas.species && p.system === 'muscle')

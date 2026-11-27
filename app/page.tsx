@@ -194,7 +194,24 @@ export default function Home() {
         if (!r.ok) throw Error('The anatomy catalogue could not be loaded.');
         return r.json();
       })
-      .then((data) => setAtlas(addLigaments(data as Atlas)))
+      .then(async (data) => {
+        // Organs ship as a separate pack (own binary) merged into the dog atlas.
+        const organs = await fetch(sitePath('/models/organs/catalog.json'), {
+          signal: abort.signal,
+        })
+          .then((r) => (r.ok ? (r.json() as Promise<Atlas>) : null))
+          .catch((e) => {
+            if (e.name === 'AbortError') throw e;
+            return null;
+          });
+        const dog = data as Atlas;
+        setAtlas(
+          addLigaments({
+            ...dog,
+            parts: [...dog.parts, ...(organs?.parts ?? [])],
+          }),
+        );
+      })
       .catch((e) => {
         if (e.name !== 'AbortError') setError(e.message);
       });
@@ -495,6 +512,21 @@ export default function Home() {
                 }
               >
                 {t('Bones + ligaments')}
+              </button>
+            )}
+            {presentSystems.some((sys) => sys.id === 'organ') && (
+              <button
+                onClick={() =>
+                  setState((s) => ({
+                    ...s,
+                    systems: ['bone', 'organ'],
+                    selected: null,
+                    isolate: false,
+                    hidden: [],
+                  }))
+                }
+              >
+                {t('Bones + organs')}
               </button>
             )}
           </div>
@@ -1195,7 +1227,7 @@ export default function Home() {
         </p>
         <p>
           {t(
-            'Selectable pieces: {count}. Pieces include grouped bones, separate muscle portions, connective tissue and surface features; these counts are not anatomical totals. Organs and nerves are not included.',
+            'Selectable pieces: {count}. Pieces include grouped bones, separate muscle portions, connective tissue and surface features; these counts are not anatomical totals. Nerves are not included; organs are a separate layer described below.',
             { count: noteCoverage.pieces },
           )}
         </p>
@@ -1210,6 +1242,19 @@ export default function Home() {
             'The cat and rabbit atlases are derived from MusculoskeletalDog (Vittorio La Barbera, 2025, MIT): the dog meshes are retargeted in Blender to species proportions, with a few muscles generated from attachment landmarks. The same geometry provenance note applies. They are study models, not CT reconstructions or validated dissections.',
           )}
         </p>
+        <h3>{t('Dog organs')}</h3>
+        <p>
+          {t(
+            'Brain: Cortical Atlas of the Canine Brain by Philippa J. Johnson and Erica F. Barry (2019, Cornell University, CC0), a population MRI template meshed and scaled into this skull. All other organs are schematic shapes authored for this atlas and placed at textbook positions inside the body cavities; they are not segmented from imaging and are not to exact size.',
+          )}
+        </p>
+        <a
+          href="https://doi.org/10.7298/4t8z-aw34"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t('Canine brain atlas (CC0)')} <ArrowUpRight size={15} />
+        </a>
         <a
           href="https://github.com/vittorione94/MusculoskeletalDog"
           target="_blank"

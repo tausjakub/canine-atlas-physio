@@ -1,5 +1,11 @@
 import type { DogPose } from './poses';
-export type System = 'bone' | 'muscle' | 'connective' | 'surface' | 'ligament';
+export type System =
+  | 'bone'
+  | 'muscle'
+  | 'connective'
+  | 'surface'
+  | 'ligament'
+  | 'organ';
 export type Part = {
   id: string;
   system: System;
@@ -12,6 +18,8 @@ export type Part = {
   path?: number[][];
   radius?: number;
   anatomicalRegion?: string;
+  // Parts merged from another pack (organs) read geometry from their own binary.
+  binaryPath?: string;
 };
 export type Atlas = {
   parts: Part[];
@@ -40,7 +48,25 @@ export const systems: { id: System; name: string; color: string }[] = [
   { id: 'ligament', name: 'Ligaments · schematic', color: '#eeb85b' },
   { id: 'connective', name: 'Connective tissue', color: '#abc8d6' },
   { id: 'surface', name: 'Body surface', color: '#758d9c' },
+  { id: 'organ', name: 'Organs', color: '#c98fb4' },
 ];
+// Organs share one layer but are tinted by organ group so neighbours read apart.
+const organTints: [RegExp, string][] = [
+  [/^brain_/, '#e8b9c4'],
+  [/spinal_cord|thyroid|adrenal/, '#e9d48c'],
+  [/heart|aorta/, '#c4505a'],
+  [/vena_cava/, '#5d7fc4'],
+  [/lung/, '#e7a1a8'],
+  [/liver|spleen|kidney/, '#8c3f45'],
+  [/gallbladder/, '#6f9a52'],
+  [/bladder|prostate/, '#d8c06a'],
+  [/trachea|larynx/, '#b9d3dc'],
+];
+export function partColor(p: Part) {
+  if (p.system !== 'organ')
+    return systems.find((s) => s.id === p.system)!.color;
+  return organTints.find(([re]) => re.test(p.id))?.[1] ?? '#d99a8c';
+}
 export const initial: SceneState = {
   systems: ['bone', 'muscle'],
   selected: null,

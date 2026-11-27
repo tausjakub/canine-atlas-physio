@@ -52,6 +52,7 @@ export function isSpeciesPart(part: Part): part is SpeciesPart {
 function speciesNote(part: SpeciesPart, language: Language) {
   const s = part.study,
     cs = language === 'cs',
+    organ = part.system === 'organ',
     pick = (b: Bilingual | null | undefined) => (b ? b[language] : '');
   const side = part.id.endsWith('_L')
     ? cs
@@ -72,10 +73,14 @@ function speciesNote(part: SpeciesPart, language: Language) {
     function: pick(part.action),
     nerve:
       pick(s?.nerve) ||
-      (cs ? 'Neuplatňuje se (kost).' : 'Not applicable (bone).'),
-    physio: cs
-      ? 'Sledujte vztah struktury k okolním kloubům. Pohyb v zatížené končetině se může lišit od izolovaného pohybu; polohy modelu ukazují prostorové vztahy, nikoli bezpečný rozsah pohybu živého zvířete.'
-      : 'Follow the structure’s relationship to neighbouring joints. Weight-bearing function may differ from isolated movement; model poses show spatial relationships, not a safe range of motion for a living animal.',
+      (organ ? '' : cs ? 'Neuplatňuje se (kost).' : 'Not applicable (bone).'),
+    physio: organ
+      ? cs
+        ? 'Orgán slouží k orientaci v tělních dutinách: všimněte si jeho vztahu k páteři, žebrům, bránici a pánvi. Model je schematický a neslouží k posouzení zdravotního stavu.'
+        : 'Use the organ to orient yourself in the body cavities: note its relation to the spine, ribs, diaphragm and pelvis. The model is schematic and not a basis for judging health.'
+      : cs
+        ? 'Sledujte vztah struktury k okolním kloubům. Pohyb v zatížené končetině se může lišit od izolovaného pohybu; polohy modelu ukazují prostorové vztahy, nikoli bezpečný rozsah pohybu živého zvířete.'
+        : 'Follow the structure’s relationship to neighbouring joints. Weight-bearing function may differ from isolated movement; model poses show spatial relationships, not a safe range of motion for a living animal.',
     recall: s ? `${pick(s.recall)} ${pick(s.answer)}` : '',
     sources: [] as string[],
     profile: '',

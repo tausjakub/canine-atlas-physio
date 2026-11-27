@@ -29,7 +29,7 @@ for (const p of [
   assert(fs.existsSync(path.join(root, p)), p);
 // Cat and rabbit atlases: catalog byte counts must match their binaries, and
 // no third-party scan or sculpt geometry may ship.
-for (const species of ['cat', 'rabbit']) {
+for (const species of ['cat', 'rabbit', 'organs']) {
   const atlas = JSON.parse(
     fs.readFileSync(path.join(root, 'models', species, 'catalog.json'), 'utf8'),
   );

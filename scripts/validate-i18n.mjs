@@ -374,7 +374,7 @@ for (const pose of ['sitting', 'lying']) {
   for (const button of findElement(
     tree,
     (n) => n.props?.className === 'presets',
-  ).props.children) {
+  ).props.children.filter(Boolean)) {
     button.props.onClick();
     assert.equal(state.pose, pose);
   }
