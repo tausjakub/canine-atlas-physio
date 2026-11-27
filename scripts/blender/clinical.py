@@ -65,8 +65,9 @@ def mirror(p, sign):
 
 
 class Builder:
-    def __init__(self, col):
-        self.col, self.parts = col, []
+    def __init__(self, col, skin=None):
+        # With skin set, every sample of every tube is kept beneath it.
+        self.col, self.parts, self.skin, self.depth = col, [], skin, 0.003
 
     def _mesh(self, name, bm, system, region, labels=None, rigid=None):
         me = bpy.data.meshes.new(name)
@@ -84,6 +85,8 @@ class Builder:
         bm = bmesh.new()
         labels = []
         for i, (c, r) in enumerate(zip(centres, radii)):
+            if self.skin:
+                c = under_skin(self.skin, c, depth=max(r) + 0.0008)
             start = len(bm.verts)
             res = bmesh.ops.create_uvsphere(bm, u_segments=14, v_segments=9, radius=1.0)
             for v in res['verts']:
@@ -92,8 +95,49 @@ class Builder:
                 labels.append([start, len(bm.verts) - start, texts[i]])
         return self._mesh(name, bm, system, region, labels, rigid)
 
+    def _tube_into(self, bm, pts, radius, n=None, seg=8):
+        path = catmull([Vector(p) for p in pts], n or max(24, len(pts) * 12))
+        if self.skin:
+            path = [under_skin(self.skin, q, depth=self.depth) for q in path]
+        rings = []
+        for i, p in enumerate(path):
+            t = (path[min(i + 1, len(path) - 1)] - path[max(i - 1, 0)]).normalized()
+            a = t.cross(Vector((0, 1, 0)) if abs(t.y) < 0.9 else Vector((1, 0, 0))).normalized()
+            b = t.cross(a).normalized()
+            r = radius(i / (len(path) - 1)) if callable(radius) else radius
+            rings.append([bm.verts.new(p + (a * math.cos(k * 2 * math.pi / seg) + b * math.sin(k * 2 * math.pi / seg)) * r)
+                          for k in range(seg)])
+        for r0, r1 in zip(rings, rings[1:]):
+            for k in range(seg):
+                bm.faces.new((r0[k], r0[(k + 1) % seg], r1[(k + 1) % seg], r1[k]))
+        bm.faces.new(rings[0][::-1])
+        bm.faces.new(rings[-1])
+
+    def group(self, name, system, region, tubes=(), discs=(), marks=(), rigid=None):
+        """One part from several tubes (pts, r), discs (centre, axis, radius,
+        thickness) and labelled spheres (centre, r, text)."""
+        bm = bmesh.new()
+        for pts, r in tubes:
+            self._tube_into(bm, pts, r)
+        for c, axis, r, th in discs:
+            a = Vector(axis).normalized()
+            self._tube_into(bm, [c - a * th / 2, c + a * th / 2], r, n=2, seg=20)
+        labels = []
+        for c, r, text in marks:
+            if self.skin:
+                c = under_skin(self.skin, c, depth=r + 0.0008)
+            start = len(bm.verts)
+            res = bmesh.ops.create_uvsphere(bm, u_segments=10, v_segments=7, radius=r)
+            for v in res['verts']:
+                v.co += c
+            if text:
+                labels.append([start, len(bm.verts) - start, text])
+        return self._mesh(name, bm, system, region, labels, rigid)
+
     def tube(self, name, pts, radius, system, region, n=None):
         path = catmull([Vector(p) for p in pts], n or max(24, len(pts) * 12))
+        if self.skin:
+            path = [under_skin(self.skin, q, depth=self.depth) for q in path]
         bm = bmesh.new()
         rings, seg = [], 8
         for i, p in enumerate(path):
@@ -118,15 +162,18 @@ def to_skin(skin, p, sign, depth=0.002):
     return hit - d * depth if hit else p
 
 
+def under_skin(skin, p, depth=0.003):
+    """A point at least depth beneath the skin: anything above or just under the
+    surface moves inward along the skin normal."""
+    q = Vector(p)
+    loc, nor, _, _ = skin.find_nearest(q)
+    if loc is None or (q - loc).dot(nor) < -depth:
+        return q
+    return loc - nor * depth
+
+
 def inside_skin(skin, p, sign):
-    """Pull a point towards the midline until it is under the skin."""
-    q = p.copy()
-    for _ in range(25):
-        loc, nor, _, _ = skin.find_nearest(q)
-        if loc is None or (q - loc).dot(nor) < -0.003:
-            return q
-        q.z -= sign * 0.002
-    return q
+    return under_skin(skin, p)
 
 
 def build(col):
@@ -137,7 +184,7 @@ def build(col):
     dog = dog_edits.split_ribcage(dog)
     by = {p['id']: p['ob'] for p in dog}
     skin = bvh_of([by['skin']])
-    B = Builder(col)
+    B = Builder(col, skin)
     V = {k: verts(by[k]) for k in by if not k.startswith('m_') and k != 'skin'}
 
     for sign, tag in ((LEFT, 'L'), (RIGHT, 'R')):
@@ -284,6 +331,8 @@ def build(col):
         for name, (pts, region) in nerves.items():
             B.tube(f'n_{name}_{tag}', pts, 0.0019, 'nerve', region)
 
+    extras(B, by, V, skin)
+
     # ---- spinal cord segment regions (functional regions, not vertebral levels)
     cx = lambda k: float(V[k][:, 0].mean())  # noqa: E731
     bounds = [((cx('C_4') + cx('C_5')) / 2), ((cx('T_1') + cx('T_2')) / 2), cx('L_3'), ((cx('L_5') + cx('L_6')) / 2)]
@@ -297,6 +346,157 @@ def build(col):
         r = (lambda u: 0.0042 - 0.0024 * u) if name == 'cord_caudal' else 0.0055
         B.tube(name, seg[::2] if len(seg) > 6 else seg, r, 'nerve', 'Neck & trunk')
     return dog, B.parts
+
+
+def principal(vs):
+    c = vs.mean(0)
+    _, _, w = np.linalg.svd(vs - c, full_matrices=False)
+    return c, w[0]
+
+
+def extras(B, by, V, skin):
+    """Growth plates, body-surface regions and cranial nerves."""
+    # ---- growth plates (physes): a disc across each long bone near its ends.
+    # Fractions of bone length from the proximal (upper) or distal end.
+    physes = {
+        'humerus': (('proximal', 0.10), ('distal', 0.08)),
+        'Radius': (('proximal', 0.06), ('distal', 0.07)),
+        'Ulna': (('distal', 0.06),),
+        'Femoris': (('proximal', 0.07), ('distal', 0.10)),
+        'Tibia': (('proximal', 0.10), ('distal', 0.06)),
+    }
+    for bone, ends in physes.items():
+        for tag in ('L', 'R'):
+            vs = V[f'{bone}_{tag}']
+            c, ax = principal(vs)
+            if ax[1] < 0:
+                ax = -ax  # axis points proximally (up)
+            t = (vs - c) @ ax
+            discs = []
+            for end, f in ends:
+                at = t.max() - f * (t.max() - t.min()) if end == 'proximal' else t.min() + f * (t.max() - t.min())
+                sl = vs[np.abs(t - at) < 0.0015]
+                if len(sl) < 6:
+                    continue
+                centre = Vector(sl.mean(0))
+                off = sl - sl.mean(0)
+                radial = off - np.outer(off @ ax, ax)
+                r = float(np.percentile(np.linalg.norm(radial, axis=1), 80))  # max overshoots at styloid ridges
+                discs.append((f'{end}', centre, ax, r))
+            for end, centre, a, r in discs:
+                key = {'humerus': 'humerus', 'Radius': 'radius', 'Ulna': 'ulna', 'Femoris': 'femur', 'Tibia': 'tibia'}[bone]
+                B.group(f'gp_{key}_{end}_{tag}', 'landmark', 'Forelimb' if bone in ('humerus', 'Radius', 'Ulna') else 'Hindlimb',
+                        discs=[(centre, a, r, 0.0016)], rigid=f'{bone}_{tag}')
+
+    def to(p, d, depth=0.002):
+        d = Vector(d).normalized()
+        hit = skin.ray_cast(Vector(p) - d * 0.05, d, 0.3)[0]
+        return hit - d * depth if hit else Vector(p)
+
+    def top(k):
+        v = V[k]
+        return Vector(v[np.argmax(v[:, 1])])
+
+    # ---- body-surface regions (numbered, left side and dorsal midline)
+    skull = V['MergedSkull']
+    poll = Vector(skull[np.argmax(skull[:, 1] - 2 * (skull[:, 0] - skull[:, 0].min()))])
+    muzzle = Vector(skull[np.argmax(skull[:, 0] + 0.5 * skull[:, 1])])
+    st = V['Sternum']
+    brisket = Vector(st[np.argmin(st[:, 1])])
+    hum = V['humerus_L'][V['humerus_L'][:, 1] > V['humerus_L'][:, 1].max() - 0.02]
+    shoulder = Vector(hum[np.argmax(hum[:, 0])])
+    olec = Vector(V['Ulna_L'][np.argmax(V['Ulna_L'][:, 1])])
+    pat = Vector(V['Patella_L'].mean(0))
+    calc = Vector(V['Calcaneal_tuber_L'][np.argmax(V['Calcaneal_tuber_L'][:, 1])])
+    l3 = top('L_3')
+    flank = Vector(((V['Rib_13_L'][:, 0].min() + V['Pelvis'][:, 0].max()) / 2, l3.y - 0.09, -0.02))
+    regions = [
+        (to(poll, (0, 1, 0)), '1'), (to(muzzle, (0, 1, 0.0)), '2'), (to(top('T_2'), (0, 1, 0)), '3'),
+        (to(l3, (0, 1, 0)), '4'), (to(top('Sacrum'), (0, 1, 0)), '5'), (to(top('Ca_1'), (0, 1, 0)), '6'),
+        (to(shoulder, (0.3, 0, -1)), '7'), (to(olec, (-1, 0, -0.3)), '8'), (to(brisket, (0, -1, 0)), '9'),
+        (to(flank, (0, 0, -1)), '10'), (to(pat, (1, 0, -0.3)), '11'), (to(calc, (-1, 0, -0.2)), '12'),
+    ]
+    B.group('lm_body_regions', 'landmark', 'Neck & trunk', marks=[(p, 0.004, t) for p, t in regions])
+
+    # ---- cranial nerves I-XII (schematic courses from the brain to their targets)
+    with open(os.path.join(ROOT, 'work', 'organs', 'parts.json'), encoding='utf-8') as f:
+        bparts = {q['id']: q for q in json.load(f)['parts']}
+    stem_lo, stem_hi = (Vector(v) for v in bparts['brain_stem']['bounds'])
+    bulb_hi = Vector(bparts['brain_olfactory_bulbs']['bounds'][1])
+    sc = (stem_lo + stem_hi) / 2
+    hw = (stem_hi.z - stem_lo.z) / 2
+    jaw = V['Jaw']
+    for sign, tag in ((LEFT, 'L'), (RIGHT, 'R')):
+        m = lambda x, y, z: Vector((x, y, z * (1 if sign == LEFT else -1)))  # noqa: E731  author on the left
+        eye = Vector(V[f'eye_{tag}'].mean(0)) if f'eye_{tag}' in V else m(0.358, 0.704, -0.026)
+        js = jaw[jaw[:, 2] * sign > 0]
+        angle = Vector(js[js[:, 0] < js[:, 0].min() + 0.025][np.argmin(js[js[:, 0] < js[:, 0].min() + 0.025][:, 1])])
+        lat = m(sc.x, sc.y, -hw)
+        nerves = [
+            ('I', [m(bulb_hi.x - 0.004, bulb_hi.y - 0.004, -0.004), m(bulb_hi.x + 0.012, bulb_hi.y - 0.002, -0.004)]),
+            ('II', [m(stem_hi.x + 0.01, stem_lo.y + 0.002, -0.004), (m(stem_hi.x + 0.01, stem_lo.y, -0.004) + eye) / 2, eye]),
+            ('III', [lat + Vector((0.004, 0, 0)), (lat + eye) / 2 + Vector((0, -0.004, 0)), eye + Vector((0, -0.004, 0))]),
+            ('IV', [lat + Vector((-0.004, 0.004, 0)), (lat + eye) / 2 + Vector((0, 0.004, 0)), eye + Vector((0, 0.005, 0))]),
+            ('V', [lat, lat + m(0.0, -0.012, -0.01), angle + Vector((0.035, 0.012, 0))]),
+            ('VI', [m(sc.x - 0.006, sc.y - 0.004, -0.004), (lat + eye) / 2 + Vector((0, -0.008, 0)), eye + Vector((0, -0.007, 0))]),
+            ('VII', [lat + Vector((-0.008, 0, 0)), lat + m(-0.01, -0.006, -0.02), angle + Vector((0.02, 0.03, 0)) + m(0, 0, -0.006)]),
+            ('VIII', [lat + Vector((-0.01, 0.002, 0)), lat + m(-0.012, 0.002, -0.016)]),
+            ('IX', [m(stem_lo.x + 0.01, sc.y - 0.004, -0.006), m(0.265, 0.625, -0.012)]),
+            ('X', [m(stem_lo.x + 0.008, sc.y - 0.006, -0.007), m(0.25, 0.61, -0.02), m(0.21, 0.53, -0.022),
+                   m(0.155, 0.445, -0.02), m(0.10, 0.40, -0.02)]),
+            ('XI', [m(stem_lo.x + 0.004, sc.y, -0.006), m(stem_lo.x - 0.02, sc.y - 0.01, -0.03), m(0.20, 0.62, -0.04)]),
+            ('XII', [m(stem_lo.x + 0.012, sc.y - 0.008, -0.004), m(0.29, 0.62, -0.01), m(0.30, 0.625, -0.008)]),
+        ]
+        B.group(f'n_cranial_nerves_{tag}', 'nerve', 'Head', tubes=[(pts, 0.0012) for _, pts in nerves],
+                marks=[(pts[-1], 0.0018, num) for num, pts in nerves])
+
+
+def attachments(dog, path):
+    """Where each muscle touches bone: the contact vertices split into its two
+    ends along the muscle's long axis; ends ordered by height (a above b)."""
+    bones = [p for p in dog if p['system'] == 'bone']
+    trees = {p['id']: bvh_of([p['ob']]) for p in bones}
+    out = {}
+    for p in dog:
+        if p['system'] != 'muscle':
+            continue
+        vs = verts(p['ob'])
+        if len(vs) < 20:
+            continue
+        idx = np.linspace(0, len(vs) - 1, min(len(vs), 1500)).astype(int)
+        sample = vs[idx]
+        best = np.full(len(sample), np.inf)
+        bone_of = np.empty(len(sample), dtype=object)
+        for bid, tree in trees.items():
+            lo = np.array(verts_lo[bid]) - 0.004
+            hi = np.array(verts_hi[bid]) + 0.004
+            near = np.all((sample > lo) & (sample < hi), axis=1)
+            for i in np.nonzero(near)[0]:
+                d = tree.find_nearest(Vector(sample[i]))[3]
+                if d is not None and d < best[i]:
+                    best[i], bone_of[i] = d, bid
+        touch = best < 0.0025
+        if touch.sum() < 6:
+            continue
+        c, ax = principal(vs)
+        t = (sample - c) @ ax
+        mid = (t.min() + t.max()) / 2
+        ends = []
+        for side in (t < mid, t >= mid):
+            sel = touch & side
+            if sel.sum() < 3:
+                continue
+            bs = list(bone_of[sel])
+            ends.append({'at': [round(float(x), 5) for x in sample[sel].mean(0)], 'bone': max(set(bs), key=bs.count)})
+        if len(ends) == 2:
+            ends.sort(key=lambda e: -e['at'][1])
+            out[p['id']] = {'a': ends[0]['at'], 'ab': ends[0]['bone'], 'b': ends[1]['at'], 'bb': ends[1]['bone']}
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(out, f)
+    print(f'attachments: {len(out)} muscles', flush=True)
+
+
+verts_lo, verts_hi = {}, {}
 
 
 def labels_of(ob, pos):
@@ -343,6 +543,11 @@ if __name__ == '__main__':
     col = bpy.context.scene.collection
     dog, parts = build(col)
     export(parts)
+    for q in dog:
+        if q['system'] == 'bone':
+            v = verts(q['ob'])
+            verts_lo[q['id']], verts_hi[q['id']] = v.min(0), v.max(0)
+    attachments(dog, os.path.join(OUT, 'attachments.json'))
     if '--render' in argv:
         for ob in bpy.data.objects:
             if ob.type == 'MESH' and any(ob.name == p['id'] for p in parts):

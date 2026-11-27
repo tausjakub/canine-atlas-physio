@@ -43,33 +43,6 @@ const vagus = p(
   'Autonomic: vagus nerve (parasympathetic) and sympathetic nerves.',
 );
 
-const cerebrum = (side, sideEn) =>
-  card(
-    p(`Koncový mozek · ${side}`, `Cerebrum · ${sideEn}`),
-    p(
-      'Vědomé vnímání, plánování a řízení volního pohybu, učení a paměť.',
-      'Conscious perception, planning and control of voluntary movement, learning and memory.',
-    ),
-    p(
-      'Největší část mozku v lebeční dutině; obě hemisféry odděluje podélná štěrbina.',
-      'Largest part of the brain in the cranial cavity; the hemispheres are separated by the longitudinal fissure.',
-    ),
-    p(
-      'Kaudálně navazuje mozkový kmen, kaudodorzálně mozeček, rostrálně čichové bulby.',
-      'Continues caudally into the brainstem, with the cerebellum caudodorsally and the olfactory bulbs rostrally.',
-    ),
-    p(
-      'Neuplatňuje se (sám je částí CNS).',
-      'Not applicable (part of the CNS itself).',
-    ),
-    p(
-      'Která část mozku plánuje volní pohyb?',
-      'Which part of the brain plans voluntary movement?',
-    ),
-    p('Koncový mozek (motorická kůra).', 'The cerebrum (motor cortex).'),
-    { mri: true },
-  );
-
 const ovary = (side, sideEn) =>
   card(
     p(`Vaječník · ${side} · samice`, `Ovary · ${sideEn} · female`),
@@ -99,9 +72,69 @@ const ovary = (side, sideEn) =>
     ),
   );
 
+// Cerebral lobes as delineated in the Johnson & Barry atlas (frontal,
+// sensorimotor, parietal, occipital, perisylvian/temporal).
+const lobeInfo = {
+  frontal: [
+    p('Čelní lalok', 'Frontal lobe'),
+    p('Rostrální část koncového mozku; podílí se na chování, plánování a čichových asociacích.', 'Rostral part of the cerebrum; involved in behaviour, planning and olfactory associations.'),
+    p('Nejrostrálnější lalok hemisféry, kaudálně od čichového bulbu.', 'The most rostral lobe of the hemisphere, caudal to the olfactory bulb.'),
+    p('Který lalok leží hned za čichovým bulbem?', 'Which lobe lies just caudal to the olfactory bulb?'),
+    p('Čelní lalok.', 'The frontal lobe.'),
+  ],
+  sensorimotor: [
+    p('Senzomotorický lalok', 'Sensorimotor lobe'),
+    p('Kolem zkřížené brázdy (sulcus cruciatus): primární motorická a somatosenzorická kůra.', 'Around the cruciate sulcus: primary motor and somatosensory cortex.'),
+    p('Dorzálně mezi čelním a temenním lalokem.', 'Dorsally between the frontal and parietal lobes.'),
+    p('Kolem které brázdy leží u psa motorická kůra?', 'Around which sulcus does the dog’s motor cortex lie?'),
+    p('Kolem zkřížené brázdy (sulcus cruciatus).', 'Around the cruciate sulcus.'),
+  ],
+  parietal: [
+    p('Temenní lalok', 'Parietal lobe'),
+    p('Zpracování a propojování smyslových informací, prostorová orientace.', 'Processing and integration of sensory information, spatial orientation.'),
+    p('Dorzálně ve střední části hemisféry, mezi senzomotorickým a týlním lalokem.', 'Dorsally in the middle of the hemisphere, between the sensorimotor and occipital lobes.'),
+    p('Mezi kterými laloky leží temenní lalok?', 'Between which lobes does the parietal lobe lie?'),
+    p('Mezi senzomotorickým a týlním.', 'Between the sensorimotor and occipital lobes.'),
+  ],
+  occipital: [
+    p('Týlní lalok', 'Occipital lobe'),
+    p('Zraková kůra: zpracování zrakových podnětů.', 'Visual cortex: processing of visual input.'),
+    p('Kaudální pól hemisféry, nad mozečkem.', 'Caudal pole of the hemisphere, above the cerebellum.'),
+    p('Který lalok zpracovává zrak?', 'Which lobe processes vision?'),
+    p('Týlní lalok.', 'The occipital lobe.'),
+  ],
+  temporal: [
+    p('Spánkový (perisylvický) lalok', 'Temporal (perisylvian) lobe'),
+    p('Sluchová kůra a asociační oblasti kolem sylviovy brázdy.', 'Auditory cortex and association areas around the sylvian sulcus.'),
+    p('Laterálně a ventrálně na hemisféře, kolem sylviovy brázdy.', 'Lateral and ventral on the hemisphere, around the sylvian sulcus.'),
+    p('Kde leží sluchová kůra?', 'Where is the auditory cortex?'),
+    p('Ve spánkovém (perisylvickém) laloku.', 'In the temporal (perisylvian) lobe.'),
+  ],
+};
+const lobe = (key, side, sideEn) => {
+  const [label, action, location, recall, answer] = lobeInfo[key];
+  return card(
+    p(`${label.cs} · ${side}`, `${label.en} · ${sideEn}`),
+    action,
+    location,
+    p(
+      'Součást koncového mozku; hemisféry spojuje kalózní těleso (corpus callosum).',
+      'Part of the cerebrum; the hemispheres are joined by the corpus callosum.',
+    ),
+    p('Neuplatňuje se (sám je částí CNS).', 'Not applicable (part of the CNS itself).'),
+    recall,
+    answer,
+    { mri: true },
+  );
+};
+
 export const organStudy = {
-  brain_cerebrum_L: cerebrum('vlevo', 'left'),
-  brain_cerebrum_R: cerebrum('vpravo', 'right'),
+  ...Object.fromEntries(
+    Object.keys(lobeInfo).flatMap((k) => [
+      [`brain_lobe_${k}_L`, lobe(k, 'vlevo', 'left')],
+      [`brain_lobe_${k}_R`, lobe(k, 'vpravo', 'right')],
+    ]),
+  ),
   brain_cerebellum: card(
     p('Mozeček', 'Cerebellum'),
     p(

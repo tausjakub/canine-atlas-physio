@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { gate, passwordVerifier, safeNext } from '../security/gate.mjs';
+import {
+  gate,
+  passwordVerifier,
+  results,
+  safeNext,
+} from '../security/gate.mjs';
 const origin = 'https://atlas.test',
   password = 'Fixture-only-password-2026',
   env = {
@@ -199,6 +204,41 @@ assert(
   'Private branch must not publish unprotected Pages assets',
 );
 assert(workflow.includes('build:private'));
+// Class dashboard endpoint: not configured without KV; anonymous aggregate with it.
+{
+  const u = new URL(origin + '/_api/results');
+  const post = (body, o = origin) =>
+    new Request(u, {
+      method: 'POST',
+      headers: { origin: o, 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  assert.equal((await results(new Request(u), {}, u)).status, 501);
+  const store = new Map();
+  const kv = {
+    get: async (k) => store.get(k) ?? null,
+    put: async (k, v) => void store.set(k, v),
+  };
+  const e = { ATLAS_RESULTS: kv };
+  assert.equal(
+    (await results(post({ results: [] }, 'https://evil.test'), e, u)).status,
+    403,
+  );
+  assert.equal((await results(post({ results: 'x' }), e, u)).status, 400);
+  await results(
+    post({
+      results: [
+        { id: 'Femoris_L', ok: true },
+        { id: 'Femoris_L', ok: false },
+        { id: '<b>', ok: true },
+      ],
+    }),
+    e,
+    u,
+  );
+  const agg = await (await results(new Request(u), e, u)).json();
+  assert.deepEqual(agg, { Femoris_L: [1, 1] });
+}
 console.log(
-  'PASS: fail-closed auth, no pre-login assets, password verification, signed secure sessions, expiry/rotation/tampering, safe redirects, CSRF origins, body limit, login throttling, logout, private deployment routing.',
+  'PASS: fail-closed auth, no pre-login assets, password verification, signed secure sessions, expiry/rotation/tampering, safe redirects, CSRF origins, body limit, login throttling, logout, private deployment routing, anonymous results endpoint.',
 );

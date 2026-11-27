@@ -35,6 +35,10 @@ const Library =
   process.env.NEXT_PUBLIC_ATLAS_LIBRARY !== '0'
     ? lazy(() => import('./library'))
     : () => null;
+const ClassResults =
+  process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0'
+    ? lazy(() => import('./class-results'))
+    : () => null;
 const DornMovementStudy =
   process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0'
     ? lazy(() => import('./dorn-movement'))
@@ -480,11 +484,35 @@ export default function Home() {
   };
   const [motionReset, setMotionReset] = useState(0);
   const [drill, setDrill] = useState<{ title: string; rounds: Round[] }>();
+  const [classView, setClassView] = useState(false);
+  // Private edition: opt-in anonymous spotter results for the course dashboard.
+  const shareResults =
+    process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0'
+      ? (results: { id: string; ok: boolean }[]) =>
+          fetch(sitePath('/_api/results'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ results }),
+          })
+            .then((r) => r.ok)
+            .catch(() => false)
+      : undefined;
   const [exam, setExam] = useState(false);
   const [tour, setTour] = useState<{ id: string; step: number }>();
   const [pinText, setPinText] = useState('');
   const [pendingPin, setPendingPin] = useState<number[]>();
   const [brand, setBrand] = useState<{ name: string; logo?: string }>();
+  // Muscle attachment points computed from the dog model (contact with bone).
+  const [attach, setAttach] =
+    useState<
+      Record<string, { a: number[]; ab: string; b: number[]; bb: string }>
+    >();
+  useEffect(() => {
+    fetch(sitePath('/models/attachments.json'))
+      .then((r) => (r.ok ? r.json() : undefined))
+      .then((a) => setAttach(a as typeof attach))
+      .catch(() => {});
+  }, []);
   useEffect(() => {
     // Course branding for licensed cohorts: /branding.json, private edition only.
     if (process.env.NEXT_PUBLIC_ATLAS_PRIVATE === '0') return;
@@ -516,6 +544,28 @@ export default function Home() {
       )
       .catch(() => {});
   }, []);
+  const selectedPart = view?.parts.find((p) => p.id === state.selected);
+  const attachment =
+    !otherSpecies && selectedPart?.system === 'muscle'
+      ? attach?.[selectedPart.id]
+      : undefined;
+  const limbMuscle =
+    !!selectedPart && ['Forelimb', 'Hindlimb'].includes(region(selectedPart));
+  // Shown on the standing, assembled model only (they do not follow poses).
+  const attachMarks =
+    attachment &&
+    (state.pose ?? 'standing') === 'standing' &&
+    !state.motion &&
+    !state.explode
+      ? [
+          { at: attachment.a, text: limbMuscle ? 'O' : 'A' },
+          { at: attachment.b, text: limbMuscle ? 'I' : 'B' },
+        ]
+      : undefined;
+  const boneName = (id: string) => {
+    const part = view?.parts.find((p) => p.id === id);
+    return part ? structureName(part, language) : id;
+  };
   const tourStep = tour
     ? tours.find((x) => x.id === tour.id)?.steps[tour.step]
     : undefined;
@@ -1288,6 +1338,11 @@ export default function Home() {
               <button onClick={exportFlashcards}>
                 {t('Export flashcards')}
               </button>
+              {process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0' && (
+                <button onClick={() => setClassView(true)}>
+                  {t('Class results')}
+                </button>
+              )}
             </div>
             <label>
               {t('Guided tour')}
@@ -1408,7 +1463,7 @@ export default function Home() {
                 key={otherSpecies ? species : 'dog'}
                 language={language}
                 atlas={view}
-                state={state}
+                state={attachMarks ? { ...state, marks: attachMarks } : state}
                 onSelect={choose}
                 onMeasure={setMeasureText}
                 onPick={setPendingPin}
@@ -1703,6 +1758,19 @@ export default function Home() {
                 <span />
                 {t('Selected in 3D')}
               </div>
+              {attachment && (
+                <p className="memory-hook">
+                  <strong>{t('Attachments from the model')}:</strong>{' '}
+                  {limbMuscle ? t('Origin') : 'A'} ({limbMuscle ? 'O' : 'A'}){' '}
+                  {boneName(attachment.ab)}; {limbMuscle ? t('Insertion') : 'B'}{' '}
+                  ({limbMuscle ? 'I' : 'B'}) {boneName(attachment.bb)}.{' '}
+                  <span className="small">
+                    {t(
+                      'Computed where the muscle touches bone in this model; check against your textbook.',
+                    )}
+                  </span>
+                </p>
+              )}
               {mnemonicFor(selected.id) && (
                 <p className="memory-hook">
                   <strong>{t('Memory hook')}:</strong>{' '}
@@ -1937,6 +2005,7 @@ export default function Home() {
           ids={spotter.ids}
           systems={spotter.systems}
           title={spotter.title === 'Quiz set' ? t('Quiz set') : spotter.title}
+          onShare={shareResults}
           language={language}
           onClose={() => setSpotter(undefined)}
         />
@@ -1949,6 +2018,15 @@ export default function Home() {
           language={language}
           onClose={() => setDrill(undefined)}
         />
+      )}
+      {process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0' && classView && view && (
+        <Suspense fallback={null}>
+          <ClassResults
+            atlas={view}
+            language={language}
+            onClose={() => setClassView(false)}
+          />
+        </Suspense>
       )}
       {exam && view && (
         <ExamSim

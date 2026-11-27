@@ -1738,6 +1738,17 @@ kbd {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+.class-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.class-table th,
+.class-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--tone-334954, #334954);
+  text-align: left;
+}
 .viewer-tools {
   display: grid;
   gap: 8px;

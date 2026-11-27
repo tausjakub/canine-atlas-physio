@@ -86,11 +86,16 @@ export default function AnatomyScene({
     async function init() {
       try {
         const main = atlas.binaryPath || '/models/anatomy.bin';
+        // Extra packs (organs, clinical) load when one of their layers is first shown.
         const paths = [
           main,
           ...new Set(
             atlas.parts.flatMap((p) =>
-              p.binaryPath && p.binaryPath !== main ? [p.binaryPath] : [],
+              p.binaryPath &&
+              p.binaryPath !== main &&
+              latest.current.systems.includes(p.system)
+                ? [p.binaryPath]
+                : [],
             ),
           ),
         ];
@@ -177,7 +182,19 @@ export default function AnatomyScene({
           THREE.BufferGeometry,
           THREE.MeshStandardMaterial
         >[] = [];
-        atlas.parts.forEach((p) => {
+        const bones = atlas.parts.filter((p) => p.system === 'bone');
+        const softGeometry = new Map<
+          (typeof meshes)[number],
+          {
+            rest: Float32Array;
+            bindings: ReturnType<typeof bindSoftVertices> | null;
+            poses: Map<DogPose, Float32Array>;
+            active: string;
+          }
+        >();
+        const loaded = (p: (typeof atlas.parts)[number]) =>
+          !p.binaryPath || buffers.has(p.binaryPath);
+        function addMesh(p: (typeof atlas.parts)[number]) {
           const g = p.path
             ? new THREE.TubeGeometry(
                 new THREE.CatmullRomCurve3(
@@ -229,7 +246,38 @@ export default function AnatomyScene({
             scene.add(sprite);
             return sprite;
           });
-        });
+          if (p.system !== 'bone')
+            softGeometry.set(m, {
+              rest: (g.getAttribute('position').array as Float32Array).slice(),
+              bindings: null,
+              poses: new Map(),
+              active: 'standing',
+            });
+        }
+        atlas.parts.filter(loaded).forEach(addMesh);
+        const loading = new Set<string>();
+        // Fetch a pack the first time one of its parts should be shown.
+        function ensurePacks(s: SceneState) {
+          for (const path of new Set(
+            atlas.parts
+              .filter((p) => !loaded(p) && isShown(p, s))
+              .map((p) => p.binaryPath!),
+          )) {
+            if (loading.has(path)) continue;
+            loading.add(path);
+            fetch(sitePath(path), { signal: abort.signal })
+              .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject()))
+              .then((data) => {
+                if (dead) return;
+                buffers.set(path, data);
+                atlas.parts
+                  .filter((p) => p.binaryPath === path)
+                  .forEach(addMesh);
+                update(latest.current);
+              })
+              .catch(() => loading.delete(path));
+          }
+        }
         const poseMatrices = new Map(
           dogPoses.map((pose) => [
             pose,
@@ -240,22 +288,6 @@ export default function AnatomyScene({
               ]),
             ),
           ]),
-        );
-        const bones = atlas.parts.filter((p) => p.system === 'bone');
-        const softGeometry = new Map(
-          meshes
-            .filter((m) => m.userData.part.system !== 'bone')
-            .map((m) => [
-              m,
-              {
-                rest: (
-                  m.geometry.getAttribute('position').array as Float32Array
-                ).slice(),
-                bindings: null as ReturnType<typeof bindSoftVertices> | null,
-                poses: new Map<DogPose, Float32Array>(),
-                active: 'standing' as string,
-              },
-            ]),
         );
         const box = new THREE.Box3();
         let previous: SceneState | undefined;
@@ -362,6 +394,7 @@ export default function AnatomyScene({
             const at = lo + (hi - lo) * s.section.at;
             cut.set(new THREE.Vector3().setComponent(i, sign), -sign * at);
           }
+          ensurePacks(s);
           const poseKey = s.motion
             ? `motion:${JSON.stringify(s.motion)}`
             : s.pose || 'standing';
@@ -369,8 +402,8 @@ export default function AnatomyScene({
             ? poseRig('standing', atlas.poseConfig, s.motion)
             : null;
           // Instructor pins: numbered markers, rebuilt when they change.
-          if (JSON.stringify(s.pins ?? []) !== pinKey) {
-            pinKey = JSON.stringify(s.pins ?? []);
+          if (JSON.stringify([s.pins, s.marks]) !== pinKey) {
+            pinKey = JSON.stringify([s.pins, s.marks]);
             pinGroup.children.forEach((c) => {
               const sp = c as THREE.Sprite;
               sp.material.map?.dispose();
@@ -382,6 +415,11 @@ export default function AnatomyScene({
               sp.position.set(pin.at[0], pin.at[1], pin.at[2]);
               pinGroup.add(sp);
             });
+            for (const mark of s.marks ?? []) {
+              const sp = textSprite(mark.text, '#9ff0c9');
+              sp.position.set(mark.at[0], mark.at[1], mark.at[2]);
+              pinGroup.add(sp);
+            }
           }
           meshes.forEach((m) => {
             const p = m.userData.part;
