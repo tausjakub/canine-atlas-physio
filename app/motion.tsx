@@ -5,106 +5,9 @@
 import { useEffect, useState } from 'react';
 import type { Joint, Motion } from './poses';
 import { type Language, translate } from './i18n';
+import { type GaitKind, romMotion, romReference } from './gait';
+export type GaitState = { kind: GaitKind; playing: boolean; phase?: number };
 
-const rad = (d: number) => (d * Math.PI) / 180;
-const wave = (u: number) => Math.sin(Math.PI * Math.min(1, Math.max(0, u)));
-// One limb over a stride (t 0-1): stance 0-0.6, swing 0.6-1. Degrees.
-function fore(t: number) {
-  if (t < 0.6) {
-    const u = t / 0.6;
-    return { shoulder: 15 - 35 * u, elbow: 8 * wave(u), carpus: 12 * u };
-  }
-  const u = (t - 0.6) / 0.4;
-  return {
-    shoulder: -20 + 35 * (0.5 - 0.5 * Math.cos(Math.PI * u)),
-    elbow: 45 * wave(u),
-    carpus: 12 * (1 - u) - 70 * wave(u * 1.4),
-  };
-}
-function hind(t: number) {
-  if (t < 0.6) {
-    const u = t / 0.6;
-    return { hip: 15 - 35 * u, stifle: -10 * wave(u), hock: 8 * wave(u) };
-  }
-  const u = (t - 0.6) / 0.4;
-  return {
-    hip: -20 + 35 * (0.5 - 0.5 * Math.cos(Math.PI * u)),
-    stifle: -45 * wave(u),
-    hock: 40 * wave(u),
-  };
-}
-// Phase offsets of each limb: walk is a four-beat lateral sequence, trot moves
-// diagonal pairs together.
-const gaits = {
-  walk: { LH: 0, RF: 0.25, RH: 0.5, LF: 0.75 }, // strikes: LH, LF, RH, RF
-  trot: { LH: 0, RF: 0, RH: 0.5, LF: 0.5 },
-};
-type Gait = keyof typeof gaits;
-// Muscle groups typically active in stance (support, propulsion) and swing
-// (limb advance), simplified from EMG studies; id fragments.
-const active = {
-  fore: {
-    stance: [
-      'triceps_brachii',
-      'supraspinatus',
-      'infraspinatus',
-      'latissimus',
-      'flexor_carpi_ulnaris',
-    ],
-    swing: [
-      'biceps_brachii',
-      'brachialis',
-      'deltoideus',
-      'extensor_carpi_radialis',
-      'extensor_digitorum',
-    ],
-  },
-  hind: {
-    stance: [
-      'gluteus_medius',
-      'biceps_femoris',
-      'semimembranosus',
-      'vastus',
-      'gastrocnemius',
-    ],
-    swing: [
-      'iliacus',
-      'psoas',
-      'sartorius',
-      'tibialis_cranialis',
-      'extensor_digitorum_long',
-    ],
-  },
-};
-export function gaitFrame(gait: Gait, t: number) {
-  const o = gaits[gait];
-  const ph = (k: keyof typeof o) => (t + o[k]) % 1;
-  const toRad = (a: Record<string, number>) =>
-    Object.fromEntries(
-      Object.entries(a).map(([k, v]) => [k, rad(v)]),
-    ) as Partial<Record<Joint, number>>;
-  const motion: Motion = {
-    L: { ...toRad(fore(ph('LF'))), ...toRad(hind(ph('LH'))) },
-    R: { ...toRad(fore(ph('RF'))), ...toRad(hind(ph('RH'))) },
-  };
-  const highlight = (['LF', 'RF', 'LH', 'RH'] as const).flatMap((k) =>
-    active[k[1] === 'F' ? 'fore' : 'hind'][
-      ph(k) < 0.6 ? 'stance' : 'swing'
-    ].map((m) => `${m}@${k[0]}`),
-  );
-  const stance = (['LF', 'RF', 'LH', 'RH'] as const).filter((k) => ph(k) < 0.6);
-  return { motion, highlight, stance };
-}
-// Normal goniometry in Labrador Retrievers (Jaegger, Marcellin-Little & Levine,
-// Am J Vet Res 2002), joint angle in degrees.
-export const romReference: Record<Joint, [number, number]> = {
-  shoulder: [57, 165],
-  elbow: [36, 165],
-  carpus: [32, 196],
-  hip: [50, 162],
-  stifle: [42, 162],
-  hock: [39, 164],
-};
 // Slider limits (offset from standing, degrees) and the direction of positive values.
 const romSliders: [Joint, number, number, string, string][] = [
   ['shoulder', -60, 60, 'extension', 'flexion'],
@@ -125,15 +28,20 @@ const jointNames: Record<Joint, string> = {
 
 export default function MotionControls({
   language,
-  onChange,
+  onGait,
+  onRom,
+  stance,
   resetKey,
 }: {
   language: Language;
-  onChange: (motion: Motion | null, highlight: string[]) => void;
+  // The scene animates the gait itself; the controls only say what to play.
+  onGait: (gait: GaitState | null) => void;
+  onRom: (motion: Motion | null) => void;
+  stance: string[];
   resetKey: number;
 }) {
   const t = (k: string) => translate(language, k);
-  const [gait, setGait] = useState<Gait | null>(null),
+  const [gait, setGait] = useState<GaitKind | null>(null),
     [phase, setPhase] = useState(0),
     [playing, setPlaying] = useState(false),
     [rom, setRom] = useState<Partial<Record<Joint, number>>>({});
@@ -144,23 +52,13 @@ export default function MotionControls({
     setPlaying(false);
     setRom({});
   }, [resetKey]);
-  useEffect(() => {
-    if (!playing || !gait) return;
-    const timer = setInterval(() => setPhase((p) => (p + 1 / 16) % 1), 250);
-    return () => clearInterval(timer);
-  }, [playing, gait]);
-  const frame = gait ? gaitFrame(gait, phase) : null;
-  useEffect(() => {
-    if (frame) onChange(frame.motion, frame.highlight);
-    else if (Object.keys(rom).length) {
-      const r = Object.fromEntries(
-        Object.entries(rom).map(([k, v]) => [k, rad(v ?? 0)]),
-      );
-      onChange({ L: r, R: {} }, []);
-    } else onChange(null, []);
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- frame is derived from gait and phase
-  }, [gait, phase, rom]);
-  const names = {
+  const play = (kind: GaitKind | null, run: boolean, at?: number) => {
+    setGait(kind);
+    setPlaying(run);
+    if (at !== undefined) setPhase(at);
+    onGait(kind ? { kind, playing: run, phase: at } : null);
+  };
+  const names: Record<string, string> = {
     LF: t('left fore'),
     RF: t('right fore'),
     LH: t('left hind'),
@@ -175,8 +73,7 @@ export default function MotionControls({
             aria-pressed={gait === g}
             onClick={() => {
               setRom({});
-              setGait(g);
-              setPlaying(true);
+              play(g, true);
             }}
           >
             {t(g === 'walk' ? 'Walk' : 'Trot')}
@@ -184,39 +81,26 @@ export default function MotionControls({
         ))}
         {gait && (
           <>
-            <button
-              aria-pressed={playing}
-              onClick={() => setPlaying((p) => !p)}
-            >
+            <button aria-pressed={playing} onClick={() => play(gait, !playing)}>
               {t(playing ? 'Pause' : 'Play')}
             </button>
-            <button
-              onClick={() => {
-                setGait(null);
-                setPlaying(false);
-              }}
-            >
-              {t('Stop')}
-            </button>
+            <button onClick={() => play(null, false)}>{t('Stop')}</button>
           </>
         )}
       </div>
-      {gait && frame && (
+      {gait && (
         <>
           <input
             aria-label={t('Stride phase')}
             type="range"
             min="0"
-            max="0.9375"
-            step="0.0625"
+            max="0.99"
+            step="0.01"
             value={phase}
-            onChange={(e) => {
-              setPlaying(false);
-              setPhase(Number(e.target.value));
-            }}
+            onChange={(e) => play(gait, false, Number(e.target.value))}
           />
           <p className="measure-readout" aria-live="polite">
-            {t('Stance')}: {frame.stance.map((k) => names[k]).join(', ') || '-'}
+            {t('Stance')}: {stance.map((k) => names[k]).join(', ') || '-'}
           </p>
           <p className="muted small">
             {t(
@@ -241,7 +125,10 @@ export default function MotionControls({
               onChange={(e) => {
                 setGait(null);
                 setPlaying(false);
-                setRom((r) => ({ ...r, [j]: Number(e.target.value) }));
+                const next = { ...rom, [j]: Number(e.target.value) };
+                setRom(next);
+                onGait(null);
+                onRom(romMotion(next));
               }}
             />
             <small>
@@ -255,7 +142,14 @@ export default function MotionControls({
             'Sliders turn the model from its standing position. Reference values: normal goniometry in Labrador Retrievers (Jaegger et al. 2002); other breeds differ. Not clinical limits.',
           )}
         </p>
-        <button onClick={() => setRom({})}>{t('Reset joints')}</button>
+        <button
+          onClick={() => {
+            setRom({});
+            onRom(null);
+          }}
+        >
+          {t('Reset joints')}
+        </button>
       </details>
     </div>
   );

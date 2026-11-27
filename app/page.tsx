@@ -488,6 +488,7 @@ export default function Home() {
     setMobile(false);
   };
   const [motionReset, setMotionReset] = useState(0);
+  const [stance, setStance] = useState<string[]>([]);
   const [drill, setDrill] = useState<{ title: string; rounds: Round[] }>();
   const [classView, setClassView] = useState(false);
   // Private edition: opt-in anonymous spotter results for the course dashboard.
@@ -630,6 +631,7 @@ export default function Home() {
     setState((s) => ({
       ...s,
       motion: null,
+      gait: null,
       highlight: [],
       pose,
       selected: null,
@@ -889,12 +891,26 @@ export default function Home() {
           <MotionControls
             language={language}
             resetKey={motionReset}
-            onChange={(motion, highlight) =>
-              setState((s) =>
-                s.motion === motion && !highlight.length && !s.highlight?.length
-                  ? s
-                  : { ...s, motion, highlight, pose: 'standing', explode: 0 },
-              )
+            stance={stance}
+            onGait={(gait) =>
+              setState((s) => ({
+                ...s,
+                gait,
+                motion: null,
+                highlight: [],
+                pose: 'standing',
+                explode: 0,
+              }))
+            }
+            onRom={(motion) =>
+              setState((s) => ({
+                ...s,
+                motion,
+                gait: null,
+                highlight: [],
+                pose: 'standing',
+                explode: 0,
+              }))
             }
           />
           <div className="section-title">
@@ -1472,6 +1488,7 @@ export default function Home() {
                 onSelect={choose}
                 onMeasure={setMeasureText}
                 onPick={setPendingPin}
+                onStance={setStance}
                 onTools={(x) => {
                   sceneTools.current = x;
                 }}
