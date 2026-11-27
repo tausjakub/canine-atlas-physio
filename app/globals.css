@@ -1559,6 +1559,14 @@ kbd {
   font-size: 0.75rem;
   color: var(--tone-c0d0dc, #c0d0dc);
 }
+.latin-name {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-style: italic;
+  font-weight: 400;
+  opacity: 0.75;
+}
 .viewer-tools {
   display: grid;
   gap: 8px;

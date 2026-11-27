@@ -98,7 +98,7 @@ const landmarks = {
     p('Velký hrbol pažní kosti', 'Greater tubercle of the humerus'),
     palp,
     p(
-      'Kraniolaterálně na proximálním konci pažní kosti; tvoří „hrot ramene“.',
+      'Kraniolaterálně na proximálním konci pažní kosti; tvoří "hrot ramene".',
       'Craniolateral on the proximal humerus; forms the point of the shoulder.',
     ),
     p(

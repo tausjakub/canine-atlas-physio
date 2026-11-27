@@ -42,6 +42,7 @@ const DornMovementStudy =
 import BookReading from './book-reading';
 import AnatomyChallenge from './anatomy-challenge';
 import { addLigaments, ligamentCount } from './ligaments';
+import { latinName } from './latin';
 import { detailFor, noteCoverage, structureName } from './study-notes';
 import {
   type Atlas,
@@ -296,7 +297,7 @@ export default function Home() {
             (area === 'All regions' || region(p) === area) &&
             (!query ||
               normalizeSearch(
-                `${structureName(p, 'en')} ${structureName(p, 'cs')} ${displayName(p.id)} ${p.id} ${translate(language, systems.find((s) => s.id === p.system)!.name)}`,
+                `${structureName(p, 'en')} ${structureName(p, 'cs')} ${latinName(p) ?? ''} ${displayName(p.id)} ${p.id} ${translate(language, systems.find((s) => s.id === p.system)!.name)}`,
               ).includes(normalizeSearch(query))),
         )
         .sort((a, b) =>
@@ -1147,7 +1148,14 @@ export default function Home() {
                 <span> / </span> {t(region(selected))}
               </div>
               <div className="detail-title">
-                <h2>{note?.title ?? displayName(selected.id)}</h2>
+                <h2>
+                  {note?.title ?? displayName(selected.id)}
+                  {latinName(selected) && (
+                    <small className="latin-name" lang="la">
+                      {latinName(selected)}
+                    </small>
+                  )}
+                </h2>
                 <button
                   className="icon"
                   aria-label={t('Clear selection')}
