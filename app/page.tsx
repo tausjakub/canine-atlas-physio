@@ -1,6 +1,6 @@
 'use client';
 import { sitePath } from './site-path';
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import {
   Bone,
   Layers3,
@@ -43,6 +43,9 @@ import BookReading from './book-reading';
 import AnatomyChallenge from './anatomy-challenge';
 import { addLigaments, ligamentCount } from './ligaments';
 import { latinName } from './latin';
+import Spotter, { srsKey, readBoxes, dueIds } from './spotter';
+import DentalChart from './dental-chart';
+import { shuffle } from './quiz-engine';
 import { detailFor, noteCoverage, structureName } from './study-notes';
 import {
   type Atlas,
@@ -148,6 +151,12 @@ export default function Home() {
   }, []);
   const [challenge, setChallenge] = useState(false);
   const [species, setSpecies] = useState<Species>('dog');
+  const [spotter, setSpotter] = useState<{
+    ids: string[];
+    title: string;
+    systems: System[];
+  }>();
+  const [pendingQuiz, setPendingQuiz] = useState<string[]>();
   useEffect(() => {
     const value = new URLSearchParams(window.location.search).get('species');
     if (value === 'cat' || value === 'rabbit') {
@@ -171,7 +180,13 @@ export default function Home() {
       ...(cam && cameraViews.includes(cam) ? { view: cam } : {}),
       ...(part ? { selected: part } : {}),
     }));
-    if (part || layers.length) setTab('explore');
+    // Instructor quiz set: ?quiz=id1,id2,... opens the spotter on those structures.
+    const quiz = (params.get('quiz') ?? '')
+      .split(',')
+      .filter((id) => /^[\w().-]{1,80}$/.test(id))
+      .slice(0, 60);
+    if (quiz.length) setPendingQuiz(quiz);
+    if (part || layers.length || quiz.length) setTab('explore');
   }, []);
   useEffect(() => {
     if (tab !== 'explore') return;
@@ -186,6 +201,67 @@ export default function Home() {
     window.history.replaceState(null, '', url);
   }, [tab, state.selected, state.systems, state.sex, state.pose, state.view]);
   const [copied, setCopied] = useState(false);
+  // Learning tools: spotter rounds, a shareable quiz set, per-structure notes.
+  const [quizSet, setQuizSet] = useState<string[]>([]);
+  const [myNotes, setMyNotes] = useState<Record<string, string>>({});
+  const [due, setDue] = useState<string[]>([]);
+  const [dental, setDental] = useState(false);
+  const [compare, setCompare] = useState(false);
+  useEffect(() => {
+    try {
+      // oxlint-disable-next-line react/react-compiler -- read saved study data after mount (static export)
+      setDue(dueIds(readBoxes(localStorage.getItem(srsKey))));
+      const set = JSON.parse(
+        localStorage.getItem('canine-atlas-quizset-v1') || '[]',
+      );
+      if (Array.isArray(set))
+        setQuizSet(set.filter((x) => typeof x === 'string').slice(0, 60));
+      const n = JSON.parse(
+        localStorage.getItem('canine-atlas-notes-v1') || '{}',
+      );
+      if (n && typeof n === 'object' && !Array.isArray(n))
+        setMyNotes(
+          Object.fromEntries(
+            Object.entries(n).filter(([, v]) => typeof v === 'string'),
+          ) as Record<string, string>,
+        );
+    } catch {}
+  }, [spotter]);
+  const saveSet = (next: string[]) => {
+    setQuizSet(next);
+    try {
+      localStorage.setItem('canine-atlas-quizset-v1', JSON.stringify(next));
+    } catch {}
+  };
+  const saveNote = (id: string, text: string) => {
+    const next = { ...myNotes, [id]: text };
+    if (!text.trim()) delete next[id];
+    setMyNotes(next);
+    try {
+      localStorage.setItem('canine-atlas-notes-v1', JSON.stringify(next));
+    } catch {}
+  };
+  const exportNotes = () => {
+    const lines = Object.entries(myNotes).map(([id, text]) => {
+      const part = view?.parts.find((p) => p.id === id);
+      return `## ${part ? structureName(part, language) : id}\n\n${text.trim()}\n`;
+    });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(
+      new Blob([`# ${t('My anatomy notes')}\n\n${lines.join('\n')}`], {
+        type: 'text/markdown',
+      }),
+    );
+    a.download = 'canine-atlas-notes.md';
+    a.click();
+  };
+  const copyQuizLink = () => {
+    const url = new URL(window.location.href);
+    for (const k of ['part', 'cam', 'pose', 'sex']) url.searchParams.delete(k);
+    url.searchParams.set('quiz', quizSet.join(','));
+    url.searchParams.set('layers', state.systems.join(','));
+    navigator.clipboard?.writeText(url.toString()).catch(() => {});
+  };
   const copyLink = () =>
     navigator.clipboard
       ?.writeText(window.location.href)
@@ -200,27 +276,38 @@ export default function Home() {
     Partial<Record<Species, Atlas>>
   >({});
   useEffect(() => {
-    if (species === 'dog' || speciesAtlas[species]) return;
+    // The comparative view needs every species; otherwise only the chosen one.
+    const wanted = (compare ? (['cat', 'rabbit'] as const) : [species]).filter(
+      (sp) => sp !== 'dog' && !speciesAtlas[sp],
+    );
+    if (!wanted.length) return;
     const abort = new AbortController();
-    fetch(sitePath(`/models/${species}/catalog.json`), { signal: abort.signal })
-      .then((r) => {
-        if (!r.ok) throw Error('The anatomy catalogue could not be loaded.');
-        return r.json();
-      })
-      .then(async (data) => {
-        const extra = await extraParts(`/models/${species}`, abort.signal);
-        const a = data as Atlas;
-        setSpeciesAtlas((all) => ({
-          ...all,
-          [species]: { ...a, parts: [...a.parts, ...extra] },
-        }));
-      })
-      .catch((e) => {
-        if (e.name !== 'AbortError') setError(e.message);
-      });
+    for (const sp of wanted)
+      fetch(sitePath(`/models/${sp}/catalog.json`), { signal: abort.signal })
+        .then((r) => {
+          if (!r.ok) throw Error('The anatomy catalogue could not be loaded.');
+          return r.json();
+        })
+        .then(async (data) => {
+          const extra = await extraParts(`/models/${sp}`, abort.signal);
+          const a = data as Atlas;
+          setSpeciesAtlas((all) => ({
+            ...all,
+            [sp]: { ...a, parts: [...a.parts, ...extra] },
+          }));
+        })
+        .catch((e) => {
+          if (e.name !== 'AbortError') setError(e.message);
+        });
     return () => abort.abort();
-  }, [species, speciesAtlas]);
+  }, [species, speciesAtlas, compare]);
   const view = otherSpecies ? (speciesAtlas[species] ?? null) : atlas;
+  useEffect(() => {
+    if (!view || !pendingQuiz) return;
+    // oxlint-disable-next-line react/react-compiler -- open the shared quiz once its atlas has loaded
+    setSpotter({ ids: pendingQuiz, title: 'Quiz set', systems: ['bone'] });
+    setPendingQuiz(undefined);
+  }, [view, pendingQuiz]);
   const layerCount = Math.max(
     -1,
     ...(view?.parts.map((p) => (p as { layer?: number }).layer ?? -1) ?? [-1]),
@@ -289,25 +376,23 @@ export default function Home() {
   }, []);
   const selected = view?.parts.find((p) => p.id === state.selected),
     note = selected ? detailFor(selected, language) : undefined;
-  const results = useMemo(
-    () =>
-      view?.parts
-        .filter(
-          (p) =>
-            (area === 'All regions' || region(p) === area) &&
-            (!query ||
-              normalizeSearch(
-                `${structureName(p, 'en')} ${structureName(p, 'cs')} ${latinName(p) ?? ''} ${displayName(p.id)} ${p.id} ${translate(language, systems.find((s) => s.id === p.system)!.name)}`,
-              ).includes(normalizeSearch(query))),
-        )
-        .sort((a, b) =>
-          structureName(a, language).localeCompare(
-            structureName(b, language),
-            language,
-          ),
-        ) || [],
-    [view, query, area, language],
-  );
+  // Plain computation: the React compiler memoizes it.
+  const results =
+    view?.parts
+      .filter(
+        (p) =>
+          (area === 'All regions' || region(p) === area) &&
+          (!query ||
+            normalizeSearch(
+              `${structureName(p, 'en')} ${structureName(p, 'cs')} ${latinName(p) ?? ''} ${displayName(p.id)} ${p.id} ${translate(language, systems.find((s) => s.id === p.system)!.name)}`,
+            ).includes(normalizeSearch(query))),
+      )
+      .sort((a, b) =>
+        structureName(a, language).localeCompare(
+          structureName(b, language),
+          language,
+        ),
+      ) || [];
   const count = view?.parts.filter((p) => isShown(p, state)).length || 0;
   const choose = (id: string) => {
     setState((s) => ({
@@ -739,6 +824,12 @@ export default function Home() {
                 {t('Measure')}
               </button>
               <button onClick={printSheet}>{t('Labelled sheet')}</button>
+              <button
+                aria-pressed={compare}
+                onClick={() => setCompare((c) => !c)}
+              >
+                {t('Compare species')}
+              </button>
             </div>
             {state.measure && (
               <p className="measure-readout" aria-live="polite">
@@ -806,6 +897,76 @@ export default function Home() {
               />
             </label>
           )}
+          <div className="section-title">
+            <h2>{t('Practise')}</h2>
+          </div>
+          <div className="viewer-tools">
+            <div className="presets">
+              <button
+                onClick={() =>
+                  view &&
+                  setSpotter({
+                    title: t('Spotter: 10 structures'),
+                    systems: state.systems,
+                    ids: shuffle(
+                      view.parts
+                        .filter((p) => isShown(p, { ...state, selected: null }))
+                        .map((p) => p.id),
+                    ).slice(0, 10),
+                  })
+                }
+              >
+                {t('Spotter')}
+              </button>
+              <button
+                disabled={!due.length}
+                onClick={() =>
+                  setSpotter({
+                    title: t('Review due'),
+                    systems: state.systems,
+                    ids: shuffle(due).slice(0, 20),
+                  })
+                }
+              >
+                {t('Review due')} ({due.length})
+              </button>
+              <button onClick={() => setDental(true)}>
+                {t('Dental chart')}
+              </button>
+            </div>
+            <div className="presets">
+              <button
+                disabled={!state.selected || quizSet.includes(state.selected)}
+                onClick={() =>
+                  state.selected && saveSet([...quizSet, state.selected])
+                }
+              >
+                {t('Add to quiz set')} ({quizSet.length})
+              </button>
+              {quizSet.length > 0 && (
+                <>
+                  <button
+                    onClick={() =>
+                      setSpotter({
+                        title: t('Quiz set'),
+                        systems: state.systems,
+                        ids: quizSet,
+                      })
+                    }
+                  >
+                    {t('Start set')}
+                  </button>
+                  <button onClick={copyQuizLink}>{t('Copy quiz link')}</button>
+                  <button onClick={() => saveSet([])}>{t('Clear set')}</button>
+                </>
+              )}
+            </div>
+            {Object.keys(myNotes).length > 0 && (
+              <button className="text-link" onClick={exportNotes}>
+                {t('Export my notes')} ({Object.keys(myNotes).length})
+              </button>
+            )}
+          </div>
           <div className="section-title">
             <h2>{t('Browse anatomy')}</h2>
             <span>{results.length}</span>
@@ -896,7 +1057,8 @@ export default function Home() {
             tab !== 'dorn' &&
             tab !== 'exam' &&
             tab !== 'practical' &&
-            !(tab === 'study' && challenge) && (
+            !(tab === 'study' && challenge) &&
+            !(compare && tab === 'explore') && (
               <AnatomyScene
                 key={otherSpecies ? species : 'dog'}
                 language={language}
@@ -909,6 +1071,30 @@ export default function Home() {
                 }}
               />
             )}
+          {compare && tab === 'explore' && atlas && (
+            <div className="compare-grid">
+              {(
+                [
+                  ['dog', atlas, 'Dog'],
+                  ['cat', speciesAtlas.cat, 'Cat'],
+                  ['rabbit', speciesAtlas.rabbit, 'Rabbit'],
+                ] as const
+              ).map(([sp, a, name]) => (
+                <div key={sp} className="compare-cell">
+                  <span>{t(name)}</span>
+                  {a && (
+                    <AnatomyScene
+                      key={`compare-${sp}`}
+                      language={language}
+                      atlas={a}
+                      state={state}
+                      onSelect={choose}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
           {error && (
             <div role="alert" className="load-card">
               <p>{t('The anatomy catalogue could not be loaded.')}</p>
@@ -1170,6 +1356,16 @@ export default function Home() {
                 <span />
                 {t('Selected in 3D')}
               </div>
+              <label className="my-note">
+                {t('My notes')}
+                <textarea
+                  value={myNotes[selected.id] ?? ''}
+                  rows={3}
+                  maxLength={4000}
+                  placeholder={t('Saved in this browser only.')}
+                  onChange={(e) => saveNote(selected.id, e.target.value)}
+                />
+              </label>
               {note && (
                 <div className="full-note">
                   <div className="note-meta">
@@ -1368,6 +1564,19 @@ export default function Home() {
           language={language}
           onClose={() => setChallenge(false)}
         />
+      )}
+      {spotter && view && (
+        <Spotter
+          atlas={view}
+          ids={spotter.ids}
+          systems={spotter.systems}
+          title={spotter.title === 'Quiz set' ? t('Quiz set') : spotter.title}
+          language={language}
+          onClose={() => setSpotter(undefined)}
+        />
+      )}
+      {dental && (
+        <DentalChart language={language} onClose={() => setDental(false)} />
       )}
       {tab === 'practical' && (
         <PracticalStudy

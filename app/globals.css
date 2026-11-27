@@ -1567,6 +1567,110 @@ kbd {
   font-weight: 400;
   opacity: 0.75;
 }
+.compare-grid {
+  position: absolute;
+  inset: 110px 12px 125px 80px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.compare-cell {
+  position: relative;
+  border: 1px solid var(--tone-334954, #334954);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.compare-cell > span {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  z-index: 2;
+  font-size: 0.8rem;
+}
+.compare-cell .scene {
+  inset: 0;
+}
+.spotter-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: auto;
+  background: var(--tone-0e1820, #0e1820);
+}
+.spotter-overlay form {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+.spotter-overlay input {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--tone-334954, #334954);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+.spot-ok {
+  color: var(--tone-89ddc6, #89ddc6);
+}
+.spot-miss {
+  color: var(--tone-ffb4a8, #ffb4a8);
+}
+.dental-chart {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  margin: 16px 0;
+}
+.dental-quadrant h3 {
+  font-size: 0.8rem;
+  margin: 0 0 6px;
+}
+.q1 .dental-row,
+.q4 .dental-row {
+  justify-content: flex-end;
+}
+.dental-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.dental-chart .tooth {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 4px;
+  font: 12px monospace;
+}
+.tooth.ti {
+  border-radius: 6px 6px 14px 14px;
+}
+.tooth.tc {
+  border-color: var(--tone-f2c14e, #f2c14e);
+}
+.tooth.tm {
+  border-radius: 12px;
+}
+.dental-chart .tooth[aria-pressed='true'] {
+  background: var(--tone-234e43, #234e43);
+  color: var(--tone-a2edda, #a2edda);
+}
+.my-note {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+  font-size: 0.8rem;
+}
+.my-note textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--tone-334954, #334954);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
 .viewer-tools {
   display: grid;
   gap: 8px;
