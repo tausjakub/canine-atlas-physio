@@ -48,6 +48,7 @@ export default function AnatomyScene({
   language,
   onMeasure,
   onTools,
+  onPick,
 }: {
   atlas: Atlas;
   state: SceneState;
@@ -55,6 +56,7 @@ export default function AnatomyScene({
   language: Language;
   onMeasure?: (text: string) => void;
   onTools?: (tools: SceneTools | null) => void;
+  onPick?: (point: number[]) => void;
 }) {
   const t = (key: string) => translate(language, key),
     locale = useRef(language);
@@ -63,7 +65,8 @@ export default function AnatomyScene({
     latest = useRef(state),
     select = useRef(onSelect),
     measured = useRef(onMeasure),
-    toolsReady = useRef(onTools);
+    toolsReady = useRef(onTools),
+    picked = useRef(onPick);
   const [status, setStatus] = useState('Loading anatomy…'),
     [error, setError] = useState('');
   // Keep the imperative engine's view of props current without re-initialising it.
@@ -73,6 +76,7 @@ export default function AnatomyScene({
     select.current = onSelect;
     measured.current = onMeasure;
     toolsReady.current = onTools;
+    picked.current = onPick;
   });
   useEffect(() => {
     const el = host.current!;
@@ -609,6 +613,10 @@ export default function AnatomyScene({
           if (drag || e.button !== 0) return;
           const h = hit(e);
           if (h && latest.current.measure) addPick(h.point);
+          else if (h && latest.current.annotate)
+            picked.current?.(
+              h.point.toArray().map((v) => Math.round(v * 1e4) / 1e4),
+            );
           else if (h) select.current(h.object.userData.part.id);
         };
         renderer.domElement.addEventListener('pointerdown', down);

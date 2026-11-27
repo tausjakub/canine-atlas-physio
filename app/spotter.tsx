@@ -97,7 +97,7 @@ export default function Spotter({
   systems: System[];
   title: string;
   language: Language;
-  onClose: () => void;
+  onClose: (score?: number, total?: number) => void;
 }) {
   const e = (en: string, cs: string) => (language === 'cs' ? cs : en);
   const deck = useMemo(
@@ -179,7 +179,7 @@ export default function Spotter({
             </span>
             <h2>{title}</h2>
           </div>
-          <button onClick={onClose}>{e('Close', 'Zavřít')}</button>
+          <button onClick={() => onClose()}>{e('Close', 'Zavřít')}</button>
         </header>
         {!deck.length ? (
           <div className="challenge-intro">
@@ -201,7 +201,9 @@ export default function Spotter({
                 'Chybné struktury se vrátí k opakování dříve; správné se rozloží do dalších dnů.',
               )}
             </p>
-            <button onClick={onClose}>{e('Done', 'Hotovo')}</button>
+            <button onClick={() => onClose(score, deck.length)}>
+              {e('Done', 'Hotovo')}
+            </button>
           </div>
         ) : (
           <div className="challenge-layout">

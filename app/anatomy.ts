@@ -62,6 +62,7 @@ export type SceneState = {
   displace?: { id: string; by: number[] } | null;
   pins?: { at: number[]; text: string }[];
   contrast?: boolean;
+  annotate?: boolean;
 };
 export const systems: { id: System; name: string; color: string }[] = [
   { id: 'bone', name: 'Skeleton', color: '#e6d5ad' },

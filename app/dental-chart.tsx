@@ -67,7 +67,7 @@ export default function DentalChart({
   onClose,
 }: {
   language: Language;
-  onClose: () => void;
+  onClose: (score?: number, total?: number) => void;
 }) {
   const cs = language === 'cs',
     e = (en: string, c: string) => (cs ? c : en);
@@ -75,7 +75,8 @@ export default function DentalChart({
     [picked, setPicked] = useState<string | null>(null),
     [ask, setAsk] = useState<string[]>([]),
     [score, setScore] = useState(0),
-    [feedback, setFeedback] = useState('');
+    [feedback, setFeedback] = useState(''),
+    [drilled, setDrilled] = useState(false);
   const all = quadrants.flatMap(({ q, upper }) =>
     (upper ? formula[sp].upper : formula[sp].lower).map((pos) => code(q, pos)),
   );
@@ -110,7 +111,13 @@ export default function DentalChart({
             </span>
             <h2>{e('Dental chart', 'Zubní diagram')}</h2>
           </div>
-          <button onClick={onClose}>{e('Close', 'Zavřít')}</button>
+          <button
+            onClick={() =>
+              onClose(drilled && !ask.length ? score : undefined, 10)
+            }
+          >
+            {e('Close', 'Zavřít')}
+          </button>
         </header>
         <div className="presets" role="group" aria-label={e('Species', 'Druh')}>
           {(['dog', 'cat', 'rabbit'] as const).map((s) => (
@@ -121,6 +128,7 @@ export default function DentalChart({
                 setSp(s);
                 setPicked(null);
                 setAsk([]);
+                setDrilled(false);
                 setFeedback('');
               }}
             >
@@ -182,6 +190,7 @@ export default function DentalChart({
           <button
             onClick={() => {
               setAsk(shuffle(all).slice(0, 10));
+              setDrilled(true);
               setScore(0);
               setFeedback('');
               setPicked(null);
