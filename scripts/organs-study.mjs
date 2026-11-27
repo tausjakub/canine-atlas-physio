@@ -70,6 +70,35 @@ const cerebrum = (side, sideEn) =>
     { mri: true },
   );
 
+const ovary = (side, sideEn) =>
+  card(
+    p(`Vaječník · ${side} · samice`, `Ovary · ${sideEn} · female`),
+    p(
+      'Tvoří vajíčka a pohlavní hormony (estrogeny, progesteron).',
+      'Produces ova and sex hormones (oestrogens, progesterone).',
+    ),
+    p(
+      'V dorzální části břišní dutiny kaudálně od ledviny téže strany, uložen v ovariální burze (často s tukem).',
+      'In the dorsal abdomen caudal to the kidney of the same side, enclosed in the ovarian bursa (often fat-filled).',
+    ),
+    p(
+      'Kraniálně zavěšen závěsným vazem (lig. suspensorium ovarii) ke stěně u ledviny; kaudálně navazuje vejcovod a děložní roh.',
+      'Held cranially by the suspensory ligament near the kidney; the uterine tube and uterine horn continue caudally.',
+    ),
+    p(
+      'Autonomní (sympatické) nervy podél ovariálních cév.',
+      'Autonomic (sympathetic) nerves along the ovarian vessels.',
+    ),
+    p(
+      'Kde leží vaječník vzhledem k ledvině?',
+      'Where does the ovary lie relative to the kidney?',
+    ),
+    p(
+      'Kaudálně od ledviny téže strany.',
+      'Caudal to the kidney of the same side.',
+    ),
+  );
+
 export const organStudy = {
   brain_cerebrum_L: cerebrum('vlevo', 'left'),
   brain_cerebrum_R: cerebrum('vpravo', 'right'),
@@ -179,8 +208,8 @@ export const organStudy = {
       'Protects the lower airway during swallowing and produces voice.',
     ),
     p(
-      'Ventrálně pod 1.-3. krčním obratlem, kaudálně od jazylky, mezi větvemi dolní čelisti.',
-      'Ventral to about C1-C3, caudal to the hyoid, between the mandibular rami.',
+      'Na přechodu hlavy a krku, kaudálně od jazylky, na které je zavěšen (m. thyrohyoideus).',
+      'At the junction of head and neck, caudal to the hyoid apparatus, from which it is suspended (thyrohyoid).',
     ),
     p(
       'Rostrálně hltan, kaudálně průdušnice; zavěšen na jazylce.',
@@ -219,8 +248,8 @@ export const organStudy = {
       'Where does the trachea divide into bronchi?',
     ),
     p(
-      'Nad srdeční bází (rozdvojení, bifurkace) zhruba u 5. žebra.',
-      'Above the heart base (bifurcation), about the level of the 5th rib.',
+      'Nad srdeční bází (rozdvojení, bifurkace) zhruba ve 4.-5. mezižebří.',
+      'Above the heart base (bifurcation, carina), at about the 4th-5th intercostal space.',
     ),
   ),
   organ_oesophagus: card(
@@ -254,8 +283,8 @@ export const organStudy = {
       'Endocrine gland; its hormones set the metabolic rate.',
     ),
     p(
-      'Dva laloky po stranách průdušnice kaudálně od hrtanu, zhruba u 5.-8. prstence.',
-      'Two lobes on either side of the trachea, caudal to the larynx at about the 5th-8th tracheal rings.',
+      'Dva laloky po stranách průdušnice těsně kaudálně od hrtanu, podél prvních zhruba 5 (až 8) prstenců; levý lalok začíná obvykle o něco kaudálněji než pravý.',
+      'Two lobes on either side of the trachea just caudal to the larynx, along roughly the first 5 (up to 8) tracheal rings; the left lobe usually starts slightly further caudally than the right.',
     ),
     p(
       'Kaudálně od hrtanu, přiložená k průdušnici; dorzolaterálně probíhá a. carotis communis.',
@@ -278,8 +307,8 @@ export const organStudy = {
       'Pumps blood into the pulmonary and systemic circulations.',
     ),
     p(
-      'Ve středním mezihrudí zhruba mezi 3. a 6. žebrem, hrot směřuje ventrokaudálně a doleva.',
-      'In the middle mediastinum, roughly between ribs 3 and 6; the apex points ventrocaudally and to the left.',
+      'Ve středním mezihrudí zhruba od 3. do 6. mezižebří, hrot směřuje ventrokaudálně a doleva (úder hrotu vlevo kolem 5. mezižebří).',
+      'In the middle mediastinum, from about the 3rd to the 6th intercostal space; the apex points ventrocaudally and to the left (apex beat near the left 5th intercostal space).',
     ),
     p(
       'Z báze odstupuje aorta a plicní kmen; ze stran jej obklopují plíce.',
@@ -287,10 +316,13 @@ export const organStudy = {
     ),
     vagus,
     p(
-      'Mezi kterými žebry leží srdce?',
-      'Between which ribs does the heart lie?',
+      'V kterých mezižebřích leží srdce?',
+      'Which intercostal spaces does the heart span?',
     ),
-    p('Přibližně mezi 3. a 6. žebrem.', 'Roughly between ribs 3 and 6.'),
+    p(
+      'Přibližně 3. až 6. mezižebří.',
+      'About the 3rd to the 6th intercostal space.',
+    ),
   ),
   organ_aorta: card(
     p('Aorta', 'Aorta'),
@@ -569,8 +601,8 @@ export const organStudy = {
       'Filters blood and forms urine; regulates water and mineral balance.',
     ),
     p(
-      'Retroperitoneálně pod posledním hrudním a prvním bederním obratlem, v jamce jater.',
-      'Retroperitoneal under the last thoracic and first lumbar vertebrae, in the renal fossa of the liver.',
+      'Retroperitoneálně zhruba pod T13-L2 (podle zdrojů až L1-L3), v ledvinové jamce ocasatého laloku jater.',
+      'Retroperitoneal at about T13-L2 (some sources L1-L3), in the renal fossa of the caudate lobe of the liver.',
     ),
     p(
       'Močovodem odvádí moč do močového měchýře; kraniomediálně nadledvina.',
@@ -656,8 +688,8 @@ export const organStudy = {
       'Accessory sex gland of the male; contributes to the ejaculate.',
     ),
     p(
-      'Obklopuje močovou trubici u krčku měchýře, u vchodu do pánve.',
-      'Surrounds the urethra at the bladder neck, at the pelvic inlet.',
+      'Obklopuje počáteční (prostatickou) část močové trubice u krčku měchýře, u vchodu do pánve nebo těsně za ním.',
+      'Surrounds the proximal (prostatic) urethra at the bladder neck, at or near the pelvic inlet.',
     ),
     p(
       'Kraniálně močový měchýř, dorzálně konečník.',
@@ -670,4 +702,260 @@ export const organStudy = {
     ),
     p('Močovou trubici.', 'The urethra.'),
   ),
+  organ_tongue: card(
+    p('Jazyk', 'Tongue'),
+    p(
+      'Příjem potravy a vody, tvorba a polykání sousta, odvod tepla při zrychleném dýchání a péče o srst.',
+      'Prehension of food and water, forming and swallowing the bolus, heat loss during panting, and grooming.',
+    ),
+    p(
+      'Na spodině dutiny ústní mezi těly dolní čelisti; kořen leží nad jazylkou, volný hrot za řezáky. Model ukazuje jazyk v otevřených ústech.',
+      'On the floor of the mouth between the bodies of the mandible; the root lies over the hyoid apparatus and the free apex behind the incisors. The model shows it with the mouth open.',
+    ),
+    p(
+      'Kořen je ukotven k jazylce (m. hyoglossus, m. styloglossus), tělo k dolní čelisti (m. genioglossus); spodní stranu připojuje uzdička jazyka. Kaudálně navazuje hltan.',
+      'The root is anchored to the hyoid apparatus (hyoglossus, styloglossus) and the body to the mandible (genioglossus); the frenulum attaches its underside. The pharynx lies caudally.',
+    ),
+    p(
+      'Motoricky n. hypoglossus (XII); citlivost rostrálních dvou třetin n. lingualis (V3), chuť chorda tympani (VII); kaudální třetina n. glossopharyngeus (IX).',
+      'Motor: hypoglossal nerve (XII). Rostral two thirds: sensation by the lingual nerve (V3), taste by the chorda tympani (VII); caudal third: glossopharyngeal nerve (IX).',
+    ),
+    p('Který nerv řídí pohyby jazyka?', 'Which nerve moves the tongue?'),
+    p('N. hypoglossus (XII).', 'The hypoglossal nerve (XII).'),
+  ),
+  organ_ovary_L: ovary('vlevo', 'left'),
+  organ_ovary_R: ovary('vpravo', 'right'),
+  organ_uterus: card(
+    p('Děloha · samice', 'Uterus · female'),
+    p(
+      'Zde se během březosti vyvíjejí plody.',
+      'Houses the developing fetuses during pregnancy.',
+    ),
+    p(
+      'Dvourohá děloha: dva dlouhé rohy probíhají od vaječníků kaudálně a mediálně a spojují se v krátké tělo dorzálně od močového měchýře; krček (cervix) leží u vchodu do pánve.',
+      'Bicornuate uterus: two long horns run caudally and medially from the ovaries and join in a short body dorsal to the bladder; the cervix lies near the pelvic inlet.',
+    ),
+    p(
+      'Zavěšena na širokém děložním vazu; dorzálně tračník a konečník, ventrálně močový měchýř; přes krček navazuje pochva.',
+      'Suspended by the broad ligament; colon and rectum dorsally, bladder ventrally; the vagina continues caudally from the cervix.',
+    ),
+    p(
+      'Autonomní: hypogastrické (sympatické) a pánevní (parasympatické) nervy.',
+      'Autonomic: hypogastric (sympathetic) and pelvic (parasympathetic) nerves.',
+    ),
+    p(
+      'Jaký typ dělohy má fena a kočka?',
+      'What type of uterus do the bitch and the queen have?',
+    ),
+    p(
+      'Dvourohou (uterus bicornis) s krátkým tělem.',
+      'Bicornuate, with a short body.',
+    ),
+  ),
+  organ_vagina: card(
+    p('Pochva · samice', 'Vagina · female'),
+    p('Kopulační orgán a porodní cesta.', 'Copulatory organ and birth canal.'),
+    p(
+      'V pánevním kanálu mezi krčkem dělohy a předsíní pochvy, ventrálně od konečníku a dorzálně od močové trubice.',
+      'In the pelvic canal from the cervix to the vestibule, ventral to the rectum and dorsal to the urethra.',
+    ),
+    p(
+      'Kraniálně krček dělohy, kaudálně předsíň pochvy (vestibulum), do které ústí močová trubice.',
+      'Cervix cranially; the vestibule caudally, where the urethra opens.',
+    ),
+    p(
+      'Pánevní (autonomní) nervy a n. pudendus (somatický, kaudální část).',
+      'Pelvic (autonomic) nerves and the pudendal nerve (somatic, caudal part).',
+    ),
+    p(
+      'Co leží dorzálně od pochvy v pánevním kanálu?',
+      'What lies dorsal to the vagina in the pelvic canal?',
+    ),
+    p('Konečník.', 'The rectum.'),
+  ),
 };
+
+// Cat and rabbit: the dog layer retargeted to their proportions, with
+// species-specific topography where the references differ from the dog.
+const SPECIES = {
+  cat: { cs: 'kočky', en: 'cat' },
+  rabbit: { cs: 'králíka', en: 'rabbit' },
+};
+const retargeted = (sp) =>
+  p(
+    `Schematický tvar převzatý z modelu psa a přenesený do proporcí ${SPECIES[sp].cs}; poloha vychází z rozvržení u psa, nejde o segmentaci ani přesnou velikost.`,
+    `Schematic shape taken from the dog model and retargeted to the ${SPECIES[sp].en}’s proportions; placement follows the dog layout and is not segmented or to exact size.`,
+  );
+const brainNote = (sp) =>
+  p(
+    `Tvar psího mozku z MRI atlasu (Johnson & Barry 2019, CC0) přenesený do lebky ${SPECIES[sp].cs}; slouží k orientaci, nejde o mozek ${SPECIES[sp].cs}.`,
+    `Dog brain shape from the MRI atlas (Johnson & Barry 2019, CC0) retargeted into the ${SPECIES[sp].en} skull for orientation; it is not a ${SPECIES[sp].en} brain.`,
+  );
+
+const overrides = {
+  cat: {
+    organ_kidney_R: {
+      location: p(
+        'Retroperitoneálně zhruba L1-L4 (podle zdrojů L1-L3); ledviny kočky leží kaudálněji a volněji než u psa a pravou od jater často odděluje tuk.',
+        'Retroperitoneal at about L1-L4 (some sources L1-L3); cat kidneys lie more caudally and more loosely than the dog’s, and fat often separates the right one from the liver.',
+      ),
+    },
+    organ_kidney_L: {
+      location: p(
+        'Retroperitoneálně zhruba L2-L5 (podle zdrojů L2-L4), kaudálněji než pravá; levá ledvina je pohyblivější.',
+        'Retroperitoneal at about L2-L5 (some sources L2-L4), more caudal than the right; the left kidney is more mobile.',
+      ),
+    },
+    organ_spinal_cord: {
+      location: p(
+        'V páteřním kanálu od velkého týlního otvoru; mícha kočky končí kaudálněji než u psa, přibližně v lumbosakrální oblasti.',
+        'In the vertebral canal from the foramen magnum; the cat’s cord ends further caudally than the dog’s, around the lumbosacral region.',
+      ),
+      answer: p(
+        'Přibližně v lumbosakrální oblasti, kaudálněji než u psa.',
+        'Around the lumbosacral region, further caudally than in the dog.',
+      ),
+    },
+    organ_heart: {
+      location: p(
+        'Ve středním mezihrudí, na rentgenu zhruba v rozsahu 4.-6. žebra; hrot směřuje ventrokaudálně a doleva.',
+        'In the middle mediastinum, on radiographs at about ribs 4-6; the apex points ventrocaudally and to the left.',
+      ),
+      recall: p(
+        'U kterých žeber leží srdce kočky?',
+        'At which ribs does the cat’s heart lie?',
+      ),
+      answer: p('Přibližně u 4.-6. žebra.', 'About ribs 4-6.'),
+    },
+    organ_tongue: {
+      location: p(
+        'Na spodině dutiny ústní mezi těly dolní čelisti. Nitkovité papily nesou zrohovatělé, dozadu směřující ostny (drsný jazyk kočky).',
+        'On the floor of the mouth between the bodies of the mandible. Filiform papillae carry keratinised, backward-pointing spines (the cat’s rough tongue).',
+      ),
+    },
+    organ_bladder: {
+      location: p(
+        'V kaudální části břišní dutiny; u kočky leží měchýř obvykle celý v břišní dutině, před vchodem do pánve.',
+        'In the caudal abdomen; in the cat the bladder usually lies wholly in the abdomen, cranial to the pelvic inlet.',
+      ),
+    },
+  },
+  rabbit: {
+    organ_kidney_R: {
+      location: p(
+        'Retroperitoneálně zhruba T13-L2; poloha ledvin se mění s náplní žaludku.',
+        'Retroperitoneal at about T13-L2; kidney position shifts with stomach fill.',
+      ),
+    },
+    organ_kidney_L: {
+      location: p(
+        'Retroperitoneálně zhruba L2-L4, kaudálněji než pravá.',
+        'Retroperitoneal at about L2-L4, more caudal than the right.',
+      ),
+    },
+    organ_spinal_cord: {
+      location: p(
+        'V páteřním kanálu od velkého týlního otvoru; mícha králíka sahá daleko kaudálně a obvykle končí u S2 (rozmezí S1-S3).',
+        'In the vertebral canal from the foramen magnum; the rabbit’s cord reaches far caudally and usually ends at S2 (range S1-S3).',
+      ),
+      answer: p('Obvykle u S2 (S1-S3).', 'Usually at S2 (S1-S3).'),
+    },
+    organ_heart: {
+      location: p(
+        'Ve středním mezihrudí, kraniálněji než u psa, zhruba od 2. do 5. mezižebří. U dospělého králíka přetrvává brzlík (thymus) kraniálně od srdce; v modelu není.',
+        'In the middle mediastinum, more cranially than in the dog, at about the 2nd to the 5th intercostal space. The thymus persists cranial to the heart in adult rabbits; it is not modelled.',
+      ),
+      answer: p(
+        'Přibližně 2. až 5. mezižebří.',
+        'About the 2nd to the 5th intercostal space.',
+      ),
+    },
+    organ_lung_L: {
+      answer: p(
+        'Dva (kraniální a kaudální; názvosloví se liší); kraniální laloky jsou malé.',
+        'Two (cranial and caudal; naming varies); the cranial lobes are small.',
+      ),
+    },
+    organ_lung_R: {
+      answer: p(
+        'Čtyři (kraniální, střední, kaudální a velmi malý přídatný).',
+        'Four (cranial, middle, caudal and a very small accessory lobe).',
+      ),
+    },
+    organ_tongue: {
+      location: p(
+        'Na spodině dutiny ústní mezi těly dolní čelisti; kaudálně se hřbet jazyka zvedá ve výrazný val (torus linguae).',
+        'On the floor of the mouth between the bodies of the mandible; caudally the dorsum rises into a prominent torus linguae.',
+      ),
+    },
+    organ_uterus: {
+      location: p(
+        'Dvojitá děloha (uterus duplex): dva zcela oddělené rohy, každý s vlastním krčkem, ústí samostatně do pochvy; tělo dělohy chybí.',
+        'Duplex uterus: two completely separate horns, each with its own cervix, opening separately into the vagina; there is no uterine body.',
+      ),
+      recall: p(
+        'Jaký typ dělohy má králík?',
+        'What type of uterus does the rabbit have?',
+      ),
+      answer: p(
+        'Dvojitou (uterus duplex) se dvěma krčky, bez těla dělohy.',
+        'Duplex, with two cervices and no uterine body.',
+      ),
+    },
+    organ_small_intestine: {
+      connections: p(
+        'Kyčelník ústí přes sacculus rotundus do slepého střeva.',
+        'The ileum opens into the caecum via the sacculus rotundus.',
+      ),
+    },
+  },
+};
+
+const rabbitCaecum = card(
+  p('Slepé střevo', 'Caecum'),
+  p(
+    'Fermentační komora: mikrobiální trávení vlákniny a tvorba měkkých výkalů (cékotrofů), které králík znovu přijímá.',
+    'Fermentation chamber: microbial digestion of fibre and formation of caecotrophs, which the rabbit re-ingests.',
+  ),
+  p(
+    'Největší orgán břišní dutiny králíka: tenkostěnné, sakulované střevo uložené v ohybech ve ventrální části břicha, zakončené slepým červovitým výběžkem (appendix vermiformis).',
+    'The largest organ in the rabbit abdomen: a thin-walled, sacculated gut folded through the ventral abdomen and ending in the blind vermiform appendix.',
+  ),
+  p(
+    'Kyčelník do něj ústí přes sacculus rotundus; pokračuje tlusté střevo (colon).',
+    'The ileum enters it via the sacculus rotundus; the colon continues from it.',
+  ),
+  vagus,
+  p('Čím končí slepé střevo králíka?', 'How does the rabbit caecum end?'),
+  p(
+    'Červovitým výběžkem (appendix vermiformis) s lymfatickou tkání.',
+    'In the vermiform appendix, rich in lymphoid tissue.',
+  ),
+);
+
+/** Organ cards for the cat or rabbit pack, keyed by part id. */
+export function organStudyFor(sp) {
+  const swap = (b) =>
+    b && {
+      cs: b.cs.replace(/\bpsa\b/g, SPECIES[sp].cs),
+      en: b.en
+        .replace(/\bdog’s\b/g, `${SPECIES[sp].en}’s`)
+        .replace(/\bthe dog\b/g, `the ${SPECIES[sp].en}`),
+    };
+  const all = {
+    ...organStudy,
+    ...(sp === 'rabbit' ? { organ_caecum: rabbitCaecum } : {}),
+  };
+  return Object.fromEntries(
+    Object.entries(all).map(([id, c]) => {
+      const o = overrides[sp][id] ?? {};
+      const study = { ...c.study };
+      for (const k of ['location', 'connections', 'recall', 'answer'])
+        study[k] = o[k] ?? swap(c.study[k]);
+      study.difference = id.startsWith('brain_')
+        ? brainNote(sp)
+        : retargeted(sp);
+      return [id, { ...c, action: swap(c.action), study }];
+    }),
+  );
+}

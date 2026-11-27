@@ -125,10 +125,11 @@ def cavity(grid, tree, dirs, reach, region=None):
     return m.reshape(tuple(grid.n))
 
 
-def largest_component(mask):
-    """Keep the largest 6-connected component (flood fill, no scipy)."""
+def largest_component(mask, frac=None):
+    """Keep the largest 6-connected component (flood fill, no scipy), or with frac
+    every component of at least frac times its size."""
     lab = np.zeros(mask.shape, np.int32)
-    best, best_n, cur = 0, 0, 0
+    best, best_n, cur, sizes = 0, 0, 0, [0]
     for seed in map(tuple, np.argwhere(mask)):
         if lab[seed]:
             continue
@@ -146,8 +147,11 @@ def largest_component(mask):
                     if 0 <= q[a] < mask.shape[a] and mask[q] and not lab[q]:
                         lab[q] = cur
                         stack.append(q)
+        sizes.append(n)
         if n > best_n:
             best, best_n = cur, n
+    if frac is not None:
+        return (np.array(sizes) >= frac * best_n)[lab] & mask
     return lab == best
 
 
@@ -169,6 +173,32 @@ def erode(mask, k=1):
 def bbox(mask, grid):
     i = np.argwhere(mask)
     return grid.lo + grid.h * i.min(0), grid.lo + grid.h * i.max(0)
+
+
+def blur(m):
+    """3x3x3 box blur of a mask (as float), edges padded."""
+    f = np.pad(m.astype(np.float32), 1, mode='edge')
+    n = m.shape
+    return sum(f[i:i + n[0], j:j + n[1], k:k + n[2]] for i in range(3) for j in range(3) for k in range(3)) / 27
+
+
+def sample(g, field, G):
+    """Trilinear sample of a coarse float field at another grid's centres."""
+    f = (G.centres() - g.lo) / g.h
+    f = np.clip(f, 0, np.array(field.shape) - 1)
+    return trilinear(field, f[..., 0], f[..., 1], f[..., 2])
+
+
+def fine_mask(g, fn, allowed, h=0.0015, pad=0.006):
+    """Evaluate the shape fn(grid) on a finer grid around its coarse footprint,
+    clipped to a smoothly interpolated allowed mask, so organs mesh without
+    coarse-voxel stair steps."""
+    coarse = fn(g) & allowed
+    if coarse.sum() == 0:
+        return g, coarse
+    lo, hi = bbox(coarse, g)
+    fg = Grid(lo - pad, hi + pad, h)
+    return fg, fn(fg) & (sample(g, blur(allowed), fg) > 0.5)
 
 
 # ---------------------------------------------------------------- brain
@@ -372,11 +402,15 @@ def trunk(by, tissue, col, organs, t0):
     A = cav & (X < xd - 0.004)
     print('cavities thorax', int(T.sum()), 'abdomen', int(A.sum()), bbox(T, g), bbox(A, g), f'{time.time() - t0:.1f}s', flush=True)
 
-    def add(name, mask, tris=3000, it=6):
-        if mask.sum() < 8:
+    def add(name, mask, tris=3000, it=6, allowed=None):
+        """mask: a coarse voxel mask, or a shape function of a grid (meshed finer)."""
+        allowed = g.zeros() | True if allowed is None else allowed
+        grid, m = fine_mask(g, mask, allowed) if callable(mask) else (g, mask & allowed)
+        m = largest_component(m, 0.2)  # drop clipping debris; keeps paired lobes
+        if m.sum() < 8:
             print('MISSING', name, flush=True)
             return
-        organs.append((name, mask_to_mesh(mask, g, name, col, tris=tris, smooth_it=it)))
+        organs.append((name, mask_to_mesh(m, grid, name, col, tris=tris, smooth_it=it)))
 
     # ---- thorax
     heart_ax = Vector((-0.45, -0.85, -0.25)).normalized()
@@ -386,25 +420,30 @@ def trunk(by, tissue, col, organs, t0):
     heart = ellipsoid_mask(g, hc, (0.058, 0.045, 0.04), axes=(heart_ax, side, third)) & T
     base = Vector(hc) - heart_ax * 0.045
     sx = lambda x: Vector((x, spine_floor(x) - 0.012, -0.01))
-    aorta = tube_mask(g, [base, base + Vector((0.02, 0.035, -0.004)), sx(0.08), sx(0.0), sx(-0.1), sx(-0.2)], 0.0075)
-    cvc = tube_mask(g, [Vector(hc) + Vector((-0.03, 0.0, 0.02)), Vector((0.0, 0.41, 0.022)),
-                        Vector((-0.08, spine_floor(-0.08) - 0.03, 0.018)), Vector((-0.2, spine_floor(-0.2) - 0.02, 0.012))], 0.008)
+    aorta_f = lambda G: tube_mask(G, [base, base + Vector((0.02, 0.035, -0.004)), sx(0.08), sx(0.0), sx(-0.1), sx(-0.2)], 0.0075)
+    cvc_f = lambda G: tube_mask(G, [Vector(hc) + Vector((-0.03, 0.0, 0.02)), Vector((0.0, 0.41, 0.022)),
+                                    Vector((-0.08, spine_floor(-0.08) - 0.03, 0.018)), Vector((-0.2, spine_floor(-0.2) - 0.02, 0.012))], 0.008)
+    aorta, cvc = aorta_f(g), cvc_f(g)
     carina = Vector((0.105, spine_floor(0.105) - 0.035, 0))
     trachea_pts = [Vector((0.245, 0.605, 0)), Vector((0.225, 0.565, 0)), Vector((0.19, 0.495, 0)), Vector((0.155, 0.445, 0)), carina]
+    airway_f = lambda G: (tube_mask(G, trachea_pts, 0.009) | tube_mask(G, [carina, carina + Vector((-0.03, -0.01, -0.03))], 0.006)
+                          | tube_mask(G, [carina, carina + Vector((-0.03, -0.01, 0.03))], 0.006))
     trachea = tube_mask(g, trachea_pts, 0.009)
-    bronchi = tube_mask(g, [carina, carina + Vector((-0.03, -0.01, -0.03))], 0.006) | tube_mask(g, [carina, carina + Vector((-0.03, -0.01, 0.03))], 0.006)
+    bronchi = airway_f(g) & ~trachea
     oes_pts = [Vector((0.255, 0.628, -0.004)), Vector((0.225, 0.585, -0.008)), Vector((0.18, 0.505, -0.01)),
                Vector((0.1, spine_floor(0.1) - 0.014, -0.012)), Vector((0.0, spine_floor(0.0) - 0.03, -0.015))]
     jy, jz = np.argmin(np.abs(Y[0][:, 0] - 0.44)), np.argmin(np.abs(Z[0][0] + 0.02))
     cardia = Vector((float(xd2[jy, jz]) - 0.012, 0.44, -0.025))
-    oesophagus = tube_mask(g, oes_pts + [cardia], 0.0065)
+    oes_f = lambda G: tube_mask(G, oes_pts + [cardia], 0.0065)
+    oesophagus = oes_f(g)
     mediast = heart | dilate(aorta | cvc | trachea | bronchi | oesophagus, 1)
     lungs = T & ~dilate(mediast, 1) & ~(np.abs(Z) < 0.004)
-    add('organ_heart', heart, 5000)
-    add('organ_aorta', aorta & ~heart, 2000)
-    add('organ_caudal_vena_cava', cvc & ~heart & ~aorta, 1500)
-    add('organ_lung_L', lungs & (Z < 0), 6000, it=12)
-    add('organ_lung_R', lungs & (Z > 0), 6000, it=12)
+    soft = lambda m: (lambda G: sample(g, blur(m), G) > 0.5)  # coarse mask, meshed without stair steps
+    add('organ_heart', lambda G: ellipsoid_mask(G, hc, (0.058, 0.045, 0.04), axes=(heart_ax, side, third)), 5000, allowed=T)
+    add('organ_aorta', aorta_f, 2000, allowed=~heart)
+    add('organ_caudal_vena_cava', cvc_f, 1500, allowed=~heart & ~aorta)
+    add('organ_lung_L', soft(lungs & (Z < 0)), 6000, it=12)
+    add('organ_lung_R', soft(lungs & (Z > 0)), 6000, it=12)
 
     # ---- abdomen (organs claim voxels in priority order; each stays in A)
     def at_dia(y, z):
@@ -413,67 +452,152 @@ def trunk(by, tissue, col, organs, t0):
 
     taken = g.zeros()
 
-    def claim(name, mask, tris=3000, it=8, region=None):
-        m = mask & (A if region is None else region) & ~taken
-        taken[...] |= m
-        add(name, m, tris, it)
+    def claim(name, mask, tris=3000, it=8, region=None, avoid=None, reserve=True):
+        """Shared organs reserve their voxels in priority order; sex- and species-specific
+        variants (reserve=False) may overlap one another."""
+        allowed = (A if region is None else region) & ~(taken if avoid is None else avoid)
+        m = (mask(g) if callable(mask) else mask) & allowed
+        if reserve:
+            taken[...] |= m
+        add(name, mask, tris, it, allowed=allowed)
+        return m
 
+    ell = lambda c, r: (lambda G: ellipsoid_mask(G, c, r))
+    tube = lambda pts, r, n=None: (lambda G: tube_mask(G, pts, r, n))
     l1 = by['L_1'].matrix_world @ sum((v.co for v in by['L_1'].data.vertices), Vector()) / len(by['L_1'].data.vertices)
     l3 = by['L_3'].matrix_world @ sum((v.co for v in by['L_3'].data.vertices), Vector()) / len(by['L_3'].data.vertices)
     ky = spine_floor(l1.x) - 0.022
-    kid_r = ellipsoid_mask(g, (l1.x + 0.006, ky, 0.034), (0.034, 0.02, 0.017))
-    kid_l = ellipsoid_mask(g, ((l1.x + l3.x) / 2, ky, -0.034), (0.034, 0.02, 0.017))
-    claim('organ_kidney_R', kid_r, 2500)
-    claim('organ_kidney_L', kid_l, 2500)
-    claim('organ_adrenal_R', ellipsoid_mask(g, (l1.x + 0.036, ky + 0.004, 0.02), (0.009, 0.005, 0.004)), 600, 4)
-    claim('organ_adrenal_L', ellipsoid_mask(g, ((l1.x + l3.x) / 2 + 0.036, ky + 0.004, -0.02), (0.009, 0.005, 0.004)), 600, 4)
+    kr_x, kl_x = l1.x + 0.006, l3.x + 0.005  # right ~T13-L2, left ~L2-L4
+    claim('organ_kidney_R', ell((kr_x, ky, 0.034), (0.034, 0.02, 0.017)), 2500)
+    claim('organ_kidney_L', ell((kl_x, ky, -0.034), (0.034, 0.02, 0.017)), 2500)
+    claim('organ_adrenal_R', ell((l1.x + 0.036, ky + 0.004, 0.02), (0.009, 0.005, 0.004)), 600, 4)
+    claim('organ_adrenal_L', ell((kl_x + 0.036, ky + 0.004, -0.02), (0.009, 0.005, 0.004)), 600, 4)
     # Liver: a slab against the diaphragm, thicker ventrally; gallbladder on its right.
     ytop, ybot = 0.49, 0.32
     thick = 0.028 + 0.03 * np.clip((ytop - Y) / (ytop - ybot), 0, 1)
-    liver = X > xd - 0.004 - thick
+    liver_d = (X - (xd - 0.004 - thick)).astype(np.float32)
+    liver = lambda G: sample(g, liver_d, G) > 0
     gb_c = (at_dia(0.37, 0.02) - 0.03, 0.37, 0.022)
-    claim('organ_gallbladder', ellipsoid_mask(g, gb_c, (0.014, 0.009, 0.009)), 800, 4)
+    claim('organ_gallbladder', ell(gb_c, (0.014, 0.009, 0.009)), 800, 4)
     claim('organ_liver', liver, 7000, 10)
     xs = at_dia(0.42, 0.0) - 0.06  # just caudal to the liver
-    stomach = tube_mask(g, [cardia, Vector((xs + 0.01, 0.43, -0.04)), Vector((xs - 0.01, 0.37, -0.02)),
-                            Vector((xs + 0.005, 0.355, 0.025)), Vector((xs + 0.02, 0.38, 0.045))],
-                        lambda u: 0.012 + 0.022 * math.sin(math.pi * min(1, 0.15 + u * 0.95)))
-    claim('organ_stomach', stomach, 4000)
+    claim('organ_stomach', tube([cardia, Vector((xs + 0.01, 0.43, -0.04)), Vector((xs - 0.01, 0.37, -0.02)),
+                                 Vector((xs + 0.005, 0.355, 0.025)), Vector((xs + 0.02, 0.38, 0.045))],
+                                lambda u: 0.012 + 0.022 * math.sin(math.pi * min(1, 0.15 + u * 0.95))), 4000)
     pylorus = Vector((xs + 0.02, 0.38, 0.045))
     duo = [pylorus, Vector((xs + 0.0, 0.42, 0.055)), Vector((xs - 0.08, 0.43, 0.052)), Vector((xs - 0.16, 0.41, 0.045)),
            Vector((xs - 0.18, 0.40, 0.02)), Vector((xs - 0.14, 0.41, -0.01))]
-    claim('organ_duodenum', tube_mask(g, duo, 0.008), 2000)
-    claim('organ_spleen', tube_mask(g, [Vector((xs + 0.01, 0.44, -0.062)), Vector((xs - 0.04, 0.40, -0.066)),
-                                        Vector((xs - 0.09, 0.36, -0.055))], 0.011) & (Z < -0.045), 2000)
+    claim('organ_duodenum', tube(duo, 0.008), 2000)
+    spleen_pts = [Vector((xs + 0.01, 0.44, -0.062)), Vector((xs - 0.04, 0.40, -0.066)), Vector((xs - 0.09, 0.36, -0.055))]
+    claim('organ_spleen', lambda G: tube_mask(G, spleen_pts, 0.011) & (G.centres()[..., 2] < -0.045), 2000)
     pan = [Vector((p.x, p.y + 0.004, p.z - 0.014)) for p in duo[1:4]]
-    claim('organ_pancreas', tube_mask(g, pan, 0.006) | tube_mask(g, [pylorus + Vector((-0.02, 0.03, -0.01)), Vector((xs - 0.03, 0.42, -0.04))], 0.0055), 1500)
+    pan2 = [pylorus + Vector((-0.02, 0.03, -0.01)), Vector((xs - 0.03, 0.42, -0.04))]
+    claim('organ_pancreas', lambda G: tube_mask(G, pan, 0.006) | tube_mask(G, pan2, 0.0055), 1500)
     # Bladder at the pelvic inlet, prostate in the pelvic canal.
     pel = verts_of([by['Pelvis']])
     cran = pel[pel[:, 0] > (pel[:, 0].min() + pel[:, 0].max()) / 2]  # cranial half: pubis, not ischium
     pub = cran[cran[:, 1] < cran[:, 1].min() + 0.008].mean(0)
-    claim('organ_bladder', ellipsoid_mask(g, (pub[0] + 0.045, pub[1] - 0.01, 0), (0.04, 0.026, 0.026)), 2500, region=cav)
-    claim('organ_prostate', ellipsoid_mask(g, (pub[0] + 0.005, pub[1] + 0.012, 0), (0.012, 0.011, 0.012)), 800, region=g.zeros() | True)
+    px, py = float(pub[0]), float(pub[1])
+    # Pelvic canal height a little caudal to the inlet: rectum dorsal, vagina ventral.
+    canal_t = bvh_of([by['Pelvis'], by['Sacrum']] + [by[n] for n in by if n.startswith('Ca_')])
+    o = Vector((px - 0.03, spine_floor(px) - 0.02, 0))
+    roof, flo = canal_t.ray_cast(o, Vector((0, 1, 0)), 0.1)[0], canal_t.ray_cast(o, Vector((0, -1, 0)), 0.1)[0]
+    roof_y, floor_y = (roof.y if roof else o.y + 0.02), (flo.y if flo else o.y - 0.02)
+    print('pelvic canal', round(floor_y, 4), round(roof_y, 4), 'pubis', round(py, 4), flush=True)
+    rect_y, vag_y = floor_y + 0.62 * (roof_y - floor_y), floor_y + 0.24 * (roof_y - floor_y)
+    everywhere = g.zeros() | True
+    claim('organ_bladder', ell((px + 0.045, py - 0.01, 0), (0.04, 0.026, 0.026)), 2500, region=cav)
+    shared = taken.copy()
+    prostate = claim('organ_prostate', ell((px + 0.005, py + 0.012, 0), (0.012, 0.011, 0.012)), 800, region=everywhere)
     colon = [Vector((xs - 0.10, 0.40, 0.035)), Vector((xs - 0.04, 0.43, 0.035)), Vector((xs - 0.03, 0.44, -0.0)),
-             Vector((xs - 0.05, 0.445, -0.035)), Vector((xs - 0.15, 0.45, -0.035)), Vector((pub[0] + 0.06, 0.455, -0.012)),
-             Vector((pub[0] + 0.0, spine_floor(pub[0]) - 0.02, 0)), Vector((pub[0] - 0.06, spine_floor(pub[0] - 0.06) - 0.02, 0))]
-    claim('organ_colon_rectum', tube_mask(g, colon, 0.013), 3000, region=cav | (X < pub[0] + 0.02))
+             Vector((xs - 0.05, 0.445, -0.035)), Vector((xs - 0.15, 0.45, -0.035)), Vector((px + 0.06, 0.455, -0.012)),
+             Vector((px + 0.0, (rect_y + spine_floor(px) - 0.02) / 2, 0)), Vector((px - 0.06, rect_y, 0))]
+    pelvic = cav | (X < px + 0.02)
+    claim('organ_colon_rectum', tube(colon, 0.013), 3000, region=pelvic)
     # Jejunum and ileum: a serpentine tube filling the remaining ventral abdomen.
-    loops, x0, x1 = [], xs - 0.03, pub[0] + 0.07
-    for k, yy in enumerate((0.345, 0.37, 0.395)):
+    loops, x0, x1 = [], xs - 0.03, px + 0.07
+    for k, yy in enumerate((0.352, 0.374, 0.396)):
         for i in range(9):
             t = i / 8
             xx = x0 + (x1 - x0) * (t if k % 2 == 0 else 1 - t)
-            loops.append(Vector((xx, yy, (0.045 if i % 2 else -0.045) * (1 if k % 2 == 0 else -1))))
-    claim('organ_small_intestine', tube_mask(g, loops, 0.0095, n=600), 6000)
+            loops.append(Vector((xx, yy, (0.038 if i % 2 else -0.038) * (1 if k % 2 == 0 else -1))))
+    before_si = taken.copy()
+    claim('organ_small_intestine', tube(loops, 0.0095, 600), 6000)
+    # Rabbit variant: a large caecum coiled through the ventral abdomen, ending in the
+    # vermiform appendix; the small intestine gives way to it.
+    xm = (x0 + x1) / 2
+    caecum = [Vector((xm, 0.395, 0.04)), Vector((x0, 0.375, 0.045)), Vector((x0, 0.35, -0.01)), Vector((xm, 0.345, -0.045)),
+              Vector((x1, 0.355, -0.035)), Vector((x1, 0.36, 0.03)), Vector((xm + 0.02, 0.37, 0.02)), Vector((xm + 0.035, 0.385, -0.02))]
+    c_r = lambda u: 0.019 - 0.007 * min(1, u / 0.8) if u < 0.84 else 0.006
+    cm = claim('organ_caecum_rabbit', tube(caecum, c_r, 600), 6000, avoid=before_si, reserve=False)
+    claim('organ_small_intestine_rabbit', tube(loops, 0.0095, 600), 5000, avoid=before_si | dilate(cm, 1), reserve=False)
+    # Female tract (shown instead of the prostate): ovaries caudal to the kidneys, uterine
+    # horns converging on a short body dorsal to the bladder, cervix, vagina in the pelvic canal.
+    female = taken & ~prostate
+    ov_r, ov_l = Vector((kr_x - 0.045, ky + 0.002, 0.032)), Vector((kl_x - 0.045, ky + 0.002, -0.032))
+    claim('organ_ovary_R', ell(tuple(ov_r), (0.009, 0.006, 0.005)), 600, 4, region=everywhere, avoid=female, reserve=False)
+    claim('organ_ovary_L', ell(tuple(ov_l), (0.009, 0.006, 0.005)), 600, 4, region=everywhere, avoid=female, reserve=False)
+    body0, cervix = Vector((px + 0.045, py + 0.03, 0)), Vector((px + 0.008, py + 0.026, 0))
+    horn = lambda ov, sgn, end: [ov + Vector((-0.012, -0.004, 0)), Vector((ov.x - 0.05, ky - 0.03, 0.03 * sgn)),
+                                  Vector((px + 0.075, py + 0.034, 0.016 * sgn)), end]
+    horns_f = lambda G: tube_mask(G, horn(ov_r, 1, body0), 0.0055) | tube_mask(G, horn(ov_l, -1, body0), 0.0055)
+    claim('organ_uterus', lambda G: horns_f(G) | tube_mask(G, [body0, cervix], 0.0075), 2500, region=everywhere, avoid=female, reserve=False)
+    # Rabbit: duplex uterus, two separate horns each with its own cervix, no body.
+    duplex = lambda G: (tube_mask(G, horn(ov_r, 1, cervix + Vector((0, 0, 0.006))), 0.006)
+                        | tube_mask(G, horn(ov_l, -1, cervix + Vector((0, 0, -0.006))), 0.006))
+    claim('organ_uterus_rabbit', duplex, 2500, region=everywhere, avoid=female, reserve=False)
+    claim('organ_vagina', tube([cervix, Vector((px - 0.03, vag_y, 0)), Vector((px - 0.07, vag_y, 0))], 0.0065),
+          1200, region=everywhere, avoid=female, reserve=False)
 
     # ---- neck and head
-    add('organ_trachea', (trachea | bronchi) & ~heart, 2500, it=4)
-    add('organ_oesophagus', oesophagus & ~trachea & ~heart, 2000, it=4)
+    add('organ_trachea', airway_f, 2500, it=4, allowed=~heart)
+    add('organ_oesophagus', oes_f, 2000, it=4, allowed=~trachea & ~heart)
     add('organ_larynx', ellipsoid_mask(g, (0.247, 0.612, 0), (0.02, 0.014, 0.015)), 1500, it=4)
     add('organ_thyroid', ellipsoid_mask(g, (0.226, 0.578, 0.013), (0.012, 0.005, 0.004)) | ellipsoid_mask(g, (0.226, 0.578, -0.013), (0.012, 0.005, 0.004)), 800, it=4)
     sc = canal[::2]
-    add('organ_spinal_cord', tube_mask(g, sc, lambda u: 0.0045 - 0.0028 * max(0, (u - 0.8) / 0.2)), 3000, it=4)
+    add('organ_spinal_cord', lambda G: tube_mask(G, sc, lambda u: 0.0045 - 0.0028 * max(0, (u - 0.8) / 0.2)), 3000, it=4)
     return g, cav, T, A, xd, canal, dict(trachea=trachea | bronchi, oesophagus=oesophagus, cardia=cardia, aorta=aorta, cvc=cvc)
+
+
+def tongue(by, tissue, col):
+    """Tongue on the floor of the mouth (the dog's rest pose has the jaw open): from the
+    root over the hyoid to a free apex behind the incisors, between the mandibles."""
+    roof_t = bvh_of([by['MergedSkull']])
+    floor_t = bvh_of([by[n] for n in by if n == 'Jaw' or any(k in n for k in ('mylohy', 'geniohy'))])
+    side_t = bvh_of([by[n] for n in by if n == 'Jaw' or any(k in n for k in ('buccinator', 'masseter', 'pterygoid'))])
+    xs = np.arange(0.30, 0.416, 0.005)
+    floor, half = [], []
+    for x in xs:
+        o = Vector((float(x), 0.645, 0))
+        hit = floor_t.ray_cast(o, Vector((0, -1, 0)), 0.08)[0]
+        floor.append(hit.y if hit else np.nan)
+        mid = Vector((float(x), (hit.y if hit else 0.62) + 0.01, 0))
+        side = side_t.ray_cast(mid, Vector((0, 0, -1)), 0.06)[0]
+        half.append(abs(side.z) if side else np.nan)
+        assert roof_t.ray_cast(o, Vector((0, 1, 0)), 0.1)[0] is not None, 'mouth probe outside the skull'
+    floor, half = np.array(floor), np.array(half)
+    ok = ~np.isnan(floor)
+    floor = np.interp(xs, xs[ok], floor[ok])
+    ok = ~np.isnan(half)
+    half = np.interp(xs, xs[ok], half[ok])
+    half = np.convolve(np.pad(half, 2, mode='edge'), np.ones(5) / 5, mode='valid')
+    floor = np.convolve(np.pad(floor, 3, mode='edge'), np.ones(7) / 7, mode='valid')
+    g = Grid((0.29, 0.59, -0.035), (0.42, 0.67, 0.035), 0.001)
+    c = g.centres()
+    X, Y, Z = c[..., 0], c[..., 1], c[..., 2]
+    t = np.clip((X - 0.30) / (0.415 - 0.30), 0, 1)  # 0 root, 1 apex
+    fl = np.interp(X, xs, floor) + 0.001
+    th = 0.024 - 0.016 * t ** 1.5
+    root = np.sqrt(np.clip((X - 0.293) / 0.02, 0, 1)) * np.sqrt(np.clip((0.417 - X) / 0.012, 0, 1))  # rounded root and apex
+    hw = np.clip(np.interp(X, xs, half) - 0.003, 0.013, 0.018) * root + 1e-6  # spatulate apex
+    th = th * (0.6 + 0.4 * root)
+    u = (Y - fl) / th * 2 - 1
+    m = (X >= 0.293) & (X <= 0.417) & (np.abs(u) ** 3 + np.abs(Z / hw) ** 3 <= 1)
+    idx = np.argwhere(m)
+    m[tuple(idx[inside(tissue, c[m])].T)] = False
+    m = largest_component(m)
+    print('tongue voxels', int(m.sum()), flush=True)
+    return mask_to_mesh(m, g, 'organ_tongue', col, tris=3000, smooth_it=14)
 
 
 def main():
@@ -501,6 +625,7 @@ def main():
     for name, m in brain_parts(lo, hi, gb).items():
         organs.append((name, mask_to_mesh(m, gb, name, col, tris=8000 if 'cerebrum' in name else 3000, smooth_it=8)))
     print(f'brain {time.time() - t0:.1f}s', flush=True)
+    organs.append(('organ_tongue', tongue(by, tissue, col)))
     trunk(by, tissue, col, organs, t0)
     print(f'trunk {time.time() - t0:.1f}s', flush=True)
     return dog, organs
@@ -514,7 +639,9 @@ def export(organs):
         ib = struct.pack(f'<{len(idx)}I', *idx)
         xs, ys, zs = pos[0::3], pos[1::3], pos[2::3]
         lo, hi = [min(xs), min(ys), min(zs)], [max(xs), max(ys), max(zs)]
-        parts.append({'id': name, 'system': 'organ', 'anatomicalRegion': 'Head' if name.startswith('brain_') else 'Neck & trunk',
+        head = name.startswith('brain_') or name == 'organ_tongue'
+        sex = 'male' if name == 'organ_prostate' else 'female' if any(k in name for k in ('ovary', 'uterus', 'vagina')) else None
+        parts.append({'id': name, 'system': 'organ', 'anatomicalRegion': 'Head' if head else 'Neck & trunk', **({'sex': sex} if sex else {}),
                       'vertexOffset': offset, 'vertexCount': len(pos) // 3, 'indexOffset': offset + len(vb), 'indexCount': len(idx),
                       'center': [(a + b) / 2 for a, b in zip(lo, hi)], 'bounds': [lo, hi]})
         chunks += [vb, ib]

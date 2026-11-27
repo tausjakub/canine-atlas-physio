@@ -274,13 +274,13 @@ def close_jaw(parts, fraction=1.0):
         v.co = rot @ v.co
     jaw.data.update()
     for p in parts:
-        if p['system'] != 'muscle' or p.get('region') != 'Head' and p['id'] != 'Jaw':
+        if p['system'] not in ('muscle', 'organ') or p.get('region') != 'Head' and p['id'] != 'Jaw':
             continue
         for v in p['ob'].data.vertices:
             dj = tj.find_nearest(v.co)[3] or 0.0
             ds = ts.find_nearest(v.co)[3] or 0.0
             w = ds / (dj + ds + 1e-9)
-            w = max(0.0, min(1.0, (w - 0.3) / 0.4))
+            w = max(0.0, min(1.0, (w - 0.3) / 0.4)) if p['id'] != 'organ_tongue' else 1.0  # tongue rides on the jaw
             if w > 0:
                 v.co = v.co.lerp(rot @ v.co, w)
         p['ob'].data.update()
@@ -333,7 +333,7 @@ def warp(parts, segs, power=4.0, eps=0.004, trees=None):
     for p in parts:
         ob = p['ob']
         me = ob.data
-        rig = rigid_segment(p['id'], segs) if p['system'] == 'bone' else None
+        rig = rigid_segment('Jaw' if p['id'] == 'organ_tongue' else p['id'], segs) if p['system'] == 'bone' or p['id'] == 'organ_tongue' else None
         if rig is not None:
             for v in me.vertices:
                 v.co = rig.apply(v.co)
@@ -343,6 +343,8 @@ def warp(parts, segs, power=4.0, eps=0.004, trees=None):
         allowed = CANDIDATES['NeckLimb' if p.get('profile') in NECK_LIMB else p.get('region', 'Neck & trunk')]
         if p.get('profile') in ABDOMINAL:
             allowed = allowed | {'thigh'}
+        if p['system'] == 'organ':
+            allowed = allowed - {'tail'}  # pelvic organs stay in the pelvis, not on the tail curve
         cand = [s for s in segs if s.name.split('_')[0].rstrip('0123456789') in allowed
                 and (s.side is None or sd is None or s.side == sd)]
         dist = (lambda s, co: s.distance(co)) if p.get('region') == 'Head' else (lambda s, co: bone_distance(trees, s, co))

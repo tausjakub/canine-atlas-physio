@@ -20,7 +20,10 @@ export type Part = {
   anatomicalRegion?: string;
   // Parts merged from another pack (organs) read geometry from their own binary.
   binaryPath?: string;
+  // Reproductive organs: only the selected sex is shown.
+  sex?: Sex;
 };
+export type Sex = 'male' | 'female';
 export type Atlas = {
   parts: Part[];
   bytes: number;
@@ -41,6 +44,7 @@ export type SceneState = {
   rotate: boolean;
   pose?: DogPose;
   focusSelected?: boolean;
+  sex: Sex;
 };
 export const systems: { id: System; name: string; color: string }[] = [
   { id: 'bone', name: 'Skeleton', color: '#e6d5ad' },
@@ -60,6 +64,7 @@ const organTints: [RegExp, string][] = [
   [/liver|spleen|kidney/, '#8c3f45'],
   [/gallbladder/, '#6f9a52'],
   [/bladder|prostate/, '#d8c06a'],
+  [/ovary|uterus|vagina/, '#d7a6c9'],
   [/trachea|larynx/, '#b9d3dc'],
 ];
 export function partColor(p: Part) {
@@ -78,6 +83,7 @@ export const initial: SceneState = {
   reset: 0,
   rotate: false,
   pose: 'standing',
+  sex: 'male',
 };
 export function displayName(id: string) {
   if (id === 'skin') return 'Body surface';
@@ -275,6 +281,7 @@ export function noteFor(p: Part) {
 export function isShown(p: Part, s: SceneState) {
   return (
     !s.hidden.includes(p.id) &&
+    (!p.sex || p.sex === s.sex) &&
     (s.isolate
       ? p.id === s.selected
       : s.systems.includes(p.system) || p.id === s.selected)

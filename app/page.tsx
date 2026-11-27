@@ -59,6 +59,17 @@ import {
   languageStorageKey,
 } from './i18n';
 import cardsCs from './cards.cs.json';
+// Organs ship as separate packs (own binary) merged into each species atlas;
+// a missing pack just leaves the organ layer out.
+function organPack(path: string, signal: AbortSignal) {
+  return fetch(sitePath(path), { signal })
+    .then((r) => (r.ok ? (r.json() as Promise<Atlas>) : null))
+    .catch((e) => {
+      if (e.name === 'AbortError') throw e;
+      return null;
+    });
+}
+
 export default function Home() {
   const [examTarget, setExamTarget] = useState<{
     topic: string;
@@ -149,9 +160,17 @@ export default function Home() {
         if (!r.ok) throw Error('The anatomy catalogue could not be loaded.');
         return r.json();
       })
-      .then((data) =>
-        setSpeciesAtlas((all) => ({ ...all, [species]: data as Atlas })),
-      )
+      .then(async (data) => {
+        const organs = await organPack(
+          `/models/${species}/organs/catalog.json`,
+          abort.signal,
+        );
+        const a = data as Atlas;
+        setSpeciesAtlas((all) => ({
+          ...all,
+          [species]: { ...a, parts: [...a.parts, ...(organs?.parts ?? [])] },
+        }));
+      })
       .catch((e) => {
         if (e.name !== 'AbortError') setError(e.message);
       });
@@ -195,15 +214,10 @@ export default function Home() {
         return r.json();
       })
       .then(async (data) => {
-        // Organs ship as a separate pack (own binary) merged into the dog atlas.
-        const organs = await fetch(sitePath('/models/organs/catalog.json'), {
-          signal: abort.signal,
-        })
-          .then((r) => (r.ok ? (r.json() as Promise<Atlas>) : null))
-          .catch((e) => {
-            if (e.name === 'AbortError') throw e;
-            return null;
-          });
+        const organs = await organPack(
+          '/models/organs/catalog.json',
+          abort.signal,
+        );
         const dog = data as Atlas;
         setAtlas(
           addLigaments({
@@ -266,6 +280,7 @@ export default function Home() {
       isolate: false,
       hidden: s.hidden.filter((h) => h !== id),
       rotate: false,
+      sex: view?.parts.find((p) => p.id === id)?.sex ?? s.sex,
     }));
     setMobile(false);
   };
@@ -530,6 +545,31 @@ export default function Home() {
               </button>
             )}
           </div>
+          {state.systems.includes('organ') &&
+            view?.parts.some((p) => p.sex) && (
+              <div
+                className="presets"
+                role="group"
+                aria-label={t('Reproductive organs')}
+              >
+                {(['male', 'female'] as const).map((sex) => (
+                  <button
+                    key={sex}
+                    aria-pressed={state.sex === sex}
+                    onClick={() =>
+                      setState((s) => ({
+                        ...s,
+                        sex,
+                        selected: null,
+                        isolate: false,
+                      }))
+                    }
+                  >
+                    {t(sex === 'male' ? 'Male organs' : 'Female organs')}
+                  </button>
+                ))}
+              </div>
+            )}
           <div className="layer-list">
             {presentSystems.map((sys) => (
               <button
@@ -541,7 +581,10 @@ export default function Home() {
                 <span className="layer-dot" style={{ background: sys.color }} />
                 <span>{t(sys.name)}</span>
                 <small>
-                  {view?.parts.filter((p) => p.system === sys.id).length ?? '—'}
+                  {view?.parts.filter(
+                    (p) =>
+                      p.system === sys.id && (!p.sex || p.sex === state.sex),
+                  ).length ?? '—'}
                 </small>
                 <span
                   className={`switch ${state.systems.includes(sys.id) ? 'on' : ''}`}
@@ -1246,6 +1289,11 @@ export default function Home() {
         <p>
           {t(
             'Brain: Cortical Atlas of the Canine Brain by Philippa J. Johnson and Erica F. Barry (2019, Cornell University, CC0), a population MRI template meshed and scaled to fit this skull. All other organs are schematic shapes authored for this atlas and placed at textbook positions inside the body cavities; they are not segmented from imaging and are not to exact size.',
+          )}
+        </p>
+        <p>
+          {t(
+            'The cat and rabbit organ layers are the dog layer retargeted to each species, with a rabbit caecum and duplex uterus added; their placement follows the dog layout. Male and female reproductive organs are shown one at a time.',
           )}
         </p>
         <a

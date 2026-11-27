@@ -33,8 +33,81 @@ for m in ('common', 'skeleton', 'skull', 'limbs', 'muscles', 'species_' + specie
 spec = importlib.import_module('species_' + species)
 S = spec.S
 
+
+
+def load_organs(species, col):
+    """The dog organ layer (scripts/blender/organs.py), retargeted with the dog.
+    Parts named *_rabbit replace their dog counterpart in the rabbit only."""
+    src = os.path.join(ROOT, 'work', 'organs')
+    if not os.path.exists(os.path.join(src, 'parts.json')):
+        print('no organ layer: run scripts/blender/organs.py first', flush=True)
+        return []
+    with open(os.path.join(src, 'parts.json'), encoding='utf-8') as f:
+        built = json.load(f)['parts']
+    with open(os.path.join(src, 'geometry.bin'), 'rb') as f:
+        blob = f.read()
+    ids = {p['id'] for p in built}
+    out = []
+    for p in built:
+        pid = p['id']
+        if pid.endswith('_rabbit'):
+            if species != 'rabbit':
+                continue
+            pid = pid[:-len('_rabbit')]
+        elif species == 'rabbit' and pid + '_rabbit' in ids:
+            continue
+        n = p['vertexCount']
+        pos = struct.unpack_from(f'<{n * 3}f', blob, p['vertexOffset'])
+        idx = struct.unpack_from(f'<{p["indexCount"]}I', blob, p['indexOffset'])
+        me = bpy.data.meshes.new(pid)
+        me.from_pydata([pos[i:i + 3] for i in range(0, len(pos), 3)], [], [idx[i:i + 3] for i in range(0, len(idx), 3)])
+        ob = bpy.data.objects.new(pid, me)
+        col.objects.link(ob)
+        out.append({'id': pid, 'system': 'organ', 'ob': ob, 'meta': {'sex': p['sex']} if 'sex' in p else None})
+    return out
+
+
+def fit_tongue(parts, organs):
+    """Species edits reshape the mandible after the warp; keep the tongue above its
+    ventral border and within its length so the root does not hang out of the jaw."""
+    jaw = next(p['ob'] for p in parts if p['id'] == 'Jaw')
+    tongue = next((p['ob'] for p in organs if p['id'] == 'organ_tongue'), None)
+    if tongue is None:
+        return
+    jv = [v.co for v in jaw.data.vertices]
+    lo_x, hi_x = min(v.x for v in jv), max(v.x for v in jv)
+    for v in tongue.data.vertices:
+        v.co.x = min(max(v.co.x, lo_x + 0.004), hi_x - 0.008)
+        near = [w.y for w in jv if abs(w.x - v.co.x) < 0.003]
+        if near and v.co.y < min(near) + 0.004:
+            v.co.y = min(near) + 0.004
+    tongue.data.update()
+
+
+def pack(items, out_dir):
+    """Write (id, system, region, ob, meta) items as geometry.bin; returns the catalog."""
+    os.makedirs(out_dir, exist_ok=True)
+    chunks, catalog, offset = [], [], 0
+    for pid, system, region, ob, meta in items:
+        pos, idx = tri_arrays(ob)
+        vb = struct.pack(f'<{len(pos)}f', *pos)
+        ib = struct.pack(f'<{len(idx)}I', *idx)
+        xs, ys, zs = pos[0::3], pos[1::3], pos[2::3]
+        lo, hi = [min(xs), min(ys), min(zs)], [max(xs), max(ys), max(zs)]
+        catalog.append({'id': pid, 'system': system, 'anatomicalRegion': region, 'vertexOffset': offset,
+                        'vertexCount': len(pos) // 3, 'indexOffset': offset + len(vb), 'indexCount': len(idx),
+                        'center': [(a + b) / 2 for a, b in zip(lo, hi)], 'bounds': [lo, hi], 'meta': meta})
+        chunks += [vb, ib]
+        offset += len(vb) + len(ib)
+    with open(os.path.join(out_dir, 'geometry.bin'), 'wb') as f:
+        for c in chunks:
+            f.write(c)
+    return catalog, offset
+
+
 clear_scene()
 col = bpy.context.scene.collection
+organs = []
 t0 = time.time()
 PROCEDURAL = '--procedural' in argv
 if not PROCEDURAL:
@@ -56,10 +129,11 @@ if not PROCEDURAL:
     tgt = retarget.target_landmarks(S)
     segs = retarget.segments(src, tgt, S)
     trees = retarget.bone_trees(dog, segs)
-    for p in dog:
+    organs = load_organs(species, col)
+    for p in dog + organs:
         p['region'] = retarget.region_of(p, segs, trees)
-    print(f'jaw closed by {retarget.close_jaw(dog, S['retarget'].get('jaw_close', 1.0)):.0f} deg', flush=True)
-    retarget.warp(dog, segs, trees=trees)
+    print(f'jaw closed by {retarget.close_jaw(dog + organs, S['retarget'].get('jaw_close', 1.0)):.0f} deg', flush=True)
+    retarget.warp(dog + organs, segs, trees=trees)
     print(f'retarget: {len(dog)} parts in {time.time() - t0:.1f}s', flush=True)
     dog = species_edits.edit_bones(dog, S)
     dog = species_edits.label_muscles(dog, S)
@@ -67,12 +141,13 @@ if not PROCEDURAL:
     dog = species_edits.split_muscles(dog, S)
     dog = species_edits.clip_tail(dog, S)
     import species_additions as _sa
-    _sa.reshape_head(dog, S)
+    _sa.reshape_head(dog + organs, S)
     import species_additions
     importlib.reload(species_additions)
     dog = species_additions.add_muscles(dog, S, col)
     polish.polish(dog, S)
     species_additions.add_incisors(dog, S, col)
+    fit_tongue(dog, organs)
     print(f'polish: {time.time() - t0:.1f}s', flush=True)
     parts = [(p['id'], p['system'], p['region'], p['ob'], p.get('meta')) for p in dog]
     F = {'L': {'joints': {k: tgt['L'][k] for k in ('shoulder', 'elbow', 'carpus', 'hip', 'stifle', 'hock')}}}
@@ -186,21 +261,12 @@ if '--render' in argv:
         render('preview' + ('-' + mode if mode else ''), view, hide)
 
 # Export geometry.
-chunks, catalog, offset = [], [], 0
-for pid, system, region, ob, meta in parts:
-    pos, idx = tri_arrays(ob)
-    vb = struct.pack(f'<{len(pos)}f', *pos)
-    ib = struct.pack(f'<{len(idx)}I', *idx)
-    xs, ys, zs = pos[0::3], pos[1::3], pos[2::3]
-    lo, hi = [min(xs), min(ys), min(zs)], [max(xs), max(ys), max(zs)]
-    catalog.append({'id': pid, 'system': system, 'anatomicalRegion': region, 'vertexOffset': offset,
-                    'vertexCount': len(pos) // 3, 'indexOffset': offset + len(vb), 'indexCount': len(idx),
-                    'center': [(a + b) / 2 for a, b in zip(lo, hi)], 'bounds': [lo, hi], 'meta': meta})
-    chunks += [vb, ib]
-    offset += len(vb) + len(ib)
-with open(os.path.join(OUT, 'geometry.bin'), 'wb') as f:
-    for c in chunks:
-        f.write(c)
+catalog, offset = pack(parts, OUT)
+if organs:
+    oc, ob_ = pack([(p['id'], 'organ', p['region'], p['ob'], p['meta']) for p in organs], os.path.join(OUT, 'organs'))
+    with open(os.path.join(OUT, 'organs', 'parts.json'), 'w', encoding='utf-8') as f:
+        json.dump({'species': species, 'bytes': ob_, 'parts': oc}, f)
+    print(f'organs: {len(oc)} parts, {ob_ / 1e6:.2f} MB', flush=True)
 J = F['L']['joints']
 pose = {'joints': {k: list(J[k]) for k in ('shoulder', 'elbow', 'carpus', 'hip', 'stifle', 'hock')},
         'foretoes': list(J['foretoes']), 'hindtoes': list(J['hindtoes']),
