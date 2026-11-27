@@ -167,6 +167,10 @@ if not PROCEDURAL:
     dog = species_additions.add_muscles(dog, S, col)
     polish.polish(dog, S)
     species_additions.add_incisors(dog, S, col)
+    import real_skulls
+    importlib.reload(real_skulls)
+    if real_skulls.replace_skull(dog, S):
+        real_skulls.fit_brain(organs, next(p['ob'] for p in dog if p['id'] == 'MergedSkull'))
     fit_tongue(dog, organs)
     print(f'polish: {time.time() - t0:.1f}s', flush=True)
     parts = [(p['id'], p['system'], p['region'], p['ob'], p.get('meta')) for p in dog]

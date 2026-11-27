@@ -242,6 +242,29 @@ function solvePoses(J, rabbit) {
 }
 
 const only = process.argv[2];
+// Real skull and mandible scans (CC BY 4.0) replace the retargeted dog skull
+// (scripts/blender/real_skulls.py).
+const SKULL_CREDITS = {
+  cat: {
+    title:
+      'Felis catus 603, Mammal Research Institute PAS, Open Forest Data (CC BY 4.0)',
+    url: 'https://doi.org/10.48370/OFD/6WP439',
+  },
+  rabbit: {
+    title:
+      'Oryctolagus cuniculus MZB 97-0280, Museu de Ciències Naturals de Barcelona (CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/6640c63cf58341758e99255cec1a8976',
+  },
+  ferret: {
+    title:
+      'Mustela putorius (European polecat, wild form of the ferret) 27896, Mammal Research Institute PAS, Open Forest Data (CC BY 4.0)',
+    url: 'https://doi.org/10.48370/OFD/RWXIPA',
+  },
+  guinea_pig: {
+    title: 'Cavia porcellus 122.17, RISD Nature Lab (CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/385b2c21ad1b47b3a4f50eb875a917ef',
+  },
+};
 // Ferret and guinea pig are built on the cat and rabbit templates.
 const info = {
   cat: ['cat', 'Felis catus', 'kočka domácí', 'domestic cat'],
@@ -278,6 +301,12 @@ for (const species of Object.keys(info)) {
       };
     }
     const study = studyFor(p.id, p.system, p.anatomicalRegion, species);
+    const scan = SKULL_CREDITS[species];
+    if (scan && (p.id === 'MergedSkull' || p.id === 'Jaw'))
+      study.difference = pair(
+        `${study.difference.cs} Tvar této kosti pochází z 3D skenu skutečného exempláře: ${scan.title}.`,
+        `${study.difference.en} This bone's shape comes from a 3D scan of a real specimen: ${scan.title}.`,
+      );
     return { ...p, label: boneLabel(p.id), action: study.connections, study };
   });
   const J = raw.pose;
@@ -291,7 +320,10 @@ for (const species of Object.keys(info)) {
     bytes: raw.bytes,
     binaryPath: `/models/${species}/anatomy.bin`,
     poseConfig,
-    sources: sources[species],
+    sources: [
+      ...sources[species],
+      ...(SKULL_CREDITS[species] ? [SKULL_CREDITS[species]] : []),
+    ],
     scientificName,
     scope: pair(
       `3D model vytvořený v Blenderu přenesením profesionálního psího modelu MusculoskeletalDog (MIT) na proporce druhu ${nameCs}${base !== species ? ` (přes šablonu: ${base === 'cat' ? 'kočka' : 'králík'})` : ''}: ${parts.length - muscles} kostních částí a ${muscles} samostatných svalů (obě strany) s druhovými názvy, vrstvami a doplněnými svaly, které pes nemá. Jde o studijní pomůcku, ne o CT, sken ani odborně ověřenou disekci; tvary kostí a svalů zůstávají částečně psí. Chybí cévy, nervy, vazy a orgány.`,
@@ -304,7 +336,10 @@ for (const species of Object.keys(info)) {
       'Derived from MusculoskeletalDog, © 2025 Vittorio La Barbera, MIT licence (models/LICENSE-MODEL.txt), retargeted by scripts/blender. Anatomical references inform names, layers and attachments.',
     ),
     attribution:
-      'MusculoskeletalDog by Vittorio La Barbera (MIT), https://github.com/vittorione94/MusculoskeletalDog',
+      'MusculoskeletalDog by Vittorio La Barbera (MIT), https://github.com/vittorione94/MusculoskeletalDog' +
+      (SKULL_CREDITS[species]
+        ? `; skull and mandible: ${SKULL_CREDITS[species].title}, ${SKULL_CREDITS[species].url}`
+        : ''),
   };
   const dir = new URL(`public/models/${species}/`, root);
   fs.mkdirSync(dir, { recursive: true });

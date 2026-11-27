@@ -2200,6 +2200,11 @@ export default function Home() {
             'The ferret and guinea pig atlases are previews built from the cat and rabbit templates on the same dog model: the ferret gains thoracic vertebrae and ribs (15 pairs), the guinea pig loses vertebrae and digits (four front, three hind toes) and its tail. Their notes are shorter and their shapes approximate; check them against your course materials.',
           )}
         </p>
+        <p>
+          {t(
+            'The skull and mandible of the cat, rabbit, ferret (European polecat, its wild form) and guinea pig come from 3D scans of real museum specimens (CC BY 4.0); the Sources list of each species names the specimen.',
+          )}
+        </p>
         <a
           href="https://doi.org/10.7298/4t8z-aw34"
           target="_blank"

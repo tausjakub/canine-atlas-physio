@@ -19,6 +19,9 @@ S = derive(
     neck=0.8,
     tail=0.3,
     stance={'humerus': -125, 'radius': -95, 'manus': -40, 'femur': -50, 'tibia': -150, 'pes': -15, 'toes': -6, 'arch': 0.008, 'head_pitch': -8},
+    # The scan's mandible is articulated and touches the skull: split along the occlusal line (scan mm, side view).
+    skull_scan={'skull': 'guinea_pig/skull.glb', 'jaw': None, 'up': 'z',
+                'jaw_cut': [(-40, 4.5), (-28, 5.0), (-16, 4.0), (0, 2.5), (12, 2.5), (14, 4.5), (25.5, 4.5), (26.5, 0.5), (40, 0.5)]},
     vertebrae=(7, 13, 6, 4, 6),
     pegs=False,
     remove_digits={'fore': [1], 'hind': [5]},

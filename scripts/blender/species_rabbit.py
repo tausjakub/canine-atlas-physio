@@ -90,6 +90,8 @@ S = {
     },
     # Standing pose from limb segment angles (species_derive.apply_stance).
     'stance': {'humerus': -130, 'radius': -98, 'manus': -42, 'femur': -45, 'tibia': -158, 'pes': -10, 'toes': -6, 'arch': 0.022, 'head_pitch': -12},
+    # Real skull and mandible (CC BY 4.0), see scripts/blender/real_skulls.py.
+    'skull_scan': {'skull': 'rabbit/skull.glb', 'jaw': 'rabbit/jaw.glb', 'up': 'z'},
     'skull': build_skull,
     'limbs': build_limbs,
 }
