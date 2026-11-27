@@ -25,7 +25,7 @@ async function networkFirst(request) {
   const cache = await caches.open(CACHE);
   try {
     const response = await fetch(request);
-    if (response.ok) cache.put(request, response.clone());
+    if (response.ok) void cache.put(request, response.clone());
     return response;
   } catch (error) {
     const hit =
@@ -41,7 +41,7 @@ async function cacheFirst(request) {
   const hit = await cache.match(request);
   if (hit) return hit;
   const response = await fetch(request);
-  if (response.ok) cache.put(request, response.clone());
+  if (response.ok) void cache.put(request, response.clone());
   return response;
 }
 
