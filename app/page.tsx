@@ -19,7 +19,7 @@ import {
   Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import AnatomyScene from './scene';
+import AnatomyScene, { type SceneTools } from './scene';
 import PoseControls from './pose-controls';
 import { SpeciesPicker, type Species } from './species-atlas';
 import ThemePicker from './theme-picker';
@@ -330,6 +330,31 @@ export default function Home() {
       rotate: false,
       reset: s.reset + 1,
     }));
+  const sceneTools = useRef<SceneTools | null>(null);
+  const [measureText, setMeasureText] = useState('');
+  // Printable sheet: the current view with numbered structures and a key.
+  const printSheet = () => {
+    const snap = sceneTools.current?.snapshot();
+    if (!snap || !view) return;
+    const name = (id: string) => {
+      const part = view.parts.find((p) => p.id === id);
+      return part ? structureName(part, language) : id;
+    };
+    const esc = (s: string) =>
+      s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+    const marks = snap.marks
+      .map(
+        (m, i) =>
+          `<b style="left:${(m.x * 100).toFixed(2)}%;top:${(m.y * 100).toFixed(2)}%">${i + 1}</b>`,
+      )
+      .join('');
+    const key = snap.marks.map((m) => `<li>${esc(name(m.id))}</li>`).join('');
+    const html = `<!doctype html><meta charset="utf-8"><title>${esc(t('Labelled sheet'))}</title><style>body{font:14px sans-serif;margin:24px;color:#111}figure{position:relative;margin:0;background:#1b2530}img{width:100%;display:block}b{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#ffcf4a;color:#111;font-size:12px;display:grid;place-items:center;border:2px solid #111}ol{columns:2}@media print{.no{display:none}}</style><p class="no"><button onclick="print()">${esc(t('Print'))}</button> <button onclick="document.querySelector('ol').hidden=!document.querySelector('ol').hidden">${esc(t('Hide key'))}</button></p><figure><img src="${snap.image}" alt="">${marks}</figure><ol>${key}</ol><p><small>Canine Atlas · ${esc(t('Educational reference'))}</small></p>`;
+    window.open(
+      URL.createObjectURL(new Blob([html], { type: 'text/html' })),
+      '_blank',
+    );
+  };
   const reset = () => {
     setPeel(0);
     setState((s) => ({ ...initial, reset: s.reset + 1 }));
@@ -594,6 +619,22 @@ export default function Home() {
                 {t('Clinical anatomy')}
               </button>
             )}
+            {presentSystems.some((sys) => sys.id === 'surface') &&
+              presentSystems.some((sys) => sys.id === 'organ') && (
+                <button
+                  onClick={() =>
+                    setState((s) => ({
+                      ...s,
+                      systems: ['surface', 'organ', 'landmark'],
+                      selected: null,
+                      isolate: false,
+                      hidden: [],
+                    }))
+                  }
+                >
+                  {t('Surface projection')}
+                </button>
+              )}
           </div>
           {state.systems.includes('organ') &&
             view?.parts.some((p) => p.sex) && (
@@ -643,6 +684,69 @@ export default function Home() {
                 </span>
               </button>
             ))}
+          </div>
+          <div className="section-title">
+            <h2>{t('Viewer tools')}</h2>
+          </div>
+          <div className="viewer-tools">
+            <label>
+              {t('Section plane')}
+              <select
+                value={state.section?.axis ?? ''}
+                onChange={(e) => {
+                  const axis = e.target.value as 'x' | 'y' | 'z' | '';
+                  setState((s) => ({
+                    ...s,
+                    section: axis ? { axis, at: s.section?.at ?? 0.5 } : null,
+                  }));
+                }}
+              >
+                <option value="">{t('Off')}</option>
+                <option value="z">{t('Sagittal')}</option>
+                <option value="x">{t('Transverse')}</option>
+                <option value="y">{t('Dorsal plane')}</option>
+              </select>
+            </label>
+            {state.section && (
+              <input
+                aria-label={t('Section position')}
+                type="range"
+                min="0.02"
+                max="0.98"
+                step="0.01"
+                value={state.section.at}
+                onChange={(e) => {
+                  const at = Number(e.target.value);
+                  setState((s) => ({
+                    ...s,
+                    section: s.section && { ...s.section, at },
+                  }));
+                }}
+              />
+            )}
+            <div className="presets">
+              <button
+                aria-pressed={!!state.xray}
+                onClick={() => setState((s) => ({ ...s, xray: !s.xray }))}
+              >
+                {t('X-ray look')}
+              </button>
+              <button
+                aria-pressed={!!state.measure}
+                onClick={() => setState((s) => ({ ...s, measure: !s.measure }))}
+              >
+                {t('Measure')}
+              </button>
+              <button onClick={printSheet}>{t('Labelled sheet')}</button>
+            </div>
+            {state.measure && (
+              <p className="measure-readout" aria-live="polite">
+                {measureText ||
+                  t(
+                    'Click two points for a distance or three for an angle. Model scale, not a patient measurement.',
+                  )}
+              </p>
+            )}
           </div>
           <label className="opacity-label">
             {t('Muscle opacity')}{' '}
@@ -798,6 +902,10 @@ export default function Home() {
                 atlas={view}
                 state={state}
                 onSelect={choose}
+                onMeasure={setMeasureText}
+                onTools={(x) => {
+                  sceneTools.current = x;
+                }}
               />
             )}
           {error && (

@@ -51,6 +51,10 @@ export type SceneState = {
   pose?: DogPose;
   focusSelected?: boolean;
   sex: Sex;
+  // Viewer tools: a cutting plane (axis, position 0-1 along the model), X-ray look, measuring.
+  section?: { axis: 'x' | 'y' | 'z'; at: number } | null;
+  xray?: boolean;
+  measure?: boolean;
 };
 export const systems: { id: System; name: string; color: string }[] = [
   { id: 'bone', name: 'Skeleton', color: '#e6d5ad' },

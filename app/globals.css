@@ -1559,6 +1559,26 @@ kbd {
   font-size: 0.75rem;
   color: var(--tone-c0d0dc, #c0d0dc);
 }
+.viewer-tools {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 0.8rem;
+}
+.viewer-tools label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.viewer-tools .presets {
+  margin-bottom: 0;
+}
+.measure-readout {
+  margin: 0;
+  color: var(--tone-ffcf4a, #ffcf4a);
+  line-height: 1.5;
+}
 .presets button[aria-pressed='true'] {
   background: var(--tone-234e43, #234e43);
   color: var(--tone-a2edda, #a2edda);
