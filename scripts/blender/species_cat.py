@@ -86,6 +86,8 @@ S = {
     # Standing pose from limb segment angles (species_derive.apply_stance).
     'stance': {'humerus': -115, 'radius': -90, 'manus': -70, 'femur': -62, 'tibia': -135, 'pes': -77, 'toes': -15, 'arch': 0.008, 'head_pitch': -5},
     # Real skull and mandible (CC BY 4.0), see scripts/blender/real_skulls.py.
+    # Complete skeleton sculpt (westerly, CC BY): girdles, long bones, vertebrae, ribs.
+    'skeleton_scan': {'file': 'cat/skeleton.glb'},
     'skull_scan': {'skull': 'cat/skull.glb', 'jaw': None, 'up': 'z', 'drop_caudal': True},  # CT, mandible closed, atlas removed
     'skull': build_skull,
     'limbs': build_limbs,

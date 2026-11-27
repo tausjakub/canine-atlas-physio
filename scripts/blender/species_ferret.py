@@ -19,6 +19,7 @@ S = derive(
     tail=0.75,
     stance={'humerus': -115, 'radius': -92, 'manus': -60, 'femur': -65, 'tibia': -125, 'pes': -55, 'toes': -10, 'arch': 0.015, 'head_pitch': 0},
     skull_scan={'skull': 'ferret/skull.glb', 'jaw': None, 'up': 'y'},
+    skeleton_scan=None,  # the cat's skeleton model is not inherited
     vertebrae=(7, 15, 5, 3, 18),
     relabel_lumbar=2,
     retarget={

@@ -173,7 +173,17 @@ function solvePoses(J, rabbit) {
   const ground = Math.min(toe[1], hindtoe[1]);
   const out = {};
   for (const pose of ['sitting', 'lying']) {
-    const trunk = pose === 'sitting' ? (rabbit ? 0.45 : 0.62) : 0;
+    // Sitting tips the trunk about the shoulder, but never so far that the
+    // hip drops below about 30% of its standing height: long-bodied, short-
+    // legged species (cat, ferret) would otherwise sit through the floor and
+    // the leg solver would throw the hind limbs backwards.
+    const hipLift = (a) =>
+      shoulder[1] +
+      (hip[0] - shoulder[0]) * Math.sin(a) +
+      (hip[1] - shoulder[1]) * Math.cos(a);
+    let trunk = pose === 'sitting' ? (rabbit ? 0.45 : 0.62) : 0;
+    while (trunk > 0 && hipLift(trunk) < ground + 0.3 * (hip[1] - ground))
+      trunk -= 0.01;
     const lower = pose === 'lying' ? J.lower : 0;
     const transform = (p) => [
       shoulder[0] +
@@ -265,6 +275,15 @@ const SKULL_CREDITS = {
     url: 'https://sketchfab.com/3d-models/385b2c21ad1b47b3a4f50eb875a917ef',
   },
 };
+// Complete skeleton models whose bones replace the main retargeted bones
+// (scripts/blender/real_bones.py marks them with meta.scan).
+const SKELETON_CREDITS = {
+  cat: {
+    title:
+      'Feline Skeleton Dec by westerly, an anatomical sculpt of a cat skeleton (Sketchfab, CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/a5d0bb8f55dc4f49b103cd20d65e0b17',
+  },
+};
 // Ferret and guinea pig are built on the cat and rabbit templates.
 const info = {
   cat: ['cat', 'Felis catus', 'kočka domácí', 'domestic cat'],
@@ -307,6 +326,12 @@ for (const species of Object.keys(info)) {
         `${study.difference.cs} Tvar této kosti pochází z 3D skenu skutečného exempláře: ${scan.title}.`,
         `${study.difference.en} This bone's shape comes from a 3D scan of a real specimen: ${scan.title}.`,
       );
+    const skeleton = SKELETON_CREDITS[species];
+    if (skeleton && meta?.scan === 'skeleton')
+      study.difference = pair(
+        `${study.difference.cs} Tvar této kosti pochází z modelu celé kostry: ${skeleton.title}; poloha a velikost odpovídají atlasu.`,
+        `${study.difference.en} This bone's shape comes from a complete skeleton model: ${skeleton.title}; its position and size follow the atlas.`,
+      );
     return { ...p, label: boneLabel(p.id), action: study.connections, study };
   });
   const J = raw.pose;
@@ -323,6 +348,7 @@ for (const species of Object.keys(info)) {
     sources: [
       ...sources[species],
       ...(SKULL_CREDITS[species] ? [SKULL_CREDITS[species]] : []),
+      ...(SKELETON_CREDITS[species] ? [SKELETON_CREDITS[species]] : []),
     ],
     scientificName,
     scope: pair(
@@ -339,6 +365,9 @@ for (const species of Object.keys(info)) {
       'MusculoskeletalDog by Vittorio La Barbera (MIT), https://github.com/vittorione94/MusculoskeletalDog' +
       (SKULL_CREDITS[species]
         ? `; skull and mandible: ${SKULL_CREDITS[species].title}, ${SKULL_CREDITS[species].url}`
+        : '') +
+      (SKELETON_CREDITS[species]
+        ? `; girdle, long bones, vertebrae and ribs: ${SKELETON_CREDITS[species].title}, ${SKELETON_CREDITS[species].url}`
         : ''),
   };
   const dir = new URL(`public/models/${species}/`, root);

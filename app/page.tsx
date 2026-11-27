@@ -2222,7 +2222,7 @@ export default function Home() {
         </p>
         <p>
           {t(
-            'The skull and mandible of the cat, rabbit, ferret (European polecat, its wild form) and guinea pig come from 3D scans of real museum specimens (CC BY 4.0); the Sources list of each species names the specimen.',
+            'The skull and mandible of the cat, rabbit, ferret (European polecat, its wild form) and guinea pig come from 3D scans of real specimens (CC BY 4.0); the girdles, long bones, vertebrae and cranial ribs of the cat come from a complete cat skeleton model (CC BY 4.0). The Sources list of each species names them.',
           )}
         </p>
         <a

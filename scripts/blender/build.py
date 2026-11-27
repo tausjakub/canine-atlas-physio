@@ -169,6 +169,9 @@ if not PROCEDURAL:
     species_additions.add_incisors(dog, S, col)
     import real_skulls
     importlib.reload(real_skulls)
+    import real_bones
+    importlib.reload(real_bones)
+    real_bones.replace_bones(dog, S)
     old_head = real_skulls.replace_skull(dog, S)
     if old_head:
         brain_map = real_skulls.fit_brain(organs, next(p['ob'] for p in dog if p['id'] == 'MergedSkull'))
