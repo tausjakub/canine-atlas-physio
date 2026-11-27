@@ -11,6 +11,7 @@ Last reviewed: 2026-11-27. This is an engineering record, not legal advice.
 | Dog brain (5 organ pieces) | `public/models/organs/` (`brain_*`) | Cortical Atlas of the Canine Brain, Johnson PJ & Barry EF (2019), Cornell eCommons, [doi:10.7298/4t8z-aw34](https://doi.org/10.7298/4t8z-aw34), **CC0 1.0** (authors request citation). Meshed from the population template masks and scaled into the dog skull by `scripts/blender/organs.py`; the raw download stays in `private-assets/organs/` | demo + private | Cleared (CC0); cited in the Sources dialog and each card |
 | Other dog organs (29 pieces, incl. tongue and male/female reproductive organs) | `public/models/organs/` (`organ_*`) | Original schematic shapes authored in `scripts/blender/organs.py`, placed in cavities measured on the dog meshes (lung and liver outlines follow the dog ribcage, abdominal wall and diaphragm) | demo + private | Own work; outlines derived from the dog meshes, so they share the geometry provenance item below |
 | Cat and rabbit organs (34 and 35 pieces) | `public/models/cat/organs/`, `public/models/rabbit/organs/` | The dog organ layer above retargeted by `scripts/blender/build.py`; the rabbit caecum and duplex uterus are authored in `scripts/blender/organs.py` | demo + private | Same status as the dog organs (CC0 brain, own-work schematic organs) |
+| Clinical-anatomy layer (75 pieces per species: landmarks, rib numbers, auscultation areas, lymph nodes, vessels, nerves, cord segment regions) | `public/models/clinical/`, `public/models/cat/clinical/`, `public/models/rabbit/clinical/` | Original schematic markers and tubes authored in `scripts/blender/clinical.py`, placed from the dog bones, muscles and skin; retargeted to the cat and rabbit by `scripts/blender/build.py` | demo + private | Own work; positions derived from the dog meshes, so they share the geometry provenance item below |
 | 17 ligament guides | `app/ligaments.ts` | Original, generated in code from source bone vertices | demo + private | Cleared (own work) |
 | Skeleton photo | `public/study/dog-skeleton-museum.jpg` | Museum of Veterinary Anatomy FMVZ USP / Wagner Souza e Silva; edited by Rodrigo Tetsuo Argenton. CC BY-SA 4.0 | demo + private | Attribution shown in-app; see ShareAlike note |
 | Knee photo | `public/study/dog-knee-museum.jpg` | Museum of Veterinary Anatomy FMVZ USP / Wagner Souza e Silva. CC BY-SA 4.0 | demo + private | Attribution shown in-app; see ShareAlike note |
@@ -40,7 +41,7 @@ Before charging for access:
    allowed, use cleared illustrations for the demo and replace the meshes.
 
 Affected assets: `public/models/anatomy.bin`, `public/models/cat/anatomy.bin`,
-`public/models/rabbit/anatomy.bin`, `public/models/organs/anatomy.bin`, `public/models/cat/organs/anatomy.bin`, `public/models/rabbit/organs/anatomy.bin` (organ outlines). Replacing or clearing the dog meshes also
+`public/models/rabbit/anatomy.bin`, `public/models/organs/anatomy.bin`, `public/models/cat/organs/anatomy.bin`, `public/models/rabbit/organs/anatomy.bin` (organ outlines), and the three `clinical/anatomy.bin` packs (marker positions). Replacing or clearing the dog meshes also
 means regenerating the cat and rabbit meshes with `scripts/blender/` and
 `scripts/build-species-models.mjs`; the recorded answer must cover all three.
 

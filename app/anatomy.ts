@@ -5,7 +5,11 @@ export type System =
   | 'connective'
   | 'surface'
   | 'ligament'
-  | 'organ';
+  | 'organ'
+  | 'landmark'
+  | 'lymph'
+  | 'vessel'
+  | 'nerve';
 export type Part = {
   id: string;
   system: System;
@@ -22,6 +26,8 @@ export type Part = {
   binaryPath?: string;
   // Reproductive organs: only the selected sex is shown.
   sex?: Sex;
+  // Text anchored in 3D (rib numbers).
+  labels?: { text: string; at: number[] }[];
 };
 export type Sex = 'male' | 'female';
 export type Atlas = {
@@ -45,6 +51,10 @@ export type SceneState = {
   pose?: DogPose;
   focusSelected?: boolean;
   sex: Sex;
+  // Viewer tools: a cutting plane (axis, position 0-1 along the model), X-ray look, measuring.
+  section?: { axis: 'x' | 'y' | 'z'; at: number } | null;
+  xray?: boolean;
+  measure?: boolean;
 };
 export const systems: { id: System; name: string; color: string }[] = [
   { id: 'bone', name: 'Skeleton', color: '#e6d5ad' },
@@ -53,6 +63,10 @@ export const systems: { id: System; name: string; color: string }[] = [
   { id: 'connective', name: 'Connective tissue', color: '#abc8d6' },
   { id: 'surface', name: 'Body surface', color: '#758d9c' },
   { id: 'organ', name: 'Organs', color: '#c98fb4' },
+  { id: 'landmark', name: 'Landmarks', color: '#f2c14e' },
+  { id: 'lymph', name: 'Lymph nodes', color: '#9fd88a' },
+  { id: 'vessel', name: 'Vessels', color: '#d9475a' },
+  { id: 'nerve', name: 'Nerves', color: '#f5e27a' },
 ];
 // Organs share one layer but are tinted by organ group so neighbours read apart.
 const organTints: [RegExp, string][] = [

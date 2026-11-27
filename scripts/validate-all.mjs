@@ -16,6 +16,7 @@ const checks = [
   ['validate-practice.mjs', []],
   ['validate-poses.mjs', []],
   ['validate-species.mjs', []],
+  ['validate-layers.mjs', []],
   ['validate-personal-plan.mjs', []],
   ['validate-exam-day.mjs', []],
   ['validate-dorn-3d.mjs', []],

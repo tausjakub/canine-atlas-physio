@@ -3,13 +3,15 @@
 //   blender -b --factory-startup -P scripts/blender/organs.py          (dog)
 //   blender -b --factory-startup -P scripts/blender/build.py -- cat    (retargets it)
 //   blender -b --factory-startup -P scripts/blender/build.py -- rabbit
-//   node scripts/build-organ-models.mjs [dog|cat|rabbit]
+//   blender -b --factory-startup -P scripts/blender/clinical.py        (dog clinical layer)
+//   node scripts/build-organ-models.mjs [dog|cat|rabbit|dog-clinical|cat-clinical|rabbit-clinical]
 //
 // The brain comes from the CC0 canine MRI atlas (Johnson & Barry 2019); all
 // other organs are schematic shapes authored in scripts/blender/organs.py.
 // The app merges each pack into its species atlas; each part names its own binary.
 import fs from 'node:fs';
 import { organStudy, organStudyFor } from './organs-study.mjs';
+import { clinicalStudy, clinicalStudyFor } from './clinical-study.mjs';
 
 const root = new URL('../', import.meta.url);
 const BRAIN =
@@ -29,6 +31,25 @@ const packs = {
         out: `public/models/${sp}/organs/`,
         cards: organStudyFor(sp),
         attribution: `Dog organ layer retargeted to the ${sp}. ${BRAIN} Other organs: schematic shapes authored for Canine Atlas.`,
+      },
+    ]),
+  ),
+  // Clinical layer: landmarks, lymph nodes, vessels, nerves (scripts/blender/clinical.py).
+  'dog-clinical': {
+    work: 'work/clinical/',
+    out: 'public/models/clinical/',
+    cards: clinicalStudy,
+    attribution:
+      'Schematic clinical-anatomy markers authored for Canine Atlas.',
+  },
+  ...Object.fromEntries(
+    ['cat', 'rabbit'].map((sp) => [
+      `${sp}-clinical`,
+      {
+        work: `work/species/${sp}/clinical/`,
+        out: `public/models/${sp}/clinical/`,
+        cards: clinicalStudyFor(sp),
+        attribution: `Dog clinical-anatomy markers retargeted to the ${sp}; authored for Canine Atlas.`,
       },
     ]),
   ),
@@ -63,11 +84,13 @@ for (const name of process.argv[2] ? [process.argv[2]] : Object.keys(packs)) {
         p.indexOffset + p.indexCount * 4,
       );
       chunks.push(vb, ib);
-      const { meta, ...rest } = p;
+      const { meta, rigid: _r, labelVerts: _l, ...rest } = p;
       const sex = p.sex ?? meta?.sex;
+      const labels = p.labels ?? meta?.labels;
       const part = {
         ...rest,
         ...(sex ? { sex } : {}),
+        ...(labels ? { labels } : {}),
         vertexOffset: offset,
         indexOffset: offset + vb.length,
         center: round(p.center),

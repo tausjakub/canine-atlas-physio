@@ -1,6 +1,6 @@
 'use client';
 import { sitePath } from './site-path';
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import {
   Bone,
   Layers3,
@@ -15,9 +15,11 @@ import {
   X,
   Dog,
   Info,
+  Link2,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import AnatomyScene from './scene';
+import AnatomyScene, { type SceneTools } from './scene';
 import PoseControls from './pose-controls';
 import { SpeciesPicker, type Species } from './species-atlas';
 import ThemePicker from './theme-picker';
@@ -40,6 +42,10 @@ const DornMovementStudy =
 import BookReading from './book-reading';
 import AnatomyChallenge from './anatomy-challenge';
 import { addLigaments, ligamentCount } from './ligaments';
+import { latinName } from './latin';
+import Spotter, { srsKey, readBoxes, dueIds } from './spotter';
+import DentalChart from './dental-chart';
+import { shuffle } from './quiz-engine';
 import { detailFor, noteCoverage, structureName } from './study-notes';
 import {
   type Atlas,
@@ -59,16 +65,22 @@ import {
   languageStorageKey,
 } from './i18n';
 import cardsCs from './cards.cs.json';
-// Organs ship as separate packs (own binary) merged into each species atlas;
-// a missing pack just leaves the organ layer out.
-function organPack(path: string, signal: AbortSignal) {
-  return fetch(sitePath(path), { signal })
-    .then((r) => (r.ok ? (r.json() as Promise<Atlas>) : null))
-    .catch((e) => {
-      if (e.name === 'AbortError') throw e;
-      return null;
-    });
+// Organ and clinical layers ship as separate packs (own binaries) merged into
+// each species atlas; a missing pack just leaves that layer out.
+function extraParts(dir: string, signal: AbortSignal) {
+  return Promise.all(
+    ['organs', 'clinical'].map((layer) =>
+      fetch(sitePath(`${dir}/${layer}/catalog.json`), { signal })
+        .then((r) => (r.ok ? (r.json() as Promise<Atlas>) : null))
+        .catch((e) => {
+          if (e.name === 'AbortError') throw e;
+          return null;
+        }),
+    ),
+  ).then((packs) => packs.flatMap((a) => a?.parts ?? []));
 }
+
+const cameraViews = ['lateral', 'right', 'cranial', 'dorsal', 'three-quarter'];
 
 export default function Home() {
   const [examTarget, setExamTarget] = useState<{
@@ -139,6 +151,12 @@ export default function Home() {
   }, []);
   const [challenge, setChallenge] = useState(false);
   const [species, setSpecies] = useState<Species>('dog');
+  const [spotter, setSpotter] = useState<{
+    ids: string[];
+    title: string;
+    systems: System[];
+  }>();
+  const [pendingQuiz, setPendingQuiz] = useState<string[]>();
   useEffect(() => {
     const value = new URLSearchParams(window.location.search).get('species');
     if (value === 'cat' || value === 'rabbit') {
@@ -146,37 +164,178 @@ export default function Home() {
       setSpecies(value);
       setTab('explore');
     }
+    // Deep link to a view: ?part=&layers=&sex=&pose=&cam= (written back below).
+    const params = new URLSearchParams(window.location.search);
+    const layers = (params.get('layers') ?? '')
+      .split(',')
+      .filter((x): x is System => systems.some((sys) => sys.id === x));
+    const pose = params.get('pose'),
+      cam = params.get('cam'),
+      part = params.get('part');
+    setState((s) => ({
+      ...s,
+      ...(layers.length ? { systems: layers } : {}),
+      ...(params.get('sex') === 'female' ? { sex: 'female' as const } : {}),
+      ...(pose === 'sitting' || pose === 'lying' ? { pose } : {}),
+      ...(cam && cameraViews.includes(cam) ? { view: cam } : {}),
+      ...(part ? { selected: part } : {}),
+    }));
+    // Instructor quiz set: ?quiz=id1,id2,... opens the spotter on those structures.
+    const quiz = (params.get('quiz') ?? '')
+      .split(',')
+      .filter((id) => /^[\w().-]{1,80}$/.test(id))
+      .slice(0, 60);
+    if (quiz.length) setPendingQuiz(quiz);
+    if (part || layers.length || quiz.length) setTab('explore');
   }, []);
+  useEffect(() => {
+    if (tab !== 'explore') return;
+    const url = new URL(window.location.href);
+    const put = (key: string, value: string | null) =>
+      value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
+    put('part', state.selected);
+    put('layers', state.systems.join(','));
+    put('sex', state.sex === 'female' ? 'female' : null);
+    put('pose', state.pose && state.pose !== 'standing' ? state.pose : null);
+    put('cam', state.view !== 'lateral' ? state.view : null);
+    window.history.replaceState(null, '', url);
+  }, [tab, state.selected, state.systems, state.sex, state.pose, state.view]);
+  const [copied, setCopied] = useState(false);
+  // Learning tools: spotter rounds, a shareable quiz set, per-structure notes.
+  const [quizSet, setQuizSet] = useState<string[]>([]);
+  const [myNotes, setMyNotes] = useState<Record<string, string>>({});
+  const [due, setDue] = useState<string[]>([]);
+  const [dental, setDental] = useState(false);
+  const [offline, setOffline] = useState('');
+  useEffect(() => {
+    // Offline support for the public demo only; the private edition stays online behind its gate.
+    if (
+      process.env.NODE_ENV === 'production' &&
+      !privateEdition &&
+      'serviceWorker' in navigator
+    )
+      navigator.serviceWorker.register(sitePath('/sw.js')).catch(() => {});
+  }, []);
+  // Fetch every model pack once so the service worker caches it for offline use.
+  const saveOffline = async () => {
+    setOffline(t('Saving…'));
+    const files = ['', '/cat', '/rabbit'].flatMap((dir) =>
+      ['', '/organs', '/clinical'].flatMap((layer) => [
+        `/models${dir}${layer}/catalog.json`,
+        `/models${dir}${layer}/anatomy.bin`,
+      ]),
+    );
+    try {
+      await Promise.all(
+        files.map((f) => fetch(sitePath(f)).then((r) => r.arrayBuffer())),
+      );
+      setOffline(t('Saved for offline use in this browser.'));
+    } catch {
+      setOffline(t('Could not save everything; try again online.'));
+    }
+  };
+  const [compare, setCompare] = useState(false);
+  useEffect(() => {
+    try {
+      // oxlint-disable-next-line react/react-compiler -- read saved study data after mount (static export)
+      setDue(dueIds(readBoxes(localStorage.getItem(srsKey))));
+      const set = JSON.parse(
+        localStorage.getItem('canine-atlas-quizset-v1') || '[]',
+      );
+      if (Array.isArray(set))
+        setQuizSet(set.filter((x) => typeof x === 'string').slice(0, 60));
+      const n = JSON.parse(
+        localStorage.getItem('canine-atlas-notes-v1') || '{}',
+      );
+      if (n && typeof n === 'object' && !Array.isArray(n))
+        setMyNotes(
+          Object.fromEntries(
+            Object.entries(n).filter(([, v]) => typeof v === 'string'),
+          ) as Record<string, string>,
+        );
+    } catch {}
+  }, [spotter]);
+  const saveSet = (next: string[]) => {
+    setQuizSet(next);
+    try {
+      localStorage.setItem('canine-atlas-quizset-v1', JSON.stringify(next));
+    } catch {}
+  };
+  const saveNote = (id: string, text: string) => {
+    const next = { ...myNotes, [id]: text };
+    if (!text.trim()) delete next[id];
+    setMyNotes(next);
+    try {
+      localStorage.setItem('canine-atlas-notes-v1', JSON.stringify(next));
+    } catch {}
+  };
+  const exportNotes = () => {
+    const lines = Object.entries(myNotes).map(([id, text]) => {
+      const part = view?.parts.find((p) => p.id === id);
+      return `## ${part ? structureName(part, language) : id}\n\n${text.trim()}\n`;
+    });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(
+      new Blob([`# ${t('My anatomy notes')}\n\n${lines.join('\n')}`], {
+        type: 'text/markdown',
+      }),
+    );
+    a.download = 'canine-atlas-notes.md';
+    a.click();
+  };
+  const copyQuizLink = () => {
+    const url = new URL(window.location.href);
+    for (const k of ['part', 'cam', 'pose', 'sex']) url.searchParams.delete(k);
+    url.searchParams.set('quiz', quizSet.join(','));
+    url.searchParams.set('layers', state.systems.join(','));
+    navigator.clipboard?.writeText(url.toString()).catch(() => {});
+  };
+  const copyLink = () =>
+    navigator.clipboard
+      ?.writeText(window.location.href)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      })
+      .catch(() => {});
   const otherSpecies = tab === 'explore' && species !== 'dog';
   // Cat and rabbit catalogs load on first use and render in the same explorer.
   const [speciesAtlas, setSpeciesAtlas] = useState<
     Partial<Record<Species, Atlas>>
   >({});
   useEffect(() => {
-    if (species === 'dog' || speciesAtlas[species]) return;
+    // The comparative view needs every species; otherwise only the chosen one.
+    const wanted = (compare ? (['cat', 'rabbit'] as const) : [species]).filter(
+      (sp) => sp !== 'dog' && !speciesAtlas[sp],
+    );
+    if (!wanted.length) return;
     const abort = new AbortController();
-    fetch(sitePath(`/models/${species}/catalog.json`), { signal: abort.signal })
-      .then((r) => {
-        if (!r.ok) throw Error('The anatomy catalogue could not be loaded.');
-        return r.json();
-      })
-      .then(async (data) => {
-        const organs = await organPack(
-          `/models/${species}/organs/catalog.json`,
-          abort.signal,
-        );
-        const a = data as Atlas;
-        setSpeciesAtlas((all) => ({
-          ...all,
-          [species]: { ...a, parts: [...a.parts, ...(organs?.parts ?? [])] },
-        }));
-      })
-      .catch((e) => {
-        if (e.name !== 'AbortError') setError(e.message);
-      });
+    for (const sp of wanted)
+      fetch(sitePath(`/models/${sp}/catalog.json`), { signal: abort.signal })
+        .then((r) => {
+          if (!r.ok) throw Error('The anatomy catalogue could not be loaded.');
+          return r.json();
+        })
+        .then(async (data) => {
+          const extra = await extraParts(`/models/${sp}`, abort.signal);
+          const a = data as Atlas;
+          setSpeciesAtlas((all) => ({
+            ...all,
+            [sp]: { ...a, parts: [...a.parts, ...extra] },
+          }));
+        })
+        .catch((e) => {
+          if (e.name !== 'AbortError') setError(e.message);
+        });
     return () => abort.abort();
-  }, [species, speciesAtlas]);
+  }, [species, speciesAtlas, compare]);
   const view = otherSpecies ? (speciesAtlas[species] ?? null) : atlas;
+  useEffect(() => {
+    if (!view || !pendingQuiz) return;
+    // oxlint-disable-next-line react/react-compiler -- open the shared quiz once its atlas has loaded
+    setSpotter({ ids: pendingQuiz, title: 'Quiz set', systems: ['bone'] });
+    setPendingQuiz(undefined);
+  }, [view, pendingQuiz]);
   const layerCount = Math.max(
     -1,
     ...(view?.parts.map((p) => (p as { layer?: number }).layer ?? -1) ?? [-1]),
@@ -214,17 +373,9 @@ export default function Home() {
         return r.json();
       })
       .then(async (data) => {
-        const organs = await organPack(
-          '/models/organs/catalog.json',
-          abort.signal,
-        );
+        const extra = await extraParts('/models', abort.signal);
         const dog = data as Atlas;
-        setAtlas(
-          addLigaments({
-            ...dog,
-            parts: [...dog.parts, ...(organs?.parts ?? [])],
-          }),
-        );
+        setAtlas(addLigaments({ ...dog, parts: [...dog.parts, ...extra] }));
       })
       .catch((e) => {
         if (e.name !== 'AbortError') setError(e.message);
@@ -253,25 +404,23 @@ export default function Home() {
   }, []);
   const selected = view?.parts.find((p) => p.id === state.selected),
     note = selected ? detailFor(selected, language) : undefined;
-  const results = useMemo(
-    () =>
-      view?.parts
-        .filter(
-          (p) =>
-            (area === 'All regions' || region(p) === area) &&
-            (!query ||
-              normalizeSearch(
-                `${structureName(p, 'en')} ${structureName(p, 'cs')} ${displayName(p.id)} ${p.id} ${translate(language, systems.find((s) => s.id === p.system)!.name)}`,
-              ).includes(normalizeSearch(query))),
-        )
-        .sort((a, b) =>
-          structureName(a, language).localeCompare(
-            structureName(b, language),
-            language,
-          ),
-        ) || [],
-    [view, query, area, language],
-  );
+  // Plain computation: the React compiler memoizes it.
+  const results =
+    view?.parts
+      .filter(
+        (p) =>
+          (area === 'All regions' || region(p) === area) &&
+          (!query ||
+            normalizeSearch(
+              `${structureName(p, 'en')} ${structureName(p, 'cs')} ${latinName(p) ?? ''} ${displayName(p.id)} ${p.id} ${translate(language, systems.find((s) => s.id === p.system)!.name)}`,
+            ).includes(normalizeSearch(query))),
+      )
+      .sort((a, b) =>
+        structureName(a, language).localeCompare(
+          structureName(b, language),
+          language,
+        ),
+      ) || [];
   const count = view?.parts.filter((p) => isShown(p, state)).length || 0;
   const choose = (id: string) => {
     setState((s) => ({
@@ -295,6 +444,31 @@ export default function Home() {
       rotate: false,
       reset: s.reset + 1,
     }));
+  const sceneTools = useRef<SceneTools | null>(null);
+  const [measureText, setMeasureText] = useState('');
+  // Printable sheet: the current view with numbered structures and a key.
+  const printSheet = () => {
+    const snap = sceneTools.current?.snapshot();
+    if (!snap || !view) return;
+    const name = (id: string) => {
+      const part = view.parts.find((p) => p.id === id);
+      return part ? structureName(part, language) : id;
+    };
+    const esc = (s: string) =>
+      s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+    const marks = snap.marks
+      .map(
+        (m, i) =>
+          `<b style="left:${(m.x * 100).toFixed(2)}%;top:${(m.y * 100).toFixed(2)}%">${i + 1}</b>`,
+      )
+      .join('');
+    const key = snap.marks.map((m) => `<li>${esc(name(m.id))}</li>`).join('');
+    const html = `<!doctype html><meta charset="utf-8"><title>${esc(t('Labelled sheet'))}</title><style>body{font:14px sans-serif;margin:24px;color:#111}figure{position:relative;margin:0;background:#1b2530}img{width:100%;display:block}b{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#ffcf4a;color:#111;font-size:12px;display:grid;place-items:center;border:2px solid #111}ol{columns:2}@media print{.no{display:none}}</style><p class="no"><button onclick="print()">${esc(t('Print'))}</button> <button onclick="document.querySelector('ol').hidden=!document.querySelector('ol').hidden">${esc(t('Hide key'))}</button></p><figure><img src="${snap.image}" alt="">${marks}</figure><ol>${key}</ol><p><small>Canine Atlas · ${esc(t('Educational reference'))}</small></p>`;
+    window.open(
+      URL.createObjectURL(new Blob([html], { type: 'text/html' })),
+      '_blank',
+    );
+  };
   const reset = () => {
     setPeel(0);
     setState((s) => ({ ...initial, reset: s.reset + 1 }));
@@ -544,6 +718,37 @@ export default function Home() {
                 {t('Bones + organs')}
               </button>
             )}
+            {presentSystems.some((sys) => sys.id === 'landmark') && (
+              <button
+                onClick={() =>
+                  setState((s) => ({
+                    ...s,
+                    systems: ['bone', 'landmark', 'lymph', 'vessel', 'nerve'],
+                    selected: null,
+                    isolate: false,
+                    hidden: [],
+                  }))
+                }
+              >
+                {t('Clinical anatomy')}
+              </button>
+            )}
+            {presentSystems.some((sys) => sys.id === 'surface') &&
+              presentSystems.some((sys) => sys.id === 'organ') && (
+                <button
+                  onClick={() =>
+                    setState((s) => ({
+                      ...s,
+                      systems: ['surface', 'organ', 'landmark'],
+                      selected: null,
+                      isolate: false,
+                      hidden: [],
+                    }))
+                  }
+                >
+                  {t('Surface projection')}
+                </button>
+              )}
           </div>
           {state.systems.includes('organ') &&
             view?.parts.some((p) => p.sex) && (
@@ -593,6 +798,75 @@ export default function Home() {
                 </span>
               </button>
             ))}
+          </div>
+          <div className="section-title">
+            <h2>{t('Viewer tools')}</h2>
+          </div>
+          <div className="viewer-tools">
+            <label>
+              {t('Section plane')}
+              <select
+                value={state.section?.axis ?? ''}
+                onChange={(e) => {
+                  const axis = e.target.value as 'x' | 'y' | 'z' | '';
+                  setState((s) => ({
+                    ...s,
+                    section: axis ? { axis, at: s.section?.at ?? 0.5 } : null,
+                  }));
+                }}
+              >
+                <option value="">{t('Off')}</option>
+                <option value="z">{t('Sagittal')}</option>
+                <option value="x">{t('Transverse')}</option>
+                <option value="y">{t('Dorsal plane')}</option>
+              </select>
+            </label>
+            {state.section && (
+              <input
+                aria-label={t('Section position')}
+                type="range"
+                min="0.02"
+                max="0.98"
+                step="0.01"
+                value={state.section.at}
+                onChange={(e) => {
+                  const at = Number(e.target.value);
+                  setState((s) => ({
+                    ...s,
+                    section: s.section && { ...s.section, at },
+                  }));
+                }}
+              />
+            )}
+            <div className="presets">
+              <button
+                aria-pressed={!!state.xray}
+                onClick={() => setState((s) => ({ ...s, xray: !s.xray }))}
+              >
+                {t('X-ray look')}
+              </button>
+              <button
+                aria-pressed={!!state.measure}
+                onClick={() => setState((s) => ({ ...s, measure: !s.measure }))}
+              >
+                {t('Measure')}
+              </button>
+              <button onClick={printSheet}>{t('Labelled sheet')}</button>
+              <button
+                aria-pressed={compare}
+                onClick={() => setCompare((c) => !c)}
+              >
+                {t('Compare species')}
+              </button>
+            </div>
+            {state.measure && (
+              <p className="measure-readout" aria-live="polite">
+                {measureText ||
+                  t(
+                    'Click two points for a distance or three for an angle. Model scale, not a patient measurement.',
+                  )}
+              </p>
+            )}
           </div>
           <label className="opacity-label">
             {t('Muscle opacity')}{' '}
@@ -651,6 +925,80 @@ export default function Home() {
               />
             </label>
           )}
+          <div className="section-title">
+            <h2>{t('Practise')}</h2>
+          </div>
+          <div className="viewer-tools">
+            <div className="presets">
+              <button
+                onClick={() =>
+                  view &&
+                  setSpotter({
+                    title: t('Spotter: 10 structures'),
+                    systems: state.systems,
+                    ids: shuffle(
+                      view.parts
+                        .filter((p) => isShown(p, { ...state, selected: null }))
+                        .map((p) => p.id),
+                    ).slice(0, 10),
+                  })
+                }
+              >
+                {t('Spotter')}
+              </button>
+              <button
+                disabled={!due.length}
+                onClick={() =>
+                  setSpotter({
+                    title: t('Review due'),
+                    systems: state.systems,
+                    ids: shuffle(due).slice(0, 20),
+                  })
+                }
+              >
+                {t('Review due')} ({due.length})
+              </button>
+              <button onClick={() => setDental(true)}>
+                {t('Dental chart')}
+              </button>
+              {!privateEdition && (
+                <button onClick={saveOffline}>{t('Save for offline')}</button>
+              )}
+            </div>
+            <div className="presets">
+              <button
+                disabled={!state.selected || quizSet.includes(state.selected)}
+                onClick={() =>
+                  state.selected && saveSet([...quizSet, state.selected])
+                }
+              >
+                {t('Add to quiz set')} ({quizSet.length})
+              </button>
+              {quizSet.length > 0 && (
+                <>
+                  <button
+                    onClick={() =>
+                      setSpotter({
+                        title: t('Quiz set'),
+                        systems: state.systems,
+                        ids: quizSet,
+                      })
+                    }
+                  >
+                    {t('Start set')}
+                  </button>
+                  <button onClick={copyQuizLink}>{t('Copy quiz link')}</button>
+                  <button onClick={() => saveSet([])}>{t('Clear set')}</button>
+                </>
+              )}
+            </div>
+            {offline && <p aria-live="polite">{offline}</p>}
+            {Object.keys(myNotes).length > 0 && (
+              <button className="text-link" onClick={exportNotes}>
+                {t('Export my notes')} ({Object.keys(myNotes).length})
+              </button>
+            )}
+          </div>
           <div className="section-title">
             <h2>{t('Browse anatomy')}</h2>
             <span>{results.length}</span>
@@ -741,15 +1089,44 @@ export default function Home() {
             tab !== 'dorn' &&
             tab !== 'exam' &&
             tab !== 'practical' &&
-            !(tab === 'study' && challenge) && (
+            !(tab === 'study' && challenge) &&
+            !(compare && tab === 'explore') && (
               <AnatomyScene
                 key={otherSpecies ? species : 'dog'}
                 language={language}
                 atlas={view}
                 state={state}
                 onSelect={choose}
+                onMeasure={setMeasureText}
+                onTools={(x) => {
+                  sceneTools.current = x;
+                }}
               />
             )}
+          {compare && tab === 'explore' && atlas && (
+            <div className="compare-grid">
+              {(
+                [
+                  ['dog', atlas, 'Dog'],
+                  ['cat', speciesAtlas.cat, 'Cat'],
+                  ['rabbit', speciesAtlas.rabbit, 'Rabbit'],
+                ] as const
+              ).map(([sp, a, name]) => (
+                <div key={sp} className="compare-cell">
+                  <span>{t(name)}</span>
+                  {a && (
+                    <AnatomyScene
+                      key={`compare-${sp}`}
+                      language={language}
+                      atlas={a}
+                      state={state}
+                      onSelect={choose}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
           {error && (
             <div role="alert" className="load-card">
               <p>{t('The anatomy catalogue could not be loaded.')}</p>
@@ -834,6 +1211,13 @@ export default function Home() {
               onClick={reset}
             >
               <RotateCcw size={17} />
+            </button>
+            <button
+              title={t(copied ? 'Link copied' : 'Copy link to this view')}
+              aria-label={t('Copy link to this view')}
+              onClick={copyLink}
+            >
+              {copied ? <Check size={17} /> : <Link2 size={17} />}
             </button>
           </nav>
           <div className="explode-dock">
@@ -982,7 +1366,14 @@ export default function Home() {
                 <span> / </span> {t(region(selected))}
               </div>
               <div className="detail-title">
-                <h2>{note?.title ?? displayName(selected.id)}</h2>
+                <h2>
+                  {note?.title ?? displayName(selected.id)}
+                  {latinName(selected) && (
+                    <small className="latin-name" lang="la">
+                      {latinName(selected)}
+                    </small>
+                  )}
+                </h2>
                 <button
                   className="icon"
                   aria-label={t('Clear selection')}
@@ -997,6 +1388,16 @@ export default function Home() {
                 <span />
                 {t('Selected in 3D')}
               </div>
+              <label className="my-note">
+                {t('My notes')}
+                <textarea
+                  value={myNotes[selected.id] ?? ''}
+                  rows={3}
+                  maxLength={4000}
+                  placeholder={t('Saved in this browser only.')}
+                  onChange={(e) => saveNote(selected.id, e.target.value)}
+                />
+              </label>
               {note && (
                 <div className="full-note">
                   <div className="note-meta">
@@ -1195,6 +1596,19 @@ export default function Home() {
           language={language}
           onClose={() => setChallenge(false)}
         />
+      )}
+      {spotter && view && (
+        <Spotter
+          atlas={view}
+          ids={spotter.ids}
+          systems={spotter.systems}
+          title={spotter.title === 'Quiz set' ? t('Quiz set') : spotter.title}
+          language={language}
+          onClose={() => setSpotter(undefined)}
+        />
+      )}
+      {dental && (
+        <DentalChart language={language} onClose={() => setDental(false)} />
       )}
       {tab === 'practical' && (
         <PracticalStudy

@@ -13,6 +13,11 @@ import {
   type DogPose,
 } from './poses';
 type Engine = { update: (s: SceneState) => void; destroy: () => void };
+export type Snapshot = {
+  image: string;
+  marks: { id: string; x: number; y: number }[];
+};
+export type SceneTools = { snapshot: () => Snapshot };
 // Stable small hash; the side suffix is ignored so paired muscles match.
 function tintOf(id: string) {
   let h = 7;
@@ -25,18 +30,24 @@ export default function AnatomyScene({
   state,
   onSelect,
   language,
+  onMeasure,
+  onTools,
 }: {
   atlas: Atlas;
   state: SceneState;
   onSelect: (id: string) => void;
   language: Language;
+  onMeasure?: (text: string) => void;
+  onTools?: (tools: SceneTools | null) => void;
 }) {
   const t = (key: string) => translate(language, key),
     locale = useRef(language);
   const host = useRef<HTMLDivElement>(null),
     engine = useRef<Engine | null>(null),
     latest = useRef(state),
-    select = useRef(onSelect);
+    select = useRef(onSelect),
+    measured = useRef(onMeasure),
+    toolsReady = useRef(onTools);
   const [status, setStatus] = useState('Loading anatomy…'),
     [error, setError] = useState('');
   // Keep the imperative engine's view of props current without re-initialising it.
@@ -44,6 +55,8 @@ export default function AnatomyScene({
     locale.current = language;
     latest.current = state;
     select.current = onSelect;
+    measured.current = onMeasure;
+    toolsReady.current = onTools;
   });
   useEffect(() => {
     const el = host.current!;
@@ -81,6 +94,10 @@ export default function AnatomyScene({
         renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         renderer.setClearColor(0, 0);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.localClippingEnabled = true;
+        const cut = new THREE.Plane(),
+          cutPlanes = [cut],
+          noPlanes: THREE.Plane[] = [];
         el.appendChild(renderer.domElement);
         renderer.domElement.setAttribute(
           'aria-label',
@@ -159,6 +176,32 @@ export default function AnatomyScene({
           m.userData.part = p;
           scene.add(m);
           meshes.push(m);
+          // Text anchored in 3D (rib numbers), drawn over the model.
+          m.userData.labels = (p.labels ?? []).map(({ text, at }) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = 64;
+            const c = canvas.getContext('2d')!;
+            c.fillStyle = 'rgba(16,24,32,0.8)';
+            c.beginPath();
+            c.arc(32, 32, 30, 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = '#ffe9a8';
+            c.font = 'bold 34px sans-serif';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.fillText(text, 32, 34);
+            const sprite = new THREE.Sprite(
+              new THREE.SpriteMaterial({
+                map: new THREE.CanvasTexture(canvas),
+                depthTest: false,
+              }),
+            );
+            sprite.position.set(at[0], at[1] + 0.012, at[2]);
+            sprite.scale.setScalar(0.014);
+            sprite.renderOrder = 10;
+            scene.add(sprite);
+            return sprite;
+          });
         });
         const poseMatrices = new Map(
           dogPoses.map((pose) => [
@@ -279,9 +322,27 @@ export default function AnatomyScene({
             x += w;
             row = Math.max(row, h);
           }
+          // Section plane: cut away one side of the model at s.section.at (0-1).
+          if (s.section) {
+            const all = new THREE.Box3();
+            meshes.forEach((m) => {
+              if (isShown(m.userData.part, s)) all.expandByObject(m);
+            });
+            const i = { x: 0, y: 1, z: 2 }[s.section.axis];
+            const lo = all.isEmpty() ? -1 : all.min.getComponent(i),
+              hi = all.isEmpty() ? 1 : all.max.getComponent(i);
+            const sign = s.section.axis === 'z' ? 1 : -1;
+            const at = lo + (hi - lo) * s.section.at;
+            cut.set(new THREE.Vector3().setComponent(i, sign), -sign * at);
+          }
           meshes.forEach((m) => {
             const p = m.userData.part;
             m.visible = isShown(p, s);
+            const planes = s.section ? cutPlanes : noPlanes;
+            if (m.material.clippingPlanes !== planes) {
+              m.material.clippingPlanes = planes;
+              m.material.needsUpdate = true;
+            }
             const selected = p.id === s.selected;
             m.material.color.set(selected ? '#67e0d0' : partColor(p));
             // Species atlases shade neighbouring muscles slightly differently
@@ -302,6 +363,19 @@ export default function AnatomyScene({
                   : p.system === 'surface'
                     ? 0.2
                     : 1;
+            // X-ray look: glowing bone, faint soft tissue, additive blending.
+            const xray = s.xray && !selected;
+            if (xray) {
+              m.material.color.set(p.system === 'bone' ? '#9fb8d6' : '#2d4058');
+              m.material.opacity = p.system === 'bone' ? 0.55 : 0.12;
+            }
+            const blending = xray
+              ? THREE.AdditiveBlending
+              : THREE.NormalBlending;
+            if (m.material.blending !== blending) {
+              m.material.blending = blending;
+              m.material.needsUpdate = true;
+            }
             m.material.transparent = m.material.opacity < 1;
             m.material.depthWrite = m.material.opacity >= 1;
             const pose = s.pose || 'standing',
@@ -340,8 +414,15 @@ export default function AnatomyScene({
               );
             m.matrix.setPosition(translation);
             m.matrixWorldNeedsUpdate = true;
+            // Labels are anchored to the standing, assembled model only.
+            for (const sprite of m.userData.labels as THREE.Sprite[])
+              sprite.visible =
+                m.visible &&
+                (s.pose ?? 'standing') === 'standing' &&
+                !s.explode;
           });
           controls.autoRotate = s.rotate;
+          if (!s.measure && picks.length) clearMeasure();
           if (
             !previous ||
             previous.pose !== s.pose ||
@@ -372,6 +453,58 @@ export default function AnatomyScene({
         const observer = new ResizeObserver(resize);
         observer.observe(el);
         resize();
+        // Measuring: up to three picked points; distance, or the angle at the middle one.
+        const picks: THREE.Vector3[] = [];
+        const marks = new THREE.Group();
+        scene.add(marks);
+        const markMaterial = new THREE.MeshBasicMaterial({
+            color: '#ffcf4a',
+            depthTest: false,
+          }),
+          lineMaterial = new THREE.LineBasicMaterial({
+            color: '#ffcf4a',
+            depthTest: false,
+          });
+        function clearMeasure() {
+          picks.length = 0;
+          marks.children.forEach((c) => {
+            if (c instanceof THREE.Line || c instanceof THREE.Mesh)
+              c.geometry.dispose();
+          });
+          marks.clear();
+          measured.current?.('');
+        }
+        function addPick(point: THREE.Vector3) {
+          if (picks.length === 3) clearMeasure();
+          picks.push(point.clone());
+          const dot = new THREE.Mesh(
+            new THREE.SphereGeometry(0.0035, 10, 8),
+            markMaterial,
+          );
+          dot.position.copy(point);
+          dot.renderOrder = 11;
+          marks.add(dot);
+          if (picks.length > 1) {
+            const line = new THREE.Line(
+              new THREE.BufferGeometry().setFromPoints(picks.slice(-2)),
+              lineMaterial,
+            );
+            line.renderOrder = 11;
+            marks.add(line);
+          }
+          const mm = (a: THREE.Vector3, b: THREE.Vector3) =>
+            Math.round(a.distanceTo(b) * 1000);
+          if (picks.length === 2)
+            measured.current?.(`${mm(picks[0], picks[1])} mm`);
+          if (picks.length === 3) {
+            const a = picks[0].clone().sub(picks[1]),
+              b = picks[2].clone().sub(picks[1]);
+            const deg = Math.round(THREE.MathUtils.radToDeg(a.angleTo(b)));
+            measured.current?.(
+              `${mm(picks[0], picks[1])} mm, ${mm(picks[1], picks[2])} mm, ${deg}°`,
+            );
+          }
+        }
         update(latest.current);
         const ray = new THREE.Raycaster(),
           pointer = new THREE.Vector2();
@@ -400,7 +533,8 @@ export default function AnatomyScene({
         const up = (e: PointerEvent) => {
           if (drag || e.button !== 0) return;
           const h = hit(e);
-          if (h) select.current(h.object.userData.part.id);
+          if (h && latest.current.measure) addPick(h.point);
+          else if (h) select.current(h.object.userData.part.id);
         };
         renderer.domElement.addEventListener('pointerdown', down);
         renderer.domElement.addEventListener('pointermove', move);
@@ -410,17 +544,56 @@ export default function AnatomyScene({
           renderer.render(scene, camera);
         });
         cleanup = () => {
+          toolsReady.current?.(null);
           observer.disconnect();
           renderer.setAnimationLoop(null);
           controls.dispose();
           meshes.forEach((m) => {
             m.geometry.dispose();
             m.material.dispose();
+            for (const sprite of m.userData.labels as THREE.Sprite[]) {
+              sprite.material.map?.dispose();
+              sprite.material.dispose();
+            }
           });
           renderer.dispose();
           renderer.domElement.remove();
         };
         engine.current = { update, destroy: cleanup };
+        const pickable = () =>
+          meshes.filter((x) => x.visible && x.material.opacity > 0.05);
+        toolsReady.current?.({
+          // Render now and read the canvas back (the drawing buffer is not
+          // preserved), with up to 12 numbered marks on visible structures.
+          snapshot() {
+            renderer.render(scene, camera);
+            const out: Snapshot['marks'] = [];
+            const sized = pickable()
+              .map((m) => ({ m, b: new THREE.Box3().setFromObject(m) }))
+              .sort(
+                (a, b) =>
+                  b.b.getSize(new THREE.Vector3()).length() -
+                  a.b.getSize(new THREE.Vector3()).length(),
+              );
+            for (const { m, b } of sized) {
+              if (out.length >= 12) break;
+              const ndc = b.getCenter(new THREE.Vector3()).project(camera);
+              if (Math.abs(ndc.x) > 0.95 || Math.abs(ndc.y) > 0.95) continue;
+              ray.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+              if (ray.intersectObjects(pickable(), false)[0]?.object !== m)
+                continue;
+              const x = (ndc.x + 1) / 2,
+                y = (1 - ndc.y) / 2;
+              if (out.some((o) => Math.hypot(o.x - x, o.y - y) < 0.06))
+                continue;
+              out.push({ id: m.userData.part.id, x, y });
+            }
+            return {
+              image: renderer.domElement.toDataURL('image/png'),
+              marks: out,
+            };
+          },
+        });
         setStatus('');
       } catch (e) {
         if (!dead)
