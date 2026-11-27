@@ -5,9 +5,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { type Atlas, type SceneState, isShown, partColor } from './anatomy';
 import { type Language, translate } from './i18n';
-import { gaitFrame, gaitPeriod } from './gait';
+import { type GaitRig, gaitFrame, gaitPeriod } from './gait';
 import {
   dogPoses,
+  poseJoints,
   poseMatrix,
   poseRig,
   segmentKey,
@@ -477,7 +478,9 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
           ensurePacks(s);
           if (s.gait && !s.gait.playing && s.gait.phase !== undefined)
             gaitPhase = s.gait.phase;
-          const gaitNow = s.gait ? gaitFrame(s.gait.kind, gaitPhase) : null;
+          const gaitNow = s.gait
+            ? gaitFrame(s.gait.kind, gaitPhase, rigForGait())
+            : null;
           const motion = gaitNow?.motion ?? s.motion ?? null;
           if (gaitNow) {
             s = { ...s, highlight: gaitNow.highlight };
@@ -724,7 +727,37 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
         // Rig matrices to the skinning uniforms and the rigid bone meshes.
         // A gait also lifts and pitches the whole trunk (share of body height).
         let trunkPivot: THREE.Vector3 | null = null,
-          trunkHeight = 0;
+          trunkHeight = 0,
+          gaitRig: GaitRig | undefined;
+        // Limb geometry for foot placement (the dog's catalog has no pose
+        // config: its default joints, paws under carpus and hock).
+        function rigForGait(): GaitRig {
+          bodyFrame();
+          if (!gaitRig) {
+            const c = atlas.poseConfig,
+              J = c?.joints ?? poseJoints,
+              ground = trunkPivot!.y - trunkHeight / 2;
+            gaitRig = {
+              joints: J as Record<string, number[]>,
+              foretoes: c?.foretoes ?? [J.carpus[0], ground, 0],
+              hindtoes: c?.hindtoes ?? [J.hock[0], ground, 0],
+              pivot: [trunkPivot!.x, trunkPivot!.y],
+              height: trunkHeight,
+            };
+          }
+          return gaitRig;
+        }
+        function bodyFrame() {
+          if (trunkPivot) return;
+          const b = new THREE.Box3();
+          for (const m of meshes)
+            if (m.userData.part.system === 'bone') {
+              m.geometry.computeBoundingBox();
+              b.union(m.geometry.boundingBox!);
+            }
+          trunkPivot = b.getCenter(new THREE.Vector3());
+          trunkHeight = b.max.y - b.min.y;
+        }
         const trunkMatrix = new THREE.Matrix4(),
           trunkStep = new THREE.Matrix4();
         function setRig(
@@ -732,32 +765,14 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
           trunk?: { lift: number; pitch: number } | null,
         ) {
           if (trunk && (trunk.lift || trunk.pitch)) {
-            if (!trunkPivot) {
-              const b = new THREE.Box3();
-              for (const m of meshes)
-                if (m.userData.part.system === 'bone') {
-                  m.geometry.computeBoundingBox();
-                  b.union(m.geometry.boundingBox!);
-                }
-              trunkPivot = b.getCenter(new THREE.Vector3());
-              trunkHeight = b.max.y - b.min.y;
-            }
+            bodyFrame();
+            const pv = trunkPivot!;
             trunkMatrix
-              .makeTranslation(
-                trunkPivot.x,
-                trunkPivot.y + trunk.lift * trunkHeight,
-                trunkPivot.z,
-              )
+              .makeTranslation(pv.x, pv.y + trunk.lift * trunkHeight, pv.z)
               .multiply(
                 trunkStep.makeRotationZ(THREE.MathUtils.degToRad(trunk.pitch)),
               )
-              .multiply(
-                trunkStep.makeTranslation(
-                  -trunkPivot.x,
-                  -trunkPivot.y,
-                  -trunkPivot.z,
-                ),
-              );
+              .multiply(trunkStep.makeTranslation(-pv.x, -pv.y, -pv.z));
             rig = Object.fromEntries(
               Object.entries(rig).map(([k, m]) => [
                 k,
@@ -774,7 +789,7 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
           lastTime = now;
           if (!g?.playing) return;
           gaitPhase = (gaitPhase + dt / gaitPeriod[g.kind]) % 1;
-          const f = gaitFrame(g.kind, gaitPhase);
+          const f = gaitFrame(g.kind, gaitPhase, rigForGait());
           if (f.highlight.join() !== highlightKey) {
             update(latest.current); // recolour when the active muscle groups change
             return;

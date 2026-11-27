@@ -14,11 +14,13 @@ S = derive(
     'guinea_pig',
     trunk=0.8,
     height=0.8,
-    head=0.85,
+    head=1.0,
+    head_scale=1.27,  # large head: skull ~25% of rostrum-to-ischium length
     legs=0.7,
     neck=0.8,
     tail=0.3,
-    stance={'humerus': -125, 'radius': -95, 'manus': -40, 'femur': -50, 'tibia': -150, 'pes': -15, 'toes': -6, 'arch': 0.008, 'head_pitch': -8},
+    stance={'humerus': -125, 'radius': -95, 'manus': -40, 'femur': -50, 'tibia': -150, 'pes': -15, 'toes': -6, 'arch': 0.008, 'head_pitch': -4,
+            'neck_raise': 0.03},
     # The scan's mandible is articulated and touches the skull: split along the occlusal line (scan mm, side view).
     # The cheek teeth meet along their whole rows: a side-view line (scan mm)
     # seeds skull above and mandible below; the split follows the creases between.
@@ -29,7 +31,7 @@ S = derive(
     remove_digits={'fore': [1], 'hind': [5]},
     retarget={
         **RABBIT['retarget'],
-        'girth': {**RABBIT['retarget']['girth'], 'thorax': 1.08, 'lumbar': 1.15, 'pelvis': 1.1, 'face': 1.15, 'neck': 1.0,
+        'girth': {**RABBIT['retarget']['girth'], 'thorax': 1.08, 'lumbar': 1.15, 'pelvis': 1.1, 'face': 1.15, 'neck': 0.8, 'scap': 0.7,
                   'thigh': 1.05, 'crus': 0.85, 'pes': 0.85},
         'width': {**RABBIT['retarget']['width'], 'face': 0.9, 'cranium': 1.1},
         'head_shape': {**RABBIT['retarget']['head_shape'], 'orbit_grow': 0.5, 'nasal': (0.5, 1.0, 0.02)},

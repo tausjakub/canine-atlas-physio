@@ -47,7 +47,9 @@ S = {
                      'ramus_base': (0.22, -0.22, 0.23), 'coronoid': (0.34, 0.08, 0.25), 'condyle': (0.14, -0.12, 0.23),
                      'h': 0.13, 'w': 0.024, 'ramus_w': 0.11},
     },
-    'joints': {'shoulder': (0.150, 0.192, 0.034), 'scap_dorsal': (0.118, 0.215, 0.024), 'carpus': (0.142, 0.040, 0.030),
+    # Scapula ~7.5 cm, inclined ~55 deg: dorsal border near the T2-T4 spinous
+    # processes, shoulder joint at the thoracic inlet (above the manubrium).
+    'joints': {'shoulder': (0.155, 0.161, 0.034), 'scap_dorsal': (0.112, 0.222, 0.024), 'carpus': (0.142, 0.040, 0.030),
                'elbow_z': (0, 0, 0.036), 'hip': (-0.170, 0.190, 0.036), 'hock': (-0.235, 0.060, 0.034), 'stifle_z': (0, 0, 0.044)},
     'len': {'humerus': 0.098, 'radius': 0.092, 'olecranon': 0.016, 'femur': 0.112, 'tibia': 0.118},
     'radius': {'humerus': 0.0045, 'radius': 0.0032, 'ulna': 0.0028, 'femur': 0.0050, 'tibia': 0.0042, 'fibula': 0.0012},
@@ -79,7 +81,7 @@ S = {
     # multipliers per body segment (relative to the trunk-length scale).
     'retarget': {
         'fore_toe': (0.163, 0.006, 0.028), 'hind_toe': (-0.185, 0.006, 0.030), 'hind_mtp': (-0.212, 0.013, 0.031), 'orbit': 0.6, 'jaw_close': 1.2,
-        'girth': {'cranium': 1.05, 'face': 0.95, 'neck': 1.0, 'thorax': 0.82, 'lumbar': 0.84, 'pelvis': 0.85, 'tail': 1.6,
+        'girth': {'cranium': 1.05, 'face': 0.95, 'neck': 0.9, 'thorax': 0.82, 'lumbar': 0.84, 'pelvis': 0.85, 'tail': 1.6,
                   'scap': 0.85, 'arm': 0.8, 'forearm': 0.75, 'manus': 0.85, 'thigh': 0.85, 'crus': 0.8, 'pes': 0.85},
         'width': {'cranium': 1.0, 'face': 1.05},
     },
@@ -88,6 +90,14 @@ S = {
     # Real skull and mandible (CC BY 4.0), see scripts/blender/real_skulls.py.
     # Complete skeleton sculpt (westerly, CC BY): girdles, long bones, vertebrae, ribs.
     'skeleton_scan': {'file': 'cat/skeleton.glb'},
+    # Skull ~20% of rostrum-to-ischium length in adult cats (the warp alone gives 18%).
+    'head_scale': 1.15,
+    # CT-based digestive and urinary organs (pixelbeaker, CC BY). Model frame:
+    # x caudal, y to the right, z dorsal -> atlas x cranial, y dorsal, z right.
+    'organ_scan': {'file': 'cat/organs.glb', 'turn': ((-1, 0, 0, 0), (0, 0, 1, 0), (0, 1, 0, 0), (0, 0, 0, 1)),
+                   'map': {'Liver': (['organ_liver'], 6000), 'Stomach': (['organ_stomach'], 4000),
+                           'Intestines': (['organ_small_intestine'], 8000),
+                           'Kidneys': (['organ_kidney_L', 'organ_kidney_R'], 2400), 'Bladder': (['organ_bladder'], 1600)}},
     'skull_scan': {'skull': 'cat/skull.glb', 'jaw': None, 'up': 'z', 'drop_caudal': True},  # CT, mandible closed, atlas removed
     'skull': build_skull,
     'limbs': build_limbs,

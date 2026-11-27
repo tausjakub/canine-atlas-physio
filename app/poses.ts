@@ -18,7 +18,7 @@ function turn(point: readonly number[], angle: number) {
     .multiply(new Matrix4().makeRotationZ(angle))
     .multiply(new Matrix4().makeTranslation(-point[0], -point[1], -point[2]));
 }
-type PoseAngles = Record<
+type PoseAngles = { rise?: number } & Record<
   | 'trunk'
   | 'arm'
   | 'forearm'
@@ -99,6 +99,8 @@ function baseRig(pose: DogPose, config?: PoseConfig) {
   const a = config?.angles?.[pose];
   if (config && a) {
     const trunk = turn(poseJoints.shoulder, a.trunk);
+    // Upright sit: the straightened forelimbs lift the shoulder.
+    if (a.rise) trunk.premultiply(new Matrix4().makeTranslation(0, a.rise, 0));
     if (lie)
       trunk.premultiply(new Matrix4().makeTranslation(0, -config.lower, 0));
     const arm = trunk.clone().multiply(turn(poseJoints.shoulder, a.arm)),

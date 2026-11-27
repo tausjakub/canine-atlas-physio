@@ -14,12 +14,14 @@ S = derive(
     'ferret',
     trunk=1.35,
     height=0.72,
-    head=0.85,
+    head=1.0,
+    head_scale=1.28,  # skull ~18% of rostrum-to-ischium length
     legs=0.72,
     tail=0.75,
     stance={'humerus': -115, 'radius': -92, 'manus': -60, 'femur': -65, 'tibia': -125, 'pes': -55, 'toes': -10, 'arch': 0.015, 'head_pitch': 0},
     skull_scan={'skull': 'ferret/skull.glb', 'jaw': None, 'up': 'y'},
-    skeleton_scan=None,  # the cat's skeleton model is not inherited
+    skeleton_scan=None,  # the cat's skeleton and organ models are not inherited
+    organ_scan=None,
     vertebrae=(7, 15, 5, 3, 18),
     relabel_lumbar=2,
     retarget={

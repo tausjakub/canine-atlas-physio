@@ -170,7 +170,47 @@ const active = {
   },
 };
 export const limbs = ['LF', 'RF', 'LH', 'RH'] as const;
-export function gaitFrame(gait: GaitKind, t: number) {
+type V2 = [number, number];
+// Limb geometry for foot placement: joint centres of the standing model
+// (x cranial, y dorsal), the trunk pivot and the body height used for lift.
+export type GaitRig = {
+  joints: Record<string, number[]>;
+  foretoes: number[];
+  hindtoes: number[];
+  pivot: V2;
+  height: number;
+};
+const v2 = (p: readonly number[]): V2 => [p[0], p[1]];
+const sub = (a: V2, b: V2): V2 => [a[0] - b[0], a[1] - b[1]];
+const add = (a: V2, b: V2): V2 => [a[0] + b[0], a[1] + b[1]];
+const ang = (a: V2) => Math.atan2(a[1], a[0]);
+const rot = (p: V2, a: number): V2 => [
+  p[0] * Math.cos(a) - p[1] * Math.sin(a),
+  p[0] * Math.sin(a) + p[1] * Math.cos(a),
+];
+// Two-link inverse kinematics in the sagittal plane: turns of the root and
+// middle joints that bring `end` onto `target`, the bend closest to the rest
+// shape.
+function ik(root: V2, mid: V2, end: V2, target: V2): [number, number] {
+  const l1 = Math.hypot(...sub(mid, root)),
+    l2 = Math.hypot(...sub(end, mid)),
+    d = sub(target, root);
+  const r = Math.min(
+    l1 + l2 - 1e-6,
+    Math.max(Math.abs(l1 - l2) + 1e-6, Math.hypot(...d)),
+  );
+  const alpha = Math.acos((l1 * l1 + r * r - l2 * l2) / (2 * l1 * r));
+  let best: [number, number] = [0, 0];
+  for (const sign of [1, -1]) {
+    const a1 = ang(d) + sign * alpha - ang(sub(mid, root));
+    const m = add(root, rot(sub(mid, root), a1));
+    const a2 = ang(sub(target, m)) - ang(sub(end, mid)) - a1;
+    const w = Math.atan2(Math.sin(a2), Math.cos(a2));
+    if (sign === 1 || Math.abs(w) < Math.abs(best[1])) best = [a1, w];
+  }
+  return best;
+}
+export function gaitFrame(gait: GaitKind, t: number, rig?: GaitRig) {
   const { offsets: o, duty, amp, hamp = amp } = gaits[gait];
   const ph = (k: keyof typeof o) => (t + o[k]) % 1;
   const toRad = (a: Record<string, number>) =>
@@ -187,6 +227,68 @@ export function gaitFrame(gait: GaitKind, t: number) {
       ...toRad(hind(ph('RH'), duty, hamp)),
     },
   };
+  if (rig) {
+    // Feet on the ground: in stance the paw moves back at an even speed (as
+    // on a treadmill) and stays flat at ground level while the trunk rises
+    // and pitches; the upper two joints follow by inverse kinematics and the
+    // carpus or hock keeps the paw level. Swing blends from the end of stance
+    // to the next strike, with the schedule's flexion lifting the paw.
+    const J = rig.joints;
+    const chains = {
+      F: {
+        names: ['shoulder', 'elbow', 'carpus'] as Joint[],
+        pts: [J.shoulder, J.elbow, J.carpus, rig.foretoes].map(v2),
+        a: amp,
+      },
+      H: {
+        names: ['hip', 'stifle', 'hock'] as Joint[],
+        pts: [J.hip, J.stifle, J.hock, rig.hindtoes].map(v2),
+        a: hamp,
+      },
+    };
+    const stanceAngles = (c: (typeof chains)['F'], u: number, at: number) => {
+      const [root, mid, end, toe] = c.pts;
+      const half = 0.3 * c.a * (root[1] - toe[1]);
+      const tr = trunk(gait, ((at % 1) + 1) % 1);
+      const pitch = rad(tr.pitch);
+      const foot: V2 = [toe[0] + half * (1 - 2 * u), toe[1]];
+      const carpus = sub(foot, sub(toe, end)); // paw keeps its standing orientation
+      // World to body: undo the trunk's lift and pitch about the pivot.
+      const local = add(
+        rot(
+          sub(carpus, [rig.pivot[0], rig.pivot[1] + tr.lift * rig.height]),
+          -pitch,
+        ),
+        rig.pivot,
+      );
+      const [a1, a2] = ik(root, mid, end, local);
+      return [a1, a2, -(a1 + a2) - pitch];
+    };
+    for (const k of limbs) {
+      const c = chains[k[1] as 'F' | 'H'];
+      const p = ph(k);
+      let out: number[];
+      if (p < duty) out = stanceAngles(c, p / duty, t);
+      else {
+        const u = (p - duty) / (1 - duty);
+        const lift = stanceAngles(c, 1, t - (p - duty)),
+          strike = stanceAngles(c, 0, t + (1 - p));
+        const e = ease(u),
+          w = wave(u);
+        out = lift.map((v, i) => v + (strike[i] - v) * e);
+        // Flexion that clears the ground: elbow/hock flex, carpus/stifle flex.
+        if (k[1] === 'F') {
+          out[1] += rad(45 * c.a) * w;
+          out[2] -= rad(Math.min(110, 70 * c.a)) * wave(u * 1.4);
+        } else {
+          out[1] -= rad(45 * c.a) * w;
+          out[2] += rad(40 * c.a) * w;
+        }
+      }
+      const side = motion[k[0] as 'L' | 'R'];
+      c.names.forEach((n, i) => (side[n] = out[i]));
+    }
+  }
   const highlight = limbs.flatMap((k) =>
     active[k[1] === 'F' ? 'fore' : 'hind'][
       ph(k) < duty ? 'stance' : 'swing'

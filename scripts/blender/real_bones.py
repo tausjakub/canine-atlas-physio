@@ -144,9 +144,14 @@ def replace_bones(parts, S):
         s['c'] = s['c'] * scale
         s['ext'] = s['ext'] * scale
         s['size'] *= scale
-    off = np.array([atl_lo - mod_lo * scale,
-                    atlas_pts('Pelvis')[:, 1].mean() - pel['c'][1],
-                    0.0])
+    # Height: the vertebral columns meet (median of the spine shells against the
+    # atlas vertebrae), so a different pelvis or limb pose does not shift it.
+    dx = atl_lo - mod_lo * scale
+    l3 = float(np.linalg.norm(np.ptp(atlas_pts('L_3'), 0)))
+    col = [s['c'][1] for s in shell_mid if s is not big and s is not pel and s['size'] > 0.25 * l3
+           and atl_lo < s['c'][0] + dx < big['P'][:, 0].min() + dx]
+    vy = [atlas_pts(n)[:, 1].mean() for n in by if n.split('_')[0] in ('C', 'T', 'L') and n[2:].isdigit()]
+    off = np.array([dx, float(np.median(vy) - np.median(col)), 0.0])
     for s in shells:
         s['P'] = s['P'] + off
         s['c'] = s['c'] + off
@@ -185,11 +190,13 @@ def replace_bones(parts, S):
         if not ribs:
             continue
         sizes = [float(np.linalg.norm(np.ptp(atlas_pts(r), 0))) for r in ribs]
-        r_lo = min(atlas_pts(r)[:, 0].min() for r in ribs) - 0.03
-        r_hi = max(atlas_pts(r)[:, 0].max() for r in ribs) + 0.03
+        r_lo = min(atlas_pts(r)[:, 0].min() for r in ribs) - 0.05
+        r_hi = max(atlas_pts(r)[:, 0].max() for r in ribs) + 0.05
+        # The model splits each rib into its bony part (reaching the spine) and
+        # its cartilage; only bony parts qualify, ordered by the head's position.
         cands = sorted((s for s in shells if id(s) not in used and s['c'][2] * sign > 0.01 and r_lo < s['c'][0] < r_hi
-                        and 0.4 * min(sizes) < s['size'] < 1.5 * max(sizes)
-                        and s['P'][:, 1].max() > top - 0.15 * np.ptp(ap[:, 1])),
+                        and 0.25 * min(sizes) < s['size'] < 2.0 * max(sizes)
+                        and s['P'][:, 1].max() > top - 0.2 * np.ptp(ap[:, 1])),
                        key=lambda s: -s['P'][np.argmax(s['P'][:, 1]), 0])
         print(f'ribs {side}: {len(cands)} candidates for {len(ribs)}', flush=True)
         for n, s in zip(ribs, cands):
@@ -207,7 +214,8 @@ def replace_bones(parts, S):
         A = np.array([v.co[:] for v in ob.data.vertices])
         T, err = _fit(A, target, axes=pid.rsplit('_', 1)[0] in LIMB_BONES)
         size = float(np.linalg.norm(np.ptp(np.array([v.co[:] for v in target.data.vertices]), 0)))
-        if err > cfg.get('max_error', 0.16) * size:
+        # Ribs are long and thin: their error relative to size runs higher.
+        if err > cfg.get('max_error', 0.16) * size * (1.6 if pid.startswith('Rib') else 1.0):
             print(f'bone scan: {pid} rejected (fit error {err / size:.2f})', flush=True)
             bpy.data.objects.remove(ob)
             continue
@@ -219,3 +227,68 @@ def replace_bones(parts, S):
         bpy.data.objects.remove(ob)
         replaced += 1
     print(f'bone scan: {replaced} of {len(pairs)} matched bones replaced by {cfg["file"]}', flush=True)
+
+
+def replace_organs(organs, S):
+    """Organs from a CT-based model of the species (CC BY), placed by one
+    similarity that takes the model's organ centroids onto the atlas organs
+    they replace. Materials name the organs; the kidneys are split by side."""
+    cfg = S.get('organ_scan')
+    if not cfg:
+        return
+    path = os.path.join(R.SCANS, cfg['file'])
+    if not os.path.exists(path):
+        print(f'organ scan missing ({path}); keeping the schematic organs', flush=True)
+        return
+    by = {p['id']: p for p in organs}
+    before = {o.name for o in bpy.data.objects}
+    bpy.ops.import_scene.gltf(filepath=path)
+    new = [o for o in bpy.data.objects if o.name not in before]
+    groups = {}
+    for o in new:
+        if o.type == 'MESH' and o.data.materials:
+            groups.setdefault(o.data.materials[0].name, []).append(o)
+    turn = Matrix(cfg['turn'])
+    done, found = 0, []
+    for key, (pids, tris) in cfg['map'].items():
+        obs = [o for mat, g in groups.items() if key in mat for o in g]
+        if not obs:
+            continue
+        P, F = [], []
+        for o in obs:
+            me = o.data.copy()
+            me.transform(turn @ o.matrix_world)
+            off = len(P)
+            P += [v.co[:] for v in me.vertices]
+            F += [[off + i for i in p.vertices] for p in me.polygons]
+            bpy.data.meshes.remove(me)
+        P = np.array(P)
+        parts = [(pid, P, F) for pid in pids] if len(pids) == 1 else []
+        if len(pids) == 2:  # left (-z) and right (+z) organ of a pair
+            mid = np.median(P[:, 2])
+            for pid, keep in ((pids[0], P[:, 2] < mid), (pids[1], P[:, 2] >= mid)):
+                idx = np.flatnonzero(keep)
+                remap = -np.ones(len(P), int)
+                remap[idx] = np.arange(len(idx))
+                parts.append((pid, P[idx], [[remap[i] for i in f] for f in F if keep[f[0]] and keep[f[1]] and keep[f[2]]]))
+        for pid, Q, G in parts:
+            if pid in by:
+                found.append((pid, Q, G, tris))
+    # One similarity for the whole model, from organ centroids to the atlas
+    # organs: the real organs keep their shapes, sizes and relative positions.
+    A = np.array([Q.mean(0) for _, Q, _, _ in found])
+    B = np.array([np.array([v.co[:] for v in by[pid]['ob'].data.vertices]).mean(0) for pid, _, _, _ in found])
+    T = Matrix(_similarity(A, B).tolist())
+    for pid, Q, G, tris in found:
+        ob = _mesh('scan_' + pid, Q, G, tris)
+        ob.data.transform(T)
+        target = by[pid]['ob']
+        target.data = ob.data
+        target.data.name = pid
+        by[pid]['meta'] = {**(by[pid].get('meta') or {}), 'scan': 'organs'}
+        bpy.data.objects.remove(ob)
+        done += 1
+    for o in new:
+        if o.name in bpy.data.objects:
+            bpy.data.objects.remove(o)
+    print(f'organ scan: {done} organs replaced by {cfg["file"]}', flush=True)

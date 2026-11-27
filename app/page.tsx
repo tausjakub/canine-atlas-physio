@@ -1559,7 +1559,7 @@ export default function Home() {
               {t('Ligament guides · approximate anatomy')}
             </div>
           )}
-          <div className="orientation">
+          <div className="orientation" hidden={compare && tab === 'explore'}>
             <span>{t('CAMERA PRESET')}</span>
             <small>
               {t(

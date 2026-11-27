@@ -161,7 +161,7 @@ function boneLabel(id) {
 
 // Solve illustrative sitting/lying poses: two-bone chains keep their segment
 // lengths. A teaching pose, not measured joint range or a movement prescription.
-function solvePoses(J, rabbit) {
+function solvePoses(J, rabbit, upright = false) {
   const v = (p) => p.slice(0, 2);
   const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   const direction = (a, b) => Math.atan2(b[1] - a[1], b[0] - a[0]);
@@ -177,12 +177,24 @@ function solvePoses(J, rabbit) {
     // hip drops below about 30% of its standing height: long-bodied, short-
     // legged species (cat, ferret) would otherwise sit through the floor and
     // the leg solver would throw the hind limbs backwards.
+    // An upright sit (cat) straightens the forelimbs under the shoulder, which
+    // lifts the shoulder by the bend of the standing elbow; the trunk can then
+    // tip further and the hip comes down close to the ground.
+    const sit = pose === 'sitting';
+    const dirH = direction(shoulder, elbow),
+      dirF = direction(elbow, carpus);
+    const rise =
+      sit && upright
+        ? carpus[1] + dist(shoulder, elbow) + dist(elbow, carpus) - shoulder[1]
+        : 0;
     const hipLift = (a) =>
+      rise +
       shoulder[1] +
       (hip[0] - shoulder[0]) * Math.sin(a) +
       (hip[1] - shoulder[1]) * Math.cos(a);
-    let trunk = pose === 'sitting' ? (rabbit ? 0.45 : 0.62) : 0;
-    while (trunk > 0 && hipLift(trunk) < ground + 0.3 * (hip[1] - ground))
+    let trunk = sit ? (upright ? 0.95 : rabbit ? 0.45 : 0.62) : 0;
+    const floor = upright ? 0.22 : 0.3;
+    while (trunk > 0 && hipLift(trunk) < ground + floor * (hip[1] - ground))
       trunk -= 0.01;
     const lower = pose === 'lying' ? J.lower : 0;
     const transform = (p) => [
@@ -192,7 +204,8 @@ function solvePoses(J, rabbit) {
       shoulder[1] +
         (p[0] - shoulder[0]) * Math.sin(trunk) +
         (p[1] - shoulder[1]) * Math.cos(trunk) -
-        lower,
+        lower +
+        rise,
     ];
     const solve = (origin, mid, end, target, sign) => {
       const base = transform(origin),
@@ -227,7 +240,9 @@ function solvePoses(J, rabbit) {
     const fore =
       pose === 'lying'
         ? solve(shoulder, elbow, carpus, targetCarpus, -1)
-        : [-trunk, 0];
+        : upright
+          ? [-Math.PI / 2 - dirH - trunk, dirH - dirF] // humerus and forearm vertical
+          : [-trunk, 0];
     const footAngle = (a, b, height) =>
       Math.asin(Math.max(-1, Math.min(1, (ground - height) / dist(a, b)))) -
       direction(a, b);
@@ -236,6 +251,7 @@ function solvePoses(J, rabbit) {
     const hindfoot =
       footAngle(hock, hindtoe, targetHock[1]) - trunk - hind[0] - hind[1];
     out[pose] = {
+      ...(rise ? { rise } : {}),
       trunk,
       arm: fore[0],
       forearm: fore[1],
@@ -337,7 +353,7 @@ for (const species of Object.keys(info)) {
   const J = raw.pose;
   const shoulderY = J.joints.shoulder[1];
   const poseConfig = { ...J, lower: shoulderY * 0.42 };
-  poseConfig.angles = solvePoses(poseConfig, rabbit);
+  poseConfig.angles = solvePoses(poseConfig, rabbit, species === 'cat');
   const muscles = parts.filter((p) => p.system === 'muscle').length;
   const atlas = {
     species,

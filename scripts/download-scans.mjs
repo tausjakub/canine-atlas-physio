@@ -9,6 +9,7 @@ const H =
 const files = [
   ['cat/skull.glb', H + '000-131/7c99ca836d834c39872ecf5e9b5e2087.glb'],
   ['cat/skeleton.glb', H + '000-004/a5d0bb8f55dc4f49b103cd20d65e0b17.glb'],
+  ['cat/organs.glb', H + '000-120/ab92a2a9d9024447b0ed4c080ad17106.glb'],
   ['rabbit/skull.glb', H + '000-101/6640c63cf58341758e99255cec1a8976.glb'],
   ['rabbit/jaw.glb', H + '000-048/65d078562ec44d5a802a7e18fac7b639.glb'],
   // Articulated leporid skull: only the mandible's placement is taken from it.

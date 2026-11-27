@@ -594,3 +594,7 @@ body {
 .dental-chart .tooth-draw[aria-pressed='true'] .crown {
   fill: #a2edda;
 }
+/* The camera label would sit on the compare grid's Close button. */
+.atlas-app .orientation[hidden] {
+  display: none;
+}

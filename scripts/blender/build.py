@@ -176,6 +176,7 @@ if not PROCEDURAL:
     if old_head:
         brain_map = real_skulls.fit_brain(organs, next(p['ob'] for p in dog if p['id'] == 'MergedSkull'))
         real_skulls.follow_skull(dog + extra, old_head, brain_map)
+    real_bones.replace_organs(organs, S)
     fit_tongue(dog, organs)
     print(f'polish: {time.time() - t0:.1f}s', flush=True)
     parts = [(p['id'], p['system'], p['region'], p['ob'], p.get('meta')) for p in dog]
