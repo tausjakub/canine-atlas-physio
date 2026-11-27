@@ -55,10 +55,11 @@ if not PROCEDURAL:
     src = retarget.dog_landmarks(dog)
     tgt = retarget.target_landmarks(S)
     segs = retarget.segments(src, tgt, S)
+    trees = retarget.bone_trees(dog, segs)
     for p in dog:
-        p['region'] = retarget.region_of(p, segs)
+        p['region'] = retarget.region_of(p, segs, trees)
     print(f'jaw closed by {retarget.close_jaw(dog, S['retarget'].get('jaw_close', 1.0)):.0f} deg', flush=True)
-    retarget.warp(dog, segs)
+    retarget.warp(dog, segs, trees=trees)
     print(f'retarget: {len(dog)} parts in {time.time() - t0:.1f}s', flush=True)
     dog = species_edits.edit_bones(dog, S)
     dog = species_edits.label_muscles(dog, S)

@@ -285,13 +285,35 @@ def close_jaw(parts, fraction=1.0):
     return math.degrees(angle)
 
 
-def region_of(part, segs):
-    """Atlas region from the nearest dog segment to the part's centre."""
+def bone_trees(parts, segs):
+    """BVH of each segment's rigid bones in dog coordinates (before warping)."""
+    from mathutils.bvhtree import BVHTree
+    acc = {}
+    for p in parts:
+        rig = rigid_segment(p['id'], segs) if p['system'] == 'bone' else None
+        if rig is not None:
+            vs, fs = acc.setdefault(rig.name, ([], []))
+            o = len(vs)
+            vs += [v.co.copy() for v in p['ob'].data.vertices]
+            fs += [tuple(i + o for i in f.vertices) for f in p['ob'].data.polygons]
+    return {k: BVHTree.FromPolygons(vs, fs) for k, (vs, fs) in acc.items()}
+
+
+def bone_distance(trees, s, co):
+    # Segment capsules are wide (the thorax one swallows the shoulder), so
+    # distance to the segment's own bones decides where tissue belongs.
+    t = trees.get(s.name)
+    return t.find_nearest(co)[3] if t else s.distance(co)
+
+
+def region_of(part, segs, trees=None):
+    """Atlas region from the dog segment whose bones are nearest the part's centre."""
     for region, names in LIMB_GIRDLE.items():
         if part.get('profile') in names:
             return region
     c = _centre(part['ob'])
-    s = min(segs, key=lambda s: s.distance(c)).name.split('_')[0]
+    trees = trees or {}
+    s = min(segs, key=lambda s: bone_distance(trees, s, c)).name.split('_')[0]
     if s in ('cranium', 'face'):
         return 'Head'
     if s in ('scap', 'arm', 'forearm', 'manus'):
@@ -301,8 +323,11 @@ def region_of(part, segs):
     return 'Neck & trunk'
 
 
-def warp(parts, segs, power=4.0, eps=0.004):
-    """Move every part into the target frame (in place)."""
+def warp(parts, segs, power=4.0, eps=0.004, trees=None):
+    """Move every part into the target frame (in place). Limb tissue weighs
+    segments by distance to their bones, so tendons stay on the bone they
+    insert on."""
+    trees = trees if trees is not None else bone_trees(parts, segs)
     for p in parts:
         ob = p['ob']
         me = ob.data
@@ -318,9 +343,10 @@ def warp(parts, segs, power=4.0, eps=0.004):
             allowed = allowed | {'thigh'}
         cand = [s for s in segs if s.name.split('_')[0].rstrip('0123456789') in allowed
                 and (s.side is None or sd is None or s.side == sd)]
+        dist = (lambda s, co: bone_distance(trees, s, co)) if p.get('region') in ('Forelimb', 'Hindlimb') else (lambda s, co: s.distance(co))
         for v in me.vertices:
             co = v.co.copy()
-            ws = sorted(((1.0 / (s.distance(co) + eps) ** power, s) for s in cand), key=lambda x: -x[0])[:3]
+            ws = sorted(((1.0 / (dist(s, co) + eps) ** power, s) for s in cand), key=lambda x: -x[0])[:3]
             tot = sum(w for w, _ in ws)
             v.co = sum((s.apply(co) * (w / tot) for w, s in ws), Vector())
         me.update()
