@@ -13,6 +13,13 @@ import {
   type DogPose,
 } from './poses';
 type Engine = { update: (s: SceneState) => void; destroy: () => void };
+// Stable small hash; the side suffix is ignored so paired muscles match.
+function tintOf(id: string) {
+  let h = 7;
+  for (const c of id.replace(/_[LR]$/, ''))
+    h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h;
+}
 export default function AnatomyScene({
   atlas,
   state,
@@ -45,9 +52,12 @@ export default function AnatomyScene({
     const abort = new AbortController();
     async function init() {
       try {
-        const response = await fetch(sitePath('/models/anatomy.bin'), {
-          signal: abort.signal,
-        });
+        const response = await fetch(
+          sitePath(atlas.binaryPath || '/models/anatomy.bin'),
+          {
+            signal: abort.signal,
+          },
+        );
         if (!response.ok) throw Error('The anatomy file could not be loaded.');
         const buffer = await response.arrayBuffer();
         if (dead) return;
@@ -63,10 +73,14 @@ export default function AnatomyScene({
         el.appendChild(renderer.domElement);
         renderer.domElement.setAttribute(
           'aria-label',
-          translate(
-            locale.current,
-            'Interactive canine anatomy. Drag to orbit; scroll or pinch to zoom. Select structures using the list for keyboard access.',
-          ),
+          atlas.species
+            ? locale.current === 'cs'
+              ? 'Interaktivní anatomický model. Tažením otáčejte, kolečkem přibližujte. Struktury lze vybrat také ze seznamu.'
+              : 'Interactive anatomy model. Drag to orbit, scroll to zoom. Structures can also be selected from the list.'
+            : translate(
+                locale.current,
+                'Interactive canine anatomy. Drag to orbit; scroll or pinch to zoom. Select structures using the list for keyboard access.',
+              ),
         );
         const scene = new THREE.Scene(),
           camera = new THREE.PerspectiveCamera(36, 1, 0.001, 100);
@@ -137,7 +151,12 @@ export default function AnatomyScene({
         const poseMatrices = new Map(
           dogPoses.map((pose) => [
             pose,
-            new Map(atlas.parts.map((p) => [p.id, poseMatrix(p, pose)])),
+            new Map(
+              atlas.parts.map((p) => [
+                p.id,
+                poseMatrix(p, pose, atlas.poseConfig),
+              ]),
+            ),
           ]),
         );
         const bones = atlas.parts.filter((p) => p.system === 'bone');
@@ -160,7 +179,12 @@ export default function AnatomyScene({
         let previous: SceneState | undefined;
         function frame(view: string) {
           box.makeEmpty();
-          meshes.filter((m) => m.visible).forEach((m) => box.expandByObject(m));
+          const focused =
+            latest.current.focusSelected && latest.current.selected;
+          const framed = meshes.filter(
+            (m) => m.visible && (!focused || m.userData.part.id === focused),
+          );
+          framed.forEach((m) => box.expandByObject(m));
           if (box.isEmpty()) return;
           const center = box.getCenter(new THREE.Vector3()),
             size = box.getSize(new THREE.Vector3());
@@ -174,11 +198,38 @@ export default function AnatomyScene({
                   : view === 'three-quarter'
                     ? new THREE.Vector3(0.8, 0.35, -1)
                     : new THREE.Vector3(0, 0.03, -1);
-          const radius = size.length() / 2;
-          const fit =
-            (radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2))) *
-            Math.max(1, 1 / camera.aspect) *
-            1.05;
+          let fit: number;
+          if (atlas.species) {
+            // Fit the visible pieces in the chosen direction; a circumscribed
+            // sphere leaves long, slender animals small on the canvas.
+            const direction = dir.clone().normalize(),
+              right = new THREE.Vector3(0, 1, 0).cross(direction).normalize(),
+              up = direction.clone().cross(right).normalize(),
+              tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)),
+              corner = new THREE.Vector3();
+            fit = 0;
+            for (const mesh of framed) {
+              const b = new THREE.Box3().expandByObject(mesh);
+              for (const x of [b.min.x, b.max.x])
+                for (const y of [b.min.y, b.max.y])
+                  for (const z of [b.min.z, b.max.z]) {
+                    corner.set(x, y, z).sub(center);
+                    fit = Math.max(
+                      fit,
+                      Math.abs(corner.dot(right)) / (tan * camera.aspect) +
+                        corner.dot(direction),
+                      Math.abs(corner.dot(up)) / tan + corner.dot(direction),
+                    );
+                  }
+            }
+            fit *= 1.12;
+          } else {
+            const radius = size.length() / 2;
+            fit =
+              (radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2))) *
+              Math.max(1, 1 / camera.aspect) *
+              1.05;
+          }
           controls.target.copy(center);
           camera.position
             .copy(center)
@@ -225,14 +276,24 @@ export default function AnatomyScene({
                 ? '#67e0d0'
                 : systems.find((t) => t.id === p.system)!.color,
             );
+            // Species atlases shade neighbouring muscles slightly differently
+            // so individual bellies stay distinguishable.
+            if (!selected && atlas.species && p.system === 'muscle')
+              m.material.color.offsetHSL(
+                ((tintOf(p.id) % 7) - 3) * 0.006,
+                0,
+                ((tintOf(p.id) % 5) - 2) * 0.035,
+              );
             m.material.emissive.set(selected ? '#123d39' : '#000000');
             m.material.opacity = selected
               ? 1
-              : p.system === 'muscle'
-                ? s.opacity
-                : p.system === 'surface'
-                  ? 0.2
-                  : 1;
+              : s.focusSelected && s.selected
+                ? 0.1
+                : p.system === 'muscle'
+                  ? s.opacity
+                  : p.system === 'surface'
+                    ? 0.2
+                    : 1;
             m.material.transparent = m.material.opacity < 1;
             m.material.depthWrite = m.material.opacity >= 1;
             const pose = s.pose || 'standing',
@@ -242,7 +303,12 @@ export default function AnatomyScene({
                 pose === 'standing' ? soft.rest : soft.poses.get(pose);
               if (!positions) {
                 soft.bindings ??= bindSoftVertices(soft.rest, bones);
-                positions = deformSoftVertices(soft.rest, soft.bindings, pose);
+                positions = deformSoftVertices(
+                  soft.rest,
+                  soft.bindings,
+                  pose,
+                  atlas.poseConfig,
+                );
                 soft.poses.set(pose, positions);
               }
               const attribute = m.geometry.getAttribute(
@@ -274,8 +340,9 @@ export default function AnatomyScene({
             previous.reset !== s.reset ||
             previous.view !== s.view ||
             previous.isolate !== s.isolate ||
+            previous.focusSelected !== s.focusSelected ||
             previous.explode !== s.explode ||
-            (s.isolate && previous.selected !== s.selected)
+            ((s.isolate || s.focusSelected) && previous.selected !== s.selected)
           )
             frame(s.explode > 0 ? 'lateral' : s.view);
           previous = { ...s };

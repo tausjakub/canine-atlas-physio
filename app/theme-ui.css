@@ -267,3 +267,45 @@ html[data-theme='ufo'] .plan-hero {
   line-height: 1.6;
   margin-top: 14px;
 }
+
+/* Species picker above the shared explorer */
+.species-picker {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 28px;
+  background: var(--theme-surface);
+  border-bottom: 1px solid var(--theme-border);
+  color: var(--theme-text);
+}
+.species-picker > span {
+  font-size: 0.8rem;
+  color: var(--theme-muted);
+  margin-right: 16px;
+}
+.species-picker button {
+  padding: 9px 22px;
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.species-picker button[aria-pressed='true'] {
+  color: var(--theme-accent);
+  border-color: var(--theme-accent);
+  box-shadow: inset 0 -2px var(--theme-accent);
+}
+@media (max-width: 850px) {
+  .species-picker {
+    padding: 12px;
+  }
+}
+@media (max-width: 420px) {
+  .species-picker > span {
+    width: 100%;
+  }
+  .species-picker button {
+    flex: 1;
+    padding: 9px;
+  }
+}

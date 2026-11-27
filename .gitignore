@@ -44,3 +44,7 @@ tsconfig.tsbuildinfo
 # Licensed third-party material (private edition only; never commit or publish)
 /private-assets/
 *.pdf
+__pycache__/
+
+# local knowledge graph (graphify)
+graphify-out/

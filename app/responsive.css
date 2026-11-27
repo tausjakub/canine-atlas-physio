@@ -209,6 +209,21 @@ body {
   }
 }
 
+/* Tablet portrait: no left panel, so a vertical toolbar would sit on the model. */
+@media (min-width: 761px) and (max-width: 900px) {
+  .atlas-app .view-tools {
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    max-width: calc(100% - 20px);
+  }
+  .atlas-app .view-tools i {
+    width: 1px;
+    height: auto;
+    margin: 4px 2px;
+  }
+}
+
 @media (max-width: 400px) {
   .atlas-app .brand p {
     display: none;
