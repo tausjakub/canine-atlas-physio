@@ -1,5 +1,11 @@
 import type { DogPose } from './poses';
-export type System = 'bone' | 'muscle' | 'connective' | 'surface' | 'ligament';
+export type System =
+  | 'bone'
+  | 'muscle'
+  | 'connective'
+  | 'surface'
+  | 'ligament'
+  | 'organ';
 export type Part = {
   id: string;
   system: System;
@@ -12,7 +18,12 @@ export type Part = {
   path?: number[][];
   radius?: number;
   anatomicalRegion?: string;
+  // Parts merged from another pack (organs) read geometry from their own binary.
+  binaryPath?: string;
+  // Reproductive organs: only the selected sex is shown.
+  sex?: Sex;
 };
+export type Sex = 'male' | 'female';
 export type Atlas = {
   parts: Part[];
   bytes: number;
@@ -33,6 +44,7 @@ export type SceneState = {
   rotate: boolean;
   pose?: DogPose;
   focusSelected?: boolean;
+  sex: Sex;
 };
 export const systems: { id: System; name: string; color: string }[] = [
   { id: 'bone', name: 'Skeleton', color: '#e6d5ad' },
@@ -40,7 +52,26 @@ export const systems: { id: System; name: string; color: string }[] = [
   { id: 'ligament', name: 'Ligaments · schematic', color: '#eeb85b' },
   { id: 'connective', name: 'Connective tissue', color: '#abc8d6' },
   { id: 'surface', name: 'Body surface', color: '#758d9c' },
+  { id: 'organ', name: 'Organs', color: '#c98fb4' },
 ];
+// Organs share one layer but are tinted by organ group so neighbours read apart.
+const organTints: [RegExp, string][] = [
+  [/^brain_/, '#e8b9c4'],
+  [/spinal_cord|thyroid|adrenal/, '#e9d48c'],
+  [/heart|aorta/, '#c4505a'],
+  [/vena_cava/, '#5d7fc4'],
+  [/lung/, '#e7a1a8'],
+  [/liver|spleen|kidney/, '#8c3f45'],
+  [/gallbladder/, '#6f9a52'],
+  [/bladder|prostate/, '#d8c06a'],
+  [/ovary|uterus|vagina/, '#d7a6c9'],
+  [/trachea|larynx/, '#b9d3dc'],
+];
+export function partColor(p: Part) {
+  if (p.system !== 'organ')
+    return systems.find((s) => s.id === p.system)!.color;
+  return organTints.find(([re]) => re.test(p.id))?.[1] ?? '#d99a8c';
+}
 export const initial: SceneState = {
   systems: ['bone', 'muscle'],
   selected: null,
@@ -52,6 +83,7 @@ export const initial: SceneState = {
   reset: 0,
   rotate: false,
   pose: 'standing',
+  sex: 'male',
 };
 export function displayName(id: string) {
   if (id === 'skin') return 'Body surface';
@@ -249,6 +281,7 @@ export function noteFor(p: Part) {
 export function isShown(p: Part, s: SceneState) {
   return (
     !s.hidden.includes(p.id) &&
+    (!p.sex || p.sex === s.sex) &&
     (s.isolate
       ? p.id === s.selected
       : s.systems.includes(p.system) || p.id === s.selected)

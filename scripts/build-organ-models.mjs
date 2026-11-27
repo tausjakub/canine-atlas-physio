@@ -1,0 +1,101 @@
+// Packs the Blender-built organ layers into the app's catalog format.
+//
+//   blender -b --factory-startup -P scripts/blender/organs.py          (dog)
+//   blender -b --factory-startup -P scripts/blender/build.py -- cat    (retargets it)
+//   blender -b --factory-startup -P scripts/blender/build.py -- rabbit
+//   node scripts/build-organ-models.mjs [dog|cat|rabbit]
+//
+// The brain comes from the CC0 canine MRI atlas (Johnson & Barry 2019); all
+// other organs are schematic shapes authored in scripts/blender/organs.py.
+// The app merges each pack into its species atlas; each part names its own binary.
+import fs from 'node:fs';
+import { organStudy, organStudyFor } from './organs-study.mjs';
+
+const root = new URL('../', import.meta.url);
+const BRAIN =
+  'Brain: Johnson PJ, Barry EF (2019) Cortical Atlas of the Canine Brain, Cornell eCommons, doi:10.7298/4t8z-aw34 (CC0).';
+const packs = {
+  dog: {
+    work: 'work/organs/',
+    out: 'public/models/organs/',
+    cards: organStudy,
+    attribution: `${BRAIN} Other organs: schematic shapes authored for Canine Atlas.`,
+  },
+  ...Object.fromEntries(
+    ['cat', 'rabbit'].map((sp) => [
+      sp,
+      {
+        work: `work/species/${sp}/organs/`,
+        out: `public/models/${sp}/organs/`,
+        cards: organStudyFor(sp),
+        attribution: `Dog organ layer retargeted to the ${sp}. ${BRAIN} Other organs: schematic shapes authored for Canine Atlas.`,
+      },
+    ]),
+  ),
+};
+
+const round = (v) => v.map((x) => Math.round(x * 1e5) / 1e5);
+for (const name of process.argv[2] ? [process.argv[2]] : Object.keys(packs)) {
+  const pack = packs[name];
+  if (!pack) throw Error(`Unknown pack ${name}`);
+  const work = new URL(pack.work, root);
+  const built = JSON.parse(
+    fs.readFileSync(new URL('parts.json', work), 'utf8'),
+  );
+  const geometry = fs.readFileSync(new URL('geometry.bin', work));
+  if (geometry.length !== built.bytes)
+    throw Error(`${name}: geometry.bin does not match parts.json`);
+  const binaryPath = `/${pack.out.replace(/^public\//, '')}anatomy.bin`;
+  // Repack only the parts that have a card (drops the dog build's rabbit variants).
+  const chunks = [];
+  let offset = 0;
+  const parts = built.parts
+    .filter((p) => pack.cards[p.id] || !p.id.endsWith('_rabbit'))
+    .map((p) => {
+      const card = pack.cards[p.id];
+      if (!card) throw Error(`${name}: no study card for ${p.id}`);
+      const vb = geometry.subarray(
+        p.vertexOffset,
+        p.vertexOffset + p.vertexCount * 12,
+      );
+      const ib = geometry.subarray(
+        p.indexOffset,
+        p.indexOffset + p.indexCount * 4,
+      );
+      chunks.push(vb, ib);
+      const { meta, ...rest } = p;
+      const sex = p.sex ?? meta?.sex;
+      const part = {
+        ...rest,
+        ...(sex ? { sex } : {}),
+        vertexOffset: offset,
+        indexOffset: offset + vb.length,
+        center: round(p.center),
+        bounds: p.bounds.map(round),
+        binaryPath,
+        ...card,
+      };
+      offset += vb.length + ib.length;
+      return part;
+    });
+  const missing = Object.keys(pack.cards).filter(
+    (id) => !parts.some((p) => p.id === id),
+  );
+  if (missing.length)
+    throw Error(`${name}: built model lacks ${missing.join(', ')}`);
+  const out = new URL(pack.out, root);
+  fs.mkdirSync(out, { recursive: true });
+  fs.writeFileSync(new URL('anatomy.bin', out), Buffer.concat(chunks));
+  fs.writeFileSync(
+    new URL('catalog.json', out),
+    JSON.stringify({
+      bytes: offset,
+      binaryPath,
+      attribution: pack.attribution,
+      parts,
+    }),
+  );
+  console.log(
+    `${name} organs: ${parts.length} parts, ${(offset / 1e6).toFixed(2)} MB`,
+  );
+}

@@ -1559,6 +1559,11 @@ kbd {
   font-size: 0.75rem;
   color: var(--tone-c0d0dc, #c0d0dc);
 }
+.presets button[aria-pressed='true'] {
+  background: var(--tone-234e43, #234e43);
+  color: var(--tone-a2edda, #a2edda);
+  border-color: var(--tone-70c9b4, #70c9b4);
+}
 .layer-row {
   width: 100%;
   display: flex;
