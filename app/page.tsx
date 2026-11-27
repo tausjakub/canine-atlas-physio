@@ -15,6 +15,8 @@ import {
   X,
   Dog,
   Info,
+  Link2,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnatomyScene from './scene';
@@ -69,6 +71,8 @@ function organPack(path: string, signal: AbortSignal) {
       return null;
     });
 }
+
+const cameraViews = ['lateral', 'right', 'cranial', 'dorsal', 'three-quarter'];
 
 export default function Home() {
   const [examTarget, setExamTarget] = useState<{
@@ -146,7 +150,45 @@ export default function Home() {
       setSpecies(value);
       setTab('explore');
     }
+    // Deep link to a view: ?part=&layers=&sex=&pose=&cam= (written back below).
+    const params = new URLSearchParams(window.location.search);
+    const layers = (params.get('layers') ?? '')
+      .split(',')
+      .filter((x): x is System => systems.some((sys) => sys.id === x));
+    const pose = params.get('pose'),
+      cam = params.get('cam'),
+      part = params.get('part');
+    setState((s) => ({
+      ...s,
+      ...(layers.length ? { systems: layers } : {}),
+      ...(params.get('sex') === 'female' ? { sex: 'female' as const } : {}),
+      ...(pose === 'sitting' || pose === 'lying' ? { pose } : {}),
+      ...(cam && cameraViews.includes(cam) ? { view: cam } : {}),
+      ...(part ? { selected: part } : {}),
+    }));
+    if (part || layers.length) setTab('explore');
   }, []);
+  useEffect(() => {
+    if (tab !== 'explore') return;
+    const url = new URL(window.location.href);
+    const put = (key: string, value: string | null) =>
+      value ? url.searchParams.set(key, value) : url.searchParams.delete(key);
+    put('part', state.selected);
+    put('layers', state.systems.join(','));
+    put('sex', state.sex === 'female' ? 'female' : null);
+    put('pose', state.pose && state.pose !== 'standing' ? state.pose : null);
+    put('cam', state.view !== 'lateral' ? state.view : null);
+    window.history.replaceState(null, '', url);
+  }, [tab, state.selected, state.systems, state.sex, state.pose, state.view]);
+  const [copied, setCopied] = useState(false);
+  const copyLink = () =>
+    navigator.clipboard
+      ?.writeText(window.location.href)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      })
+      .catch(() => {});
   const otherSpecies = tab === 'explore' && species !== 'dog';
   // Cat and rabbit catalogs load on first use and render in the same explorer.
   const [speciesAtlas, setSpeciesAtlas] = useState<
@@ -834,6 +876,13 @@ export default function Home() {
               onClick={reset}
             >
               <RotateCcw size={17} />
+            </button>
+            <button
+              title={t(copied ? 'Link copied' : 'Copy link to this view')}
+              aria-label={t('Copy link to this view')}
+              onClick={copyLink}
+            >
+              {copied ? <Check size={17} /> : <Link2 size={17} />}
             </button>
           </nav>
           <div className="explode-dock">
