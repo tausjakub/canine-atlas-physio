@@ -1671,6 +1671,16 @@ kbd {
   font: inherit;
   resize: vertical;
 }
+.rom-row {
+  display: grid;
+  gap: 2px;
+  margin: 8px 0;
+}
+.rom-row small,
+.small {
+  font-size: 0.72rem;
+  opacity: 0.8;
+}
 .viewer-tools {
   display: grid;
   gap: 8px;

@@ -8,6 +8,9 @@ import { type Language, translate } from './i18n';
 import {
   dogPoses,
   poseMatrix,
+  poseRig,
+  segmentKey,
+  sideOf,
   bindSoftVertices,
   deformSoftVertices,
   type DogPose,
@@ -17,7 +20,20 @@ export type Snapshot = {
   image: string;
   marks: { id: string; x: number; y: number }[];
 };
-export type SceneTools = { snapshot: () => Snapshot };
+export type SceneTools = { snapshot: (view?: string) => Snapshot };
+// High-contrast colours by system (accessibility).
+const contrastColors: Record<string, string> = {
+  bone: '#ffffff',
+  muscle: '#ff453a',
+  organ: '#ff9f0a',
+  ligament: '#ffd60a',
+  connective: '#64d2ff',
+  surface: '#8e8e93',
+  landmark: '#ffd60a',
+  lymph: '#30d158',
+  vessel: '#ff375f',
+  nerve: '#fff35c',
+};
 // Stable small hash; the side suffix is ignored so paired muscles match.
 function tintOf(id: string) {
   let h = 7;
@@ -127,6 +143,32 @@ export default function AnatomyScene({
         const fill = new THREE.DirectionalLight(0x8cc8ff, 1.6);
         fill.position.set(-2, 1, 2);
         scene.add(fill);
+        function textSprite(text: string, color: string) {
+          const canvas = document.createElement('canvas');
+          canvas.width = canvas.height = 64;
+          const c = canvas.getContext('2d')!;
+          c.fillStyle = 'rgba(16,24,32,0.8)';
+          c.beginPath();
+          c.arc(32, 32, 30, 0, Math.PI * 2);
+          c.fill();
+          c.fillStyle = color;
+          c.font = 'bold 34px sans-serif';
+          c.textAlign = 'center';
+          c.textBaseline = 'middle';
+          c.fillText(text, 32, 34);
+          const sprite = new THREE.Sprite(
+            new THREE.SpriteMaterial({
+              map: new THREE.CanvasTexture(canvas),
+              depthTest: false,
+            }),
+          );
+          sprite.scale.setScalar(0.014);
+          sprite.renderOrder = 10;
+          return sprite;
+        }
+        const pinGroup = new THREE.Group();
+        scene.add(pinGroup);
+        let pinKey = '[]';
         const meshes: THREE.Mesh<
           THREE.BufferGeometry,
           THREE.MeshStandardMaterial
@@ -178,27 +220,8 @@ export default function AnatomyScene({
           meshes.push(m);
           // Text anchored in 3D (rib numbers), drawn over the model.
           m.userData.labels = (p.labels ?? []).map(({ text, at }) => {
-            const canvas = document.createElement('canvas');
-            canvas.width = canvas.height = 64;
-            const c = canvas.getContext('2d')!;
-            c.fillStyle = 'rgba(16,24,32,0.8)';
-            c.beginPath();
-            c.arc(32, 32, 30, 0, Math.PI * 2);
-            c.fill();
-            c.fillStyle = '#ffe9a8';
-            c.font = 'bold 34px sans-serif';
-            c.textAlign = 'center';
-            c.textBaseline = 'middle';
-            c.fillText(text, 32, 34);
-            const sprite = new THREE.Sprite(
-              new THREE.SpriteMaterial({
-                map: new THREE.CanvasTexture(canvas),
-                depthTest: false,
-              }),
-            );
+            const sprite = textSprite(text, '#ffe9a8');
             sprite.position.set(at[0], at[1] + 0.012, at[2]);
-            sprite.scale.setScalar(0.014);
-            sprite.renderOrder = 10;
             scene.add(sprite);
             return sprite;
           });
@@ -226,7 +249,7 @@ export default function AnatomyScene({
                 ).slice(),
                 bindings: null as ReturnType<typeof bindSoftVertices> | null,
                 poses: new Map<DogPose, Float32Array>(),
-                active: 'standing' as DogPose,
+                active: 'standing' as string,
               },
             ]),
         );
@@ -335,6 +358,27 @@ export default function AnatomyScene({
             const at = lo + (hi - lo) * s.section.at;
             cut.set(new THREE.Vector3().setComponent(i, sign), -sign * at);
           }
+          const poseKey = s.motion
+            ? `motion:${JSON.stringify(s.motion)}`
+            : s.pose || 'standing';
+          const motionRig = s.motion
+            ? poseRig('standing', atlas.poseConfig, s.motion)
+            : null;
+          // Instructor pins: numbered markers, rebuilt when they change.
+          if (JSON.stringify(s.pins ?? []) !== pinKey) {
+            pinKey = JSON.stringify(s.pins ?? []);
+            pinGroup.children.forEach((c) => {
+              const sp = c as THREE.Sprite;
+              sp.material.map?.dispose();
+              sp.material.dispose();
+            });
+            pinGroup.clear();
+            (s.pins ?? []).forEach((pin, i) => {
+              const sp = textSprite(String(i + 1), '#ffcf4a');
+              sp.position.set(pin.at[0], pin.at[1], pin.at[2]);
+              pinGroup.add(sp);
+            });
+          }
           meshes.forEach((m) => {
             const p = m.userData.part;
             m.visible = isShown(p, s);
@@ -344,16 +388,39 @@ export default function AnatomyScene({
               m.material.needsUpdate = true;
             }
             const selected = p.id === s.selected;
-            m.material.color.set(selected ? '#67e0d0' : partColor(p));
+            const lit =
+              !selected &&
+              p.system === 'muscle' &&
+              s.highlight?.some((h) => {
+                const [token, side] = h.split('@');
+                return p.id.includes(token) && (!side || sideOf(p.id) === side);
+              });
+            m.material.color.set(
+              selected
+                ? '#67e0d0'
+                : lit
+                  ? '#ffb347'
+                  : s.contrast
+                    ? (contrastColors[p.system] ?? '#ffffff')
+                    : partColor(p),
+            );
             // Species atlases shade neighbouring muscles slightly differently
             // so individual bellies stay distinguishable.
-            if (!selected && atlas.species && p.system === 'muscle')
+            if (
+              !selected &&
+              !lit &&
+              !s.contrast &&
+              atlas.species &&
+              p.system === 'muscle'
+            )
               m.material.color.offsetHSL(
                 ((tintOf(p.id) % 7) - 3) * 0.006,
                 0,
                 ((tintOf(p.id) % 5) - 2) * 0.035,
               );
-            m.material.emissive.set(selected ? '#123d39' : '#000000');
+            m.material.emissive.set(
+              selected ? '#123d39' : lit ? '#4a2600' : '#000000',
+            );
             m.material.opacity = selected
               ? 1
               : s.focusSelected && s.selected
@@ -380,9 +447,13 @@ export default function AnatomyScene({
             m.material.depthWrite = m.material.opacity >= 1;
             const pose = s.pose || 'standing',
               soft = softGeometry.get(m);
-            if (soft && soft.active !== pose) {
-              let positions =
-                pose === 'standing' ? soft.rest : soft.poses.get(pose);
+            // Joint motion deforms only visible soft tissue, and is not cached.
+            if (soft && soft.active !== poseKey && (m.visible || !s.motion)) {
+              let positions = s.motion
+                ? undefined
+                : pose === 'standing'
+                  ? soft.rest
+                  : soft.poses.get(pose);
               if (!positions) {
                 soft.bindings ??= bindSoftVertices(soft.rest, bones);
                 positions = deformSoftVertices(
@@ -390,8 +461,9 @@ export default function AnatomyScene({
                   soft.bindings,
                   pose,
                   atlas.poseConfig,
+                  s.motion,
                 );
-                soft.poses.set(pose, positions);
+                if (!s.motion) soft.poses.set(pose, positions);
               }
               const attribute = m.geometry.getAttribute(
                 'position',
@@ -401,10 +473,11 @@ export default function AnatomyScene({
               m.geometry.computeVertexNormals();
               m.geometry.computeBoundingBox();
               m.geometry.computeBoundingSphere();
-              soft.active = pose;
+              soft.active = poseKey;
             }
             m.matrixAutoUpdate = false;
             if (soft) m.matrix.identity();
+            else if (motionRig) m.matrix.copy(motionRig[segmentKey(p)]);
             else m.matrix.copy(poseMatrices.get(pose)!.get(p.id)!);
             const translation = new THREE.Vector3()
               .setFromMatrixPosition(m.matrix)
@@ -412,6 +485,8 @@ export default function AnatomyScene({
                 layout.get(p.id) || new THREE.Vector3(),
                 s.explode,
               );
+            if (s.displace && s.displace.id === p.id)
+              translation.add(new THREE.Vector3(...s.displace.by));
             m.matrix.setPosition(translation);
             m.matrixWorldNeedsUpdate = true;
             // Labels are anchored to the standing, assembled model only.
@@ -539,6 +614,27 @@ export default function AnatomyScene({
         renderer.domElement.addEventListener('pointerdown', down);
         renderer.domElement.addEventListener('pointermove', move);
         renderer.domElement.addEventListener('pointerup', up);
+        // Keyboard: arrows step through visible structures, cranial to caudal.
+        renderer.domElement.tabIndex = 0;
+        const stepKey = (e: KeyboardEvent) => {
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          e.preventDefault();
+          const order = meshes
+            .filter((x) => x.visible)
+            .map((x) => x.userData.part)
+            .sort(
+              (a, b) => b.center[0] - a.center[0] || b.center[1] - a.center[1],
+            );
+          if (!order.length) return;
+          const i = order.findIndex((p) => p.id === latest.current.selected);
+          const next =
+            order[
+              (i + (e.key === 'ArrowRight' ? 1 : -1) + order.length) %
+                order.length
+            ];
+          select.current(next.id);
+        };
+        renderer.domElement.addEventListener('keydown', stepKey);
         renderer.setAnimationLoop(() => {
           controls.update();
           renderer.render(scene, camera);
@@ -565,7 +661,8 @@ export default function AnatomyScene({
         toolsReady.current?.({
           // Render now and read the canvas back (the drawing buffer is not
           // preserved), with up to 12 numbered marks on visible structures.
-          snapshot() {
+          snapshot(view?: string) {
+            if (view) frame(view);
             renderer.render(scene, camera);
             const out: Snapshot['marks'] = [];
             const sized = pickable()
@@ -588,10 +685,9 @@ export default function AnatomyScene({
                 continue;
               out.push({ id: m.userData.part.id, x, y });
             }
-            return {
-              image: renderer.domElement.toDataURL('image/png'),
-              marks: out,
-            };
+            const image = renderer.domElement.toDataURL('image/png');
+            if (view) frame(latest.current.view);
+            return { image, marks: out };
           },
         });
         setStatus('');

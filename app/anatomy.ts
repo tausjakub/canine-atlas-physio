@@ -55,6 +55,13 @@ export type SceneState = {
   section?: { axis: 'x' | 'y' | 'z'; at: number } | null;
   xray?: boolean;
   measure?: boolean;
+  // Joint motion (gait player, range-of-motion sliders), muscles to highlight by
+  // id fragment, one part moved out of place (drill), instructor pins, high contrast.
+  motion?: import('./poses').Motion | null;
+  highlight?: string[];
+  displace?: { id: string; by: number[] } | null;
+  pins?: { at: number[]; text: string }[];
+  contrast?: boolean;
 };
 export const systems: { id: System; name: string; color: string }[] = [
   { id: 'bone', name: 'Skeleton', color: '#e6d5ad' },

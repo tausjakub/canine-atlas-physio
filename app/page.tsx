@@ -45,6 +45,7 @@ import { addLigaments, ligamentCount } from './ligaments';
 import { latinName } from './latin';
 import Spotter, { srsKey, readBoxes, dueIds } from './spotter';
 import DentalChart from './dental-chart';
+import MotionControls from './motion';
 import { shuffle } from './quiz-engine';
 import { detailFor, noteCoverage, structureName } from './study-notes';
 import {
@@ -433,9 +434,13 @@ export default function Home() {
     }));
     setMobile(false);
   };
-  const changePose = (pose: DogPose) =>
+  const [motionReset, setMotionReset] = useState(0);
+  const changePose = (pose: DogPose) => {
+    setMotionReset((n) => n + 1);
     setState((s) => ({
       ...s,
+      motion: null,
+      highlight: [],
       pose,
       selected: null,
       isolate: false,
@@ -444,6 +449,7 @@ export default function Home() {
       rotate: false,
       reset: s.reset + 1,
     }));
+  };
   const sceneTools = useRef<SceneTools | null>(null);
   const [measureText, setMeasureText] = useState('');
   // Printable sheet: the current view with numbered structures and a key.
@@ -471,6 +477,7 @@ export default function Home() {
   };
   const reset = () => {
     setPeel(0);
+    setMotionReset((n) => n + 1);
     setState((s) => ({ ...initial, reset: s.reset + 1 }));
     setQuery('');
     setArea('All regions');
@@ -654,6 +661,20 @@ export default function Home() {
             onChange={changePose}
             language={language}
             animal={otherSpecies ? species : 'dog'}
+          />
+          <div className="section-title">
+            <h2>{t('Movement')}</h2>
+          </div>
+          <MotionControls
+            language={language}
+            resetKey={motionReset}
+            onChange={(motion, highlight) =>
+              setState((s) =>
+                s.motion === motion && !highlight.length && !s.highlight?.length
+                  ? s
+                  : { ...s, motion, highlight, pose: 'standing', explode: 0 },
+              )
+            }
           />
           <div className="section-title">
             <h2>{t('Layers')}</h2>
