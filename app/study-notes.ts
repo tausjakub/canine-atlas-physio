@@ -76,8 +76,8 @@ function speciesNote(part: SpeciesPart, language: Language) {
       (organ ? '' : cs ? 'Neuplatňuje se (kost).' : 'Not applicable (bone).'),
     physio: organ
       ? cs
-        ? 'Orgán slouží k orientaci v tělních dutinách: všimněte si jeho vztahu k páteři, žebrům, bránici a pánvi. Model je schematický a neslouží k posouzení zdravotního stavu.'
-        : 'Use the organ to orient yourself in the body cavities: note its relation to the spine, ribs, diaphragm and pelvis. The model is schematic and not a basis for judging health.'
+        ? 'Orgán slouží k orientaci v hlavě a tělních dutinách: všimněte si jeho vztahu k lebce, páteři, žebrům, bránici a pánvi. Model je schematický a neslouží k posouzení zdravotního stavu.'
+        : 'Use the organ to orient yourself in the head and body cavities: note its relation to the skull, spine, ribs, diaphragm and pelvis. The model is schematic and not a basis for judging health.'
       : cs
         ? 'Sledujte vztah struktury k okolním kloubům. Pohyb v zatížené končetině se může lišit od izolovaného pohybu; polohy modelu ukazují prostorové vztahy, nikoli bezpečný rozsah pohybu živého zvířete.'
         : 'Follow the structure’s relationship to neighbouring joints. Weight-bearing function may differ from isolated movement; model poses show spatial relationships, not a safe range of motion for a living animal.',

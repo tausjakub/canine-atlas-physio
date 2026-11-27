@@ -1227,7 +1227,7 @@ export default function Home() {
         </p>
         <p>
           {t(
-            'Selectable pieces: {count}. Pieces include grouped bones, separate muscle portions, connective tissue and surface features; these counts are not anatomical totals. Nerves are not included; organs are a separate layer described below.',
+            'Selectable pieces: {count}. Pieces include grouped bones, separate muscle portions, connective tissue and surface features; these counts are not anatomical totals. Peripheral nerves are not included; the brain, spinal cord and other organs are a separate layer described below.',
             { count: noteCoverage.pieces },
           )}
         </p>
@@ -1245,7 +1245,7 @@ export default function Home() {
         <h3>{t('Dog organs')}</h3>
         <p>
           {t(
-            'Brain: Cortical Atlas of the Canine Brain by Philippa J. Johnson and Erica F. Barry (2019, Cornell University, CC0), a population MRI template meshed and scaled into this skull. All other organs are schematic shapes authored for this atlas and placed at textbook positions inside the body cavities; they are not segmented from imaging and are not to exact size.',
+            'Brain: Cortical Atlas of the Canine Brain by Philippa J. Johnson and Erica F. Barry (2019, Cornell University, CC0), a population MRI template meshed and scaled to fit this skull. All other organs are schematic shapes authored for this atlas and placed at textbook positions inside the body cavities; they are not segmented from imaging and are not to exact size.',
           )}
         </p>
         <a

@@ -4,8 +4,8 @@ const p = (cs, en) => ({ cs, en });
 const UMN = 'https://vanat.ahc.umn.edu/carnLabs/';
 const BRAIN_DOI = 'https://doi.org/10.7298/4t8z-aw34';
 const MRI = p(
-  'Tvar z otevřeného MRI atlasu psího mozku (Johnson & Barry 2019, CC0) zmenšený do lebeční dutiny tohoto modelu.',
-  'Shape from the open canine brain MRI atlas (Johnson & Barry 2019, CC0), scaled into this model’s cranial cavity.',
+  'Tvar z otevřeného MRI atlasu psího mozku (Johnson & Barry 2019, CC0) přizpůsobený velikosti lebeční dutiny tohoto modelu.',
+  'Shape from the open canine brain MRI atlas (Johnson & Barry 2019, CC0), scaled to fit this model’s cranial cavity.',
 );
 const SCHEMA = p(
   'Schematický tvar umístěný podle učebnicové polohy v tělní dutině modelu; nejde o segmentaci z CT ani o přesnou velikost.',
@@ -85,7 +85,7 @@ export const organStudy = {
     ),
     p(
       'S kmenem jej spojují mozečkové stopky; rostrálně jej od koncového mozku dělí stan mozečku.',
-      'Joined to the brainstem by the cerebellar peduncles; separated rostrally from the cerebrum by the tentorium.',
+      'Joined to the brainstem by the cerebellar peduncles; separated rostrally from the cerebrum by the tentorium cerebelli.',
     ),
     p(
       'Neuplatňuje se (sám je částí CNS).',
@@ -113,8 +113,8 @@ export const organStudy = {
       'Continues caudally through the foramen magnum into the spinal cord.',
     ),
     p(
-      'Vystupuje z něj většina hlavových nervů (III-XII).',
-      'Origin of most cranial nerves (III-XII).',
+      'Jádra hlavových nervů III-XII (XI má i míšní kořeny).',
+      'Nuclei of cranial nerves III-XII (XI also has spinal roots).',
     ),
     p(
       'Kde mozek přechází v míchu?',
@@ -133,12 +133,12 @@ export const organStudy = {
       'First processing of smell; well developed in the dog.',
     ),
     p(
-      'Rostrální pól mozku, uložené v jamce čichové kosti.',
-      'Rostral pole of the brain, lodged against the ethmoid bone.',
+      'Rostrální pól mozku, uložené v čichové jámě (fossa ethmoidalis) u řešetové ploténky.',
+      'Rostral pole of the brain, in the ethmoidal fossa against the cribriform plate.',
     ),
     p(
-      'Přijímají čichová vlákna skrze čichovou kost z nosní dutiny.',
-      'Receive the olfactory fibres through the cribriform plate from the nasal cavity.',
+      'Přijímají čichová vlákna skrze řešetovou ploténku (lamina cribrosa) čichové kosti z nosní dutiny.',
+      'Receive the olfactory fibres through the cribriform plate of the ethmoid bone from the nasal cavity.',
     ),
     p('N. olfactorius (I).', 'Olfactory nerve (I).'),
     p(
@@ -155,12 +155,12 @@ export const organStudy = {
       'Carries signals between brain and body; contains spinal reflex arcs.',
     ),
     p(
-      'V páteřním kanálu od velkého týlního otvoru zhruba po L6-L7, kde končí míšním kuželem.',
-      'In the vertebral canal from the foramen magnum to about L6-L7, where it ends as the conus medullaris.',
+      'V páteřním kanálu od velkého týlního otvoru zhruba po L6-L7 (u malých plemen o něco kaudálněji), kde končí míšním kuželem.',
+      'In the vertebral canal from the foramen magnum to about L6-L7 (slightly further caudally in small breeds), where it ends as the conus medullaris.',
     ),
     p(
-      'Vystupují z ní míšní nervy; krční a bederní intumescence zásobují končetiny.',
-      'Gives off the spinal nerves; cervical and lumbar enlargements supply the limbs.',
+      'Vystupují z ní míšní nervy; krční a bederně-křížová (lumbosakrální) intumescence zásobují končetiny.',
+      'Gives off the spinal nerves; cervical and lumbosacral enlargements supply the limbs.',
     ),
     p(
       'Sama je částí CNS; míšní nervy vystupují v každém segmentu.',
@@ -175,12 +175,12 @@ export const organStudy = {
   organ_larynx: card(
     p('Hrtan', 'Larynx'),
     p(
-      'Chrání dolní cesty dýchací při polykání a tvoří hlas.',
+      'Chrání dolní dýchací cesty při polykání a tvoří hlas.',
       'Protects the lower airway during swallowing and produces voice.',
     ),
     p(
-      'Ventrálně pod 1.-2. krčním obratlem, mezi větvemi dolní čelisti a jazylkou.',
-      'Ventral to the first and second cervical vertebrae, between the mandibular rami and the hyoid.',
+      'Ventrálně pod 1.-3. krčním obratlem, kaudálně od jazylky, mezi větvemi dolní čelisti.',
+      'Ventral to about C1-C3, caudal to the hyoid, between the mandibular rami.',
     ),
     p(
       'Rostrálně hltan, kaudálně průdušnice; zavěšen na jazylce.',
@@ -218,7 +218,10 @@ export const organStudy = {
       'Kde se průdušnice dělí na průdušky?',
       'Where does the trachea divide into bronchi?',
     ),
-    p('Nad srdeční bází (bifurkace).', 'Above the heart base (bifurcation).'),
+    p(
+      'Nad srdeční bází (rozdvojení, bifurkace) zhruba u 5. žebra.',
+      'Above the heart base (bifurcation), about the level of the 5th rib.',
+    ),
   ),
   organ_oesophagus: card(
     p('Jícen', 'Oesophagus'),
@@ -227,8 +230,8 @@ export const organStudy = {
       'Moves swallowed food to the stomach by peristalsis.',
     ),
     p(
-      'Na krku dorzálně a vlevo od průdušnice, v hrudníku nad srdcem, bránicí prochází do břicha.',
-      'In the neck dorsal and left of the trachea, in the thorax above the heart, through the diaphragm into the abdomen.',
+      'Na krku dorzálně od průdušnice, v kaudální části mírně vlevo; v hrudníku nad srdcem, bránicí prochází do břicha.',
+      'In the neck dorsal to the trachea, deviating slightly to the left caudally; in the thorax above the heart, through the diaphragm into the abdomen.',
     ),
     p(
       'Navazuje na hltan a ústí do žaludku (kardie).',
@@ -251,21 +254,21 @@ export const organStudy = {
       'Endocrine gland; its hormones set the metabolic rate.',
     ),
     p(
-      'Dva laloky po stranách prvních prstenců průdušnice.',
-      'Two lobes on either side of the first tracheal rings.',
+      'Dva laloky po stranách průdušnice kaudálně od hrtanu, zhruba u 5.-8. prstence.',
+      'Two lobes on either side of the trachea, caudal to the larynx at about the 5th-8th tracheal rings.',
     ),
     p(
-      'Kaudálně od hrtanu, přiložená k průdušnici.',
-      'Caudal to the larynx, applied to the trachea.',
+      'Kaudálně od hrtanu, přiložená k průdušnici; dorzolaterálně probíhá a. carotis communis.',
+      'Caudal to the larynx, applied to the trachea; the common carotid artery runs dorsolaterally.',
     ),
     p(
-      'Autonomní nervy; činnost řídí hlavně hypofýza (TSH).',
-      'Autonomic nerves; activity is mainly regulated by the pituitary (TSH).',
+      'Autonomní nervy; hormonální řízení: hypofýza (TSH).',
+      'Autonomic nerves; hormonal control: pituitary (TSH).',
     ),
     p('Kde leží laloky štítné žlázy?', 'Where do the thyroid lobes lie?'),
     p(
-      'Po stranách prvních prstenců průdušnice.',
-      'Beside the first tracheal rings.',
+      'Po stranách průdušnice kaudálně od hrtanu.',
+      'Beside the trachea, caudal to the larynx.',
     ),
   ),
   organ_heart: card(
@@ -300,8 +303,8 @@ export const organStudy = {
       'Arch above the heart base, then thoracic and abdominal aorta under the vertebral bodies.',
     ),
     p(
-      'Aortálním otvorem bránice přechází do břicha; kaudálně se větví na pánevní tepny.',
-      'Passes the aortic hiatus of the diaphragm; divides caudally into the pelvic arteries.',
+      'Aortálním otvorem bránice přechází do břicha; kaudálně se větví na kyčelní tepny (aa. iliacae).',
+      'Passes the aortic hiatus of the diaphragm; divides caudally into the iliac arteries.',
     ),
     p(
       'Sympatické nervy cévní stěny.',
@@ -312,8 +315,8 @@ export const organStudy = {
       'Where does the abdominal aorta lie relative to the spine?',
     ),
     p(
-      'Ventrálně pod těly bederních obratlů.',
-      'Ventral to the lumbar vertebral bodies.',
+      'Ventrálně od těl bederních obratlů, mírně vlevo.',
+      'Ventral to the lumbar vertebral bodies, slightly to the left.',
     ),
   ),
   organ_caudal_vena_cava: card(
@@ -323,8 +326,8 @@ export const organStudy = {
       'Returns blood from the caudal body to the right atrium.',
     ),
     p(
-      'V břiše vpravo od aorty pod páteří, prochází játry a bránicí do hrudníku.',
-      'In the abdomen right of the aorta under the spine; passes through the liver and diaphragm into the thorax.',
+      'V břiše vpravo od aorty pod páteří, v žlábku jater a otvorem pro dutou žílu v bránici do hrudníku.',
+      'In the abdomen right of the aorta under the spine; through a groove in the liver and the caval foramen of the diaphragm into the thorax.',
     ),
     p('Ústí do pravé síně srdce.', 'Opens into the right atrium.'),
     p(
@@ -348,7 +351,7 @@ export const organStudy = {
       'Left half of the thoracic cavity; rests caudally on the diaphragm.',
     ),
     p(
-      'Levá hlavní průduška a plicní cévy vstupují v plicní branně.',
+      'Levá hlavní průduška a plicní cévy vstupují v plicní brance (hilus).',
       'Left main bronchus and pulmonary vessels enter at the hilus.',
     ),
     vagus,
@@ -356,7 +359,10 @@ export const organStudy = {
       'Kolik laloků má levá plíce psa?',
       'How many lobes does the dog’s left lung have?',
     ),
-    p('Dva (kraniální a kaudální).', 'Two (cranial and caudal).'),
+    p(
+      'Dva (kraniální a kaudální); kraniální lalok má dvě části.',
+      'Two (cranial and caudal); the cranial lobe has two parts.',
+    ),
   ),
   organ_lung_R: card(
     p('Plíce · vpravo', 'Lung · right'),
@@ -369,7 +375,7 @@ export const organStudy = {
       'Right half of the thoracic cavity; rests caudally on the diaphragm.',
     ),
     p(
-      'Pravá hlavní průduška a plicní cévy vstupují v plicní branně.',
+      'Pravá hlavní průduška a plicní cévy vstupují v plicní brance (hilus).',
       'Right main bronchus and pulmonary vessels enter at the hilus.',
     ),
     vagus,
@@ -393,8 +399,8 @@ export const organStudy = {
       'Cranial abdomen, against the diaphragm, mostly under the ribs.',
     ),
     p(
-      'Kaudálně žaludek a pravá ledvina; prochází jimi kaudální dutá žíla; žlučník mezi laloky vpravo.',
-      'Stomach and right kidney caudally; the caudal vena cava passes through; gallbladder between the right lobes.',
+      'Kaudálně žaludek a pravá ledvina; prochází jimi kaudální dutá žíla; žlučník leží mezi čtyřhranným a pravým mediálním lalokem.',
+      'Stomach and right kidney caudally; the caudal vena cava passes through; gallbladder between the quadrate and right medial lobes.',
     ),
     vagus,
     p(
@@ -406,7 +412,10 @@ export const organStudy = {
   organ_gallbladder: card(
     p('Žlučník', 'Gallbladder'),
     p('Shromažďuje a zahušťuje žluč.', 'Stores and concentrates bile.'),
-    p('Mezi pravými laloky jater.', 'Between the right lobes of the liver.'),
+    p(
+      'Mezi čtyřhranným a pravým mediálním lalokem jater.',
+      'Between the quadrate and right medial lobes of the liver.',
+    ),
     p(
       'Žlučovodem ústí do dvanáctníku.',
       'Drains via the bile duct into the duodenum.',
@@ -437,12 +446,12 @@ export const organStudy = {
       'First part of the small intestine; receives bile and pancreatic juice.',
     ),
     p(
-      'Od pyloru sestupuje po pravé straně břicha, ohýbá se a vrací doleva.',
-      'Runs from the pylorus caudally along the right abdomen, then turns back to the left.',
+      'Od pyloru probíhá kaudálně po pravé straně břicha, v kaudálním ohybu se obrací a vrací doleva.',
+      'Runs from the pylorus caudally along the right abdomen, turns at the caudal flexure and returns to the left.',
     ),
     p(
-      'Pokračuje lačníkem; v jeho ohbí leží pravý lalok slinivky.',
-      'Continues as the jejunum; the right pancreatic lobe lies along it.',
+      'Pokračuje lačníkem; podél sestupné části leží pravý lalok slinivky.',
+      'Continues as the jejunum; the right pancreatic lobe lies along the descending part.',
     ),
     vagus,
     p(
@@ -458,8 +467,8 @@ export const organStudy = {
       'Digestive enzymes into the duodenum and hormones (insulin, glucagon) into the blood.',
     ),
     p(
-      'Tvar písmene V: pravý lalok podél dvanáctníku, levý podél žaludku.',
-      'V-shaped: right lobe along the duodenum, left lobe along the stomach.',
+      'Tvar písmene V: pravý lalok podél dvanáctníku, levý kaudálně od žaludku.',
+      'V-shaped: right lobe along the duodenum, left lobe caudal to the stomach.',
     ),
     p('Vývody ústí do dvanáctníku.', 'Ducts open into the duodenum.'),
     vagus,
@@ -519,8 +528,8 @@ export const organStudy = {
       'Ascending colon on the right, transverse cranially, descending on the left; rectum in the pelvic cavity.',
     ),
     p(
-      'Začíná u slepého střeva, konečník končí řitním otvorem.',
-      'Begins at the caecum; the rectum ends at the anus.',
+      'Začíná u ústí kyčelníku, kde z něj vybíhá slepé střevo; konečník končí řitním otvorem.',
+      'Begins at the ileocolic junction, where the caecum branches off; the rectum ends at the anus.',
     ),
     p(
       'Autonomní: n. vagus a pánevní nervy.',
@@ -536,15 +545,15 @@ export const organStudy = {
       'Filters blood and forms urine; regulates water and mineral balance.',
     ),
     p(
-      'Retroperitoneálně pod bederními obratli zhruba L1-L3, kaudálněji než pravá.',
-      'Retroperitoneal under the lumbar vertebrae at about L1-L3, more caudal than the right.',
+      'Retroperitoneálně pod bederními obratli zhruba L2-L4, kaudálněji než pravá.',
+      'Retroperitoneal under the lumbar vertebrae at about L2-L4, more caudal than the right.',
     ),
     p(
       'Močovodem odvádí moč do močového měchýře; kraniomediálně nadledvina.',
       'The ureter carries urine to the bladder; the adrenal gland lies craniomedially.',
     ),
     p(
-      'Sympatické nervy (renální pleteň).',
+      'Sympatické nervy (ledvinná pleteň).',
       'Sympathetic nerves (renal plexus).',
     ),
     p(
@@ -568,7 +577,7 @@ export const organStudy = {
       'The ureter carries urine to the bladder; the adrenal gland lies craniomedially.',
     ),
     p(
-      'Sympatické nervy (renální pleteň).',
+      'Sympatické nervy (ledvinná pleteň).',
       'Sympathetic nerves (renal plexus).',
     ),
     p(
@@ -580,8 +589,8 @@ export const organStudy = {
   organ_adrenal_L: card(
     p('Nadledvina · vlevo', 'Adrenal gland · left'),
     p(
-      'Endokrinní žláza: kortikoidy z kůry, adrenalin z dřeně.',
-      'Endocrine gland: corticosteroids from the cortex, adrenaline from the medulla.',
+      'Endokrinní žláza: kortikosteroidy z kůry, adrenalin a noradrenalin z dřeně.',
+      'Endocrine gland: corticosteroids from the cortex, adrenaline and noradrenaline from the medulla.',
     ),
     p(
       'Kraniomediálně od levé ledviny vedle aorty.',
@@ -598,8 +607,8 @@ export const organStudy = {
   organ_adrenal_R: card(
     p('Nadledvina · vpravo', 'Adrenal gland · right'),
     p(
-      'Endokrinní žláza: kortikoidy z kůry, adrenalin z dřeně.',
-      'Endocrine gland: corticosteroids from the cortex, adrenaline from the medulla.',
+      'Endokrinní žláza: kortikosteroidy z kůry, adrenalin a noradrenalin z dřeně.',
+      'Endocrine gland: corticosteroids from the cortex, adrenaline and noradrenaline from the medulla.',
     ),
     p(
       'Kraniomediálně od pravé ledviny u kaudální duté žíly.',
@@ -631,8 +640,8 @@ export const organStudy = {
       'Receives both ureters; the neck continues as the urethra.',
     ),
     p(
-      'Pánevní (parasympatické) a hypogastrické (sympatické) nervy.',
-      'Pelvic (parasympathetic) and hypogastric (sympathetic) nerves.',
+      'Pánevní (parasympatické) a hypogastrické (sympatické) nervy; zevní svěrač močové trubice zásobuje somatický n. pudendus.',
+      'Pelvic (parasympathetic) and hypogastric (sympathetic) nerves; the external urethral sphincter is supplied by the somatic pudendal nerve.',
     ),
     p(
       'Kam se posouvá měchýř při naplnění?',
@@ -641,7 +650,7 @@ export const organStudy = {
     p('Kraniálně do břišní dutiny.', 'Cranially into the abdominal cavity.'),
   ),
   organ_prostate: card(
-    p('Předstojná žláza (prostata)', 'Prostate gland'),
+    p('Předstojná žláza (prostata) · samec', 'Prostate gland · male'),
     p(
       'Přídatná pohlavní žláza samce; přispívá k ejakulátu.',
       'Accessory sex gland of the male; contributes to the ejaculate.',
