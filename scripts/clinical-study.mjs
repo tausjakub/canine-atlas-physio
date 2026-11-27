@@ -43,8 +43,8 @@ const palp = p(
   'Palpable bony point for orientation during palpation and for describing the position of nearby structures.',
 );
 const lymph = p(
-  'Mízní uzlina: filtruje mízu z přilehlé oblasti; při vyšetření se hodnotí pohmatem.',
-  'Lymph node: filters lymph from its drainage area; assessed by palpation during the examination.',
+  'Mízní uzlina: filtruje mízu z oblasti, kterou drénuje; povrchové uzliny mohou být hmatné.',
+  'Lymph node: filters lymph from the area it drains; superficial nodes may be palpable.',
 );
 const noNerve = null;
 
@@ -54,12 +54,12 @@ const landmarks = {
     p('Hřeben lopatky', 'Spine of the scapula'),
     palp,
     p(
-      'Laterální plocha lopatky; dělí ji na předhřebenovou a zahřebenovou jámu.',
+      'Laterální plocha lopatky; dělí ji na jámu nadhřebenovou a podhřebenovou.',
       'Lateral surface of the scapula; divides it into the supraspinous and infraspinous fossae.',
     ),
     p(
-      'Odstupuje z něj m. deltoideus; nad ním a pod ním leží m. supraspinatus a m. infraspinatus.',
-      'Origin of the deltoideus; the supraspinatus and infraspinatus lie in the fossae on either side.',
+      'Odstupuje z něj m. deltoideus; kraniálně leží m. supraspinatus, kaudálně m. infraspinatus.',
+      'Origin of the deltoideus; the supraspinatus lies cranial and the infraspinatus caudal to it.',
     ),
     noNerve,
     p(
@@ -80,7 +80,7 @@ const landmarks = {
       'Distal end of the scapular spine, above the shoulder joint.',
     ),
     p(
-      'Odstupuje z něj akromiální část m. deltoideus.',
+      'Odstupuje z něj nadpažková část m. deltoideus.',
       'Origin of the acromial part of the deltoideus.',
     ),
     noNerve,
@@ -107,8 +107,8 @@ const landmarks = {
     ),
     noNerve,
     p(
-      'Který sval se upíná na velký hrbol?',
-      'Which muscle inserts on the greater tubercle?',
+      'Který sval z nadhřebenové jámy se upíná na velký hrbol?',
+      'Which muscle from the supraspinous fossa inserts on the greater tubercle?',
     ),
     p('M. supraspinatus.', 'The supraspinatus.'),
   ),
@@ -145,8 +145,8 @@ const landmarks = {
     ),
     noNerve,
     p(
-      'Který sval se upíná na olekranon?',
-      'Which muscle inserts on the olecranon?',
+      'Který hlavní sval se upíná na olekranon?',
+      'Which main muscle inserts on the olecranon?',
     ),
     p('M. triceps brachii.', 'The triceps brachii.'),
   ),
@@ -164,8 +164,8 @@ const landmarks = {
     ),
     noNerve,
     p(
-      'Který sval se upíná na přídatnou kost zápěstní?',
-      'Which muscle inserts on the accessory carpal bone?',
+      'Který ohybač zápěstí se upíná na přídatnou kost zápěstní?',
+      'Which carpal flexor inserts on the accessory carpal bone?',
     ),
     p('M. flexor carpi ulnaris.', 'The flexor carpi ulnaris.'),
   ),
@@ -178,7 +178,7 @@ const landmarks = {
       'Craniodorsal border of the iliac wing beside the lumbar spine.',
     ),
     p(
-      'Upínají se na něj svaly břišní stěny a m. gluteus medius.',
+      'Odstupuje z něj m. gluteus medius a připojují se svaly břišní stěny.',
       'Attachment of abdominal wall muscles and the gluteus medius.',
     ),
     noNerve,
@@ -202,8 +202,8 @@ const landmarks = {
     ),
     noNerve,
     p(
-      'Který sval odstupuje z tuber coxae?',
-      'Which muscle arises from the tuber coxae?',
+      'Které svaly odstupují z tuber coxae?',
+      'Which muscles arise from the tuber coxae?',
     ),
     p(
       'M. tensor fasciae latae (a m. sartorius).',
@@ -237,10 +237,13 @@ const landmarks = {
       'Laterálně na proximálním konci stehenní kosti, nad kyčelním kloubem.',
       'Lateral on the proximal femur, above the hip joint.',
     ),
-    p('Upínají se na něj hýžďové svaly.', 'Insertion of the gluteal muscles.'),
+    p(
+      'Upínají se na něj m. gluteus medius a m. gluteus profundus.',
+      'Insertion of the gluteus medius and gluteus profundus.',
+    ),
     noNerve,
     p(
-      'Mezi kterými dvěma body leží velký chocholík v trojúhelníku kyčle?',
+      'S kterými dvěma body tvoří velký chocholík trojúhelník kyčle?',
       'With which two points does the greater trochanter form the hip triangle?',
     ),
     p(
@@ -323,7 +326,7 @@ const landmarks = {
   ),
   ...bilateral(
     'lm_atlas_wing',
-    p('Křídlo atlasu', 'Wing of the atlas'),
+    p('Křídlo nosiče (atlasu)', 'Wing of the atlas'),
     palp,
     p(
       'Laterální výběžek prvního krčního obratle kaudálně od lebky.',
@@ -335,14 +338,14 @@ const landmarks = {
     ),
     noNerve,
     p('Který obratel nese křídla?', 'Which vertebra bears the wings?'),
-    p('Atlas (C1).', 'The atlas (C1).'),
+    p('Nosič (atlas, C1).', 'The atlas (C1).'),
   ),
   ...bilateral(
     'lm_rib_numbers',
     p('Čísla žeber', 'Rib numbers'),
     p(
-      'Orientace na hrudníku: mezižebří se počítají od posledního (13.) žebra kraniálně.',
-      'Orientation on the thorax: intercostal spaces are counted cranially from the last (13th) rib.',
+      'Orientace na hrudníku: mezižebří n leží mezi žebry n a n+1; při orientaci na těle se žebra počítají od posledního (13.) žebra kraniálně.',
+      'Orientation on the thorax: intercostal space n lies between ribs n and n+1; on the animal, ribs are counted cranially from the last (13th) rib.',
     ),
     p(
       'Značka na nejlaterálnějším bodě každého žebra; mezižebří n leží mezi žebry n a n+1.',
@@ -370,7 +373,7 @@ const ausc = (name, en, side, space, cs, enText) =>
     ),
     p(cs, enText),
     p(
-      `Přibližně ${side.cs} ve ${space}. mezižebří; poloha se mezi jedinci a plemeny liší.`,
+      `Přibližně ${side.cs} ${space === 5 ? 'v' : 've'} ${space}. mezižebří; poloha se mezi jedinci a plemeny liší.`,
       `About the ${side.en} ${space}${space === 3 ? 'rd' : 'th'} intercostal space; position varies between individuals and breeds.`,
     ),
     p(
@@ -402,8 +405,8 @@ const auscultation = {
     'aortic',
     left,
     4,
-    'Vlevo, výše, těsně pod úrovní ramenního kloubu.',
-    'Left side, higher, just below the level of the shoulder joint.',
+    'Vlevo, dorzálněji než pulmonální místo, přibližně v úrovni ramenního kloubu.',
+    'Left side, more dorsal than the pulmonic area, about at the level of the shoulder joint.',
   ),
   ausc_mitral: ausc(
     'mitrální',
@@ -429,22 +432,19 @@ const nodes = {
     p('Podčelistní mízní uzliny', 'Mandibular lymph nodes'),
     lymph,
     p(
-      'Ventrálně u úhlu dolní čelisti, obvykle 2-3 uzliny.',
-      'Ventral to the angle of the mandible, usually 2-3 nodes.',
+      'Ventrálně u úhlu dolní čelisti; několik uzlin (obvykle 2-5).',
+      'Ventral to the angle of the mandible; several nodes (usually 2-5).',
     ),
     p(
-      'Sbírají mízu z hlavy; leží v blízkosti podčelistní slinné žlázy.',
-      'Drain the head; lie close to the mandibular salivary gland.',
+      'Sbírají mízu z rostrální části hlavy (ústní dutina, pysky, nos, kůže obličeje); leží před podčelistní slinnou žlázou.',
+      'Drain the rostral head (oral cavity, lips, nose, facial skin); lie rostral to the mandibular salivary gland.',
     ),
     noNerve,
     p(
-      'Kterou žlázu lze zaměnit s podčelistní uzlinou?',
-      'Which gland can be confused with the mandibular node?',
+      'Která žláza leží kaudálně od podčelistních uzlin?',
+      'Which gland lies caudal to the mandibular nodes?',
     ),
-    p(
-      'Podčelistní slinnou žlázu (leží kaudálněji).',
-      'The mandibular salivary gland (lies more caudally).',
-    ),
+    p('Podčelistní slinná žláza.', 'The mandibular salivary gland.'),
   ),
   ...bilateral(
     'ln_superficial_cervical',
@@ -462,10 +462,7 @@ const nodes = {
       'Drains the neck, thoracic limb and part of the chest wall.',
     ),
     noNerve,
-    p(
-      'Kde nahmatáte předlopatkovou uzlinu?',
-      'Where do you palpate the prescapular node?',
-    ),
+    p('Kde leží předlopatková uzlina?', 'Where does the prescapular node lie?'),
     p('Kraniálně od ramenního kloubu.', 'Cranial to the shoulder joint.'),
   ),
   ...bilateral(
@@ -538,8 +535,8 @@ const vessels = {
     'v_external_jugular',
     p('Zevní jugulární žíla', 'External jugular vein'),
     p(
-      'Odvádí krev z hlavy a krku do přední duté žíly.',
-      'Drains the head and neck into the cranial vena cava.',
+      'Odvádí krev z hlavy a krku přes v. brachiocephalica do přední duté žíly.',
+      'Drains the head and neck via the brachiocephalic vein into the cranial vena cava.',
     ),
     p(
       'V jugulárním žlábku na ventrolaterální straně krku.',
@@ -568,8 +565,8 @@ const vessels = {
       'On the cranial (dorsal) surface of the forearm, continuing laterally up the arm.',
     ),
     p(
-      'Ústí do zevní jugulární žíly.',
-      'Drains into the external jugular vein.',
+      'Ústí do zevní jugulární žíly (přes v. omobrachialis).',
+      'Drains into the external jugular vein (via the omobrachial vein).',
     ),
     noNerve,
     p(
@@ -590,8 +587,8 @@ const vessels = {
       'Obliquely across the lateral distal crus, just proximal to the hock.',
     ),
     p(
-      'Pokračuje proximálně do v. femoralis přes kaudální stehno.',
-      'Continues proximally to the femoral vein via the caudal thigh.',
+      'Ústí do v. femoralis caudalis (přes kaudální stehno).',
+      'Drains into the caudal femoral vein via the caudal thigh.',
     ),
     noNerve,
     p(
@@ -607,8 +604,8 @@ const vessels = {
     'v_femoral_artery',
     p('Stehenní tepna (a. femoralis)', 'Femoral artery'),
     p(
-      'Hlavní tepna pánevní končetiny; místo hmatání pulzu.',
-      'Main artery of the pelvic limb; site where the pulse is palpated.',
+      'Hlavní tepna pánevní končetiny; je přístupná pohmatem na mediální straně stehna.',
+      'Main artery of the pelvic limb; accessible to palpation on the medial thigh.',
     ),
     p(
       'Mediálně na stehně ve stehenním trojúhelníku.',
@@ -620,12 +617,12 @@ const vessels = {
     ),
     noNerve,
     p(
-      'Kde se u psa hmatá pulz na pánevní končetině?',
-      'Where is the pulse palpated on the dog’s pelvic limb?',
+      'Kde na stehně leží a. femoralis?',
+      'Where does the femoral artery lie on the thigh?',
     ),
     p(
-      'Na a. femoralis mediálně na stehně.',
-      'Over the femoral artery on the medial thigh.',
+      'Mediálně na stehně ve stehenním trojúhelníku.',
+      'Medially, in the femoral triangle.',
     ),
   ),
 };
@@ -659,7 +656,7 @@ const nerves = {
     'n_median',
     p('N. medianus', 'Median nerve'),
     p(
-      'Inervuje flexory karpu a prstů (s n. ulnaris) a pronátory.',
+      'Inervuje flexory karpu a prstů (s n. ulnaris) a přivraceče (pronátory).',
       'Supplies the carpal and digital flexors (with the ulnar nerve) and the pronators.',
     ),
     p(
@@ -694,8 +691,8 @@ const nerves = {
     ),
     p('Brachiální plexus, segmenty C8-T2.', 'Brachial plexus, segments C8-T2.'),
     p(
-      'Za kterým výběžkem prochází n. ulnaris u lokte?',
-      'Behind which process does the ulnar nerve pass at the elbow?',
+      'Za kterým kostním útvarem prochází n. ulnaris u lokte?',
+      'Behind which bony prominence does the ulnar nerve pass at the elbow?',
     ),
     p(
       'Za mediálním epikondylem pažní kosti.',
@@ -705,7 +702,10 @@ const nerves = {
   ...nerve(
     'n_musculocutaneous',
     p('N. musculocutaneus', 'Musculocutaneous nerve'),
-    p('Inervuje flexory lokte.', 'Supplies the elbow flexors.'),
+    p(
+      'Inervuje flexory lokte a m. coracobrachialis.',
+      'Supplies the elbow flexors and the coracobrachialis.',
+    ),
     p('Kraniomediálně na paži k lokti.', 'Craniomedial arm to the elbow.'),
     p(
       'M. biceps brachii, m. brachialis, m. coracobrachialis.',
@@ -730,8 +730,8 @@ const nerves = {
       'From the lumbar region through the iliopsoas into the femoral triangle and the quadriceps.',
     ),
     p(
-      'M. quadriceps femoris, m. iliopsoas; kožní větev n. saphenus.',
-      'Quadriceps femoris, iliopsoas; cutaneous branch: saphenous nerve.',
+      'M. quadriceps femoris, m. sartorius, m. iliopsoas; kožní větev n. saphenus.',
+      'Quadriceps femoris, sartorius, iliopsoas; cutaneous branch: saphenous nerve.',
     ),
     p('Bederní plexus, segmenty L4-L6.', 'Lumbar plexus, segments L4-L6.'),
     p(
@@ -744,8 +744,8 @@ const nerves = {
     'n_sciatic',
     p('N. ischiadicus', 'Sciatic nerve'),
     p(
-      'Inervuje hamstringy a přes své větve celý bérec a tlapu.',
-      'Supplies the hamstrings and, through its branches, the whole crus and paw.',
+      'Inervuje hamstringy a přes své větve svaly bérce a tlapy.',
+      'Supplies the hamstrings and, through its branches, the muscles of the crus and paw.',
     ),
     p(
       'Přes velký sedací zářez, kaudálně od kyčelního kloubu mezi velkým chocholíkem a sedacím hrbolem, po kaudální ploše stehna.',
@@ -780,7 +780,7 @@ const nerves = {
       'Branch of the sciatic; between the heads of the gastrocnemius down the caudal crus to the hock.',
     ),
     p(
-      'M. gastrocnemius, m. flexor digitalis superficialis a profundus.',
+      'M. gastrocnemius, m. flexor digitorum superficialis a profundus.',
       'Gastrocnemius, superficial and deep digital flexors.',
     ),
     p(
@@ -876,7 +876,7 @@ const cordRegions = {
       'Thoracic and cranial lumbar cord, roughly within vertebrae T2-L3.',
     ),
     p(
-      'Zásobuje trup; vedou jí dráhy k pánevním končetinám.',
+      'Zásobuje trup; procházejí jí dráhy k pánevním končetinám.',
       'Supplies the trunk; carries the tracts to and from the pelvic limbs.',
     ),
     p(
@@ -900,7 +900,7 @@ const cordRegions = {
     ),
     p(
       'Leží segmenty L4-S3 ve stejnojmenných obratlích?',
-      'Do segments L4-S3 lie within the vertebrae of the same name?',
+      'Do the segments L4-S3 lie within the vertebrae of the same name?',
     ),
     p(
       'Ne, leží kraniálněji, zhruba v obratlích L3-L5.',
@@ -913,8 +913,8 @@ const cordRegions = {
       'Spinal cord · caudal segments and cauda equina',
     ),
     p(
-      'Konec míchy kolem L6-L7 a svazek nervových kořenů (cauda equina) v obratlích L6 až křížová kost.',
-      'End of the cord around L6-L7 and the bundle of nerve roots (cauda equina) from L6 to the sacrum.',
+      'Konec míchy kolem L6-L7 a svazek nervových kořenů (cauda equina) probíhající dál páteřním kanálem do křížové kosti.',
+      'End of the cord around L6-L7 and the bundle of nerve roots (cauda equina) running on through the vertebral canal into the sacrum.',
     ),
     p(
       'Kořeny sakrálních a kaudálních nervů pro ocas, perineum a pánevní orgány.',
@@ -922,8 +922,8 @@ const cordRegions = {
     ),
     p('Co tvoří cauda equina?', 'What makes up the cauda equina?'),
     p(
-      'Kořeny kaudálních míšních nervů v páteřním kanálu za koncem míchy.',
-      'The roots of the caudal spinal nerves within the canal beyond the end of the cord.',
+      'Kořeny posledních bederních, křížových a kaudálních míšních nervů v páteřním kanálu za koncem míchy.',
+      'The roots of the last lumbar, sacral and caudal spinal nerves within the vertebral canal beyond the end of the cord.',
     ),
   ),
 };
