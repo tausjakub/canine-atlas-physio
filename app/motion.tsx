@@ -67,7 +67,7 @@ export default function MotionControls({
   return (
     <div className="viewer-tools">
       <div className="presets" role="group" aria-label={t('Gait')}>
-        {(['walk', 'trot'] as const).map((g) => (
+        {(['walk', 'trot', 'gallop'] as const).map((g) => (
           <button
             key={g}
             aria-pressed={gait === g}
@@ -76,7 +76,7 @@ export default function MotionControls({
               play(g, true);
             }}
           >
-            {t(g === 'walk' ? 'Walk' : 'Trot')}
+            {t({ walk: 'Walk', trot: 'Trot', gallop: 'Gallop' }[g])}
           </button>
         ))}
         {gait && (

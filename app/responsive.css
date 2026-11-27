@@ -20,6 +20,15 @@ body {
 .atlas-app .sidebar.mobile-open {
   top: var(--header-h);
 }
+/* Keep the columns inside the workspace height: a long layer list scrolls
+   in the sidebar instead of stretching the page below the viewer. */
+.atlas-app .workspace {
+  grid-template-rows: minmax(0, 1fr);
+}
+.atlas-app .sidebar {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 /* Visible keyboard focus everywhere. */
 .atlas-app :is(button, a, input, select, summary):focus-visible {
   outline: 2px solid var(--theme-accent, #6bdfcb);

@@ -487,7 +487,7 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
           // Joint motion is skinned on the GPU: soft tissue keeps its rest shape.
           const poseKey = motion ? 'standing' : s.pose || 'standing';
           const motionRig = motion
-            ? setRig(poseRig('standing', atlas.poseConfig, motion))
+            ? setRig(poseRig('standing', atlas.poseConfig, motion), gaitNow)
             : null;
           skinUniforms.uSkin.value = motion ? 1 : 0;
           // Instructor pins: numbered markers, rebuilt when they change.
@@ -722,7 +722,49 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
           stanceCb.current?.(stance);
         }
         // Rig matrices to the skinning uniforms and the rigid bone meshes.
-        function setRig(rig: ReturnType<typeof poseRig>) {
+        // A gait also lifts and pitches the whole trunk (share of body height).
+        let trunkPivot: THREE.Vector3 | null = null,
+          trunkHeight = 0;
+        const trunkMatrix = new THREE.Matrix4(),
+          trunkStep = new THREE.Matrix4();
+        function setRig(
+          rig: ReturnType<typeof poseRig>,
+          trunk?: { lift: number; pitch: number } | null,
+        ) {
+          if (trunk && (trunk.lift || trunk.pitch)) {
+            if (!trunkPivot) {
+              const b = new THREE.Box3();
+              for (const m of meshes)
+                if (m.userData.part.system === 'bone') {
+                  m.geometry.computeBoundingBox();
+                  b.union(m.geometry.boundingBox!);
+                }
+              trunkPivot = b.getCenter(new THREE.Vector3());
+              trunkHeight = b.max.y - b.min.y;
+            }
+            trunkMatrix
+              .makeTranslation(
+                trunkPivot.x,
+                trunkPivot.y + trunk.lift * trunkHeight,
+                trunkPivot.z,
+              )
+              .multiply(
+                trunkStep.makeRotationZ(THREE.MathUtils.degToRad(trunk.pitch)),
+              )
+              .multiply(
+                trunkStep.makeTranslation(
+                  -trunkPivot.x,
+                  -trunkPivot.y,
+                  -trunkPivot.z,
+                ),
+              );
+            rig = Object.fromEntries(
+              Object.entries(rig).map(([k, m]) => [
+                k,
+                trunkMatrix.clone().multiply(m),
+              ]),
+            ) as typeof rig;
+          }
           segNames.forEach((n, i) => skinUniforms.uBones.value[i].copy(rig[n]));
           return rig;
         }
@@ -737,7 +779,10 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
             update(latest.current); // recolour when the active muscle groups change
             return;
           }
-          const rig = setRig(poseRig('standing', atlas.poseConfig, f.motion));
+          const rig = setRig(
+            poseRig('standing', atlas.poseConfig, f.motion),
+            f,
+          );
           for (const m of meshes) {
             const p = m.userData.part;
             if (p.system !== 'bone' || !m.visible) continue;
