@@ -150,7 +150,10 @@ if not PROCEDURAL:
     for p in dog + extra:
         p['region'] = retarget.region_of(p, segs, trees)
     print(f'jaw closed by {retarget.close_jaw(dog + extra, S['retarget'].get('jaw_close', 1.0)):.0f} deg', flush=True)
+    import numpy as np
+    rest = {p['id']: np.array([v.co[:] for v in p['ob'].data.vertices]) for p in dog if p['system'] == 'muscle'}
     retarget.warp(dog + extra, segs, trees=trees)
+    retarget.relax_stretched(dog, rest)
     print(f'retarget: {len(dog)} parts in {time.time() - t0:.1f}s', flush=True)
     dog = species_edits.edit_bones(dog, S)
     dog = species_edits.label_muscles(dog, S)

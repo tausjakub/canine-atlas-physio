@@ -45,7 +45,8 @@ def derive(base, species, trunk=1.0, height=1.0, head=1.0, legs=1.0, tail=1.0, n
     for k, v in J.items():
         if k.endswith('_z'):
             joints[k] = v
-        elif k == 'carpus':
+        elif k in ('carpus', 'scap_dorsal'):
+            # The scapula belongs to the limb: it shortens with the legs.
             joints[k] = limb(v, J['shoulder'], sh)
         elif k == 'hock':
             joints[k] = limb(v, J['hip'], hp)
