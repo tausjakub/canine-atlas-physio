@@ -88,6 +88,8 @@ S = {
         'head_shape': {'orbit_at': 0.45, 'orbit_up': 0.06, 'orbit_radius': 0.36, 'orbit_grow': 0.9,
                        'nasal': (0.5, 1.0, 0.04)},
     },
+    # Standing pose from limb segment angles (species_derive.apply_stance).
+    'stance': {'humerus': -130, 'radius': -98, 'manus': -42, 'femur': -45, 'tibia': -158, 'pes': -10, 'toes': -6, 'arch': 0.022, 'head_pitch': -12},
     'skull': build_skull,
     'limbs': build_limbs,
 }

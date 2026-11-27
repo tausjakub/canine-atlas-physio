@@ -24,13 +24,13 @@ const packs = {
     attribution: `${BRAIN} Other organs: schematic shapes authored for Canine Atlas.`,
   },
   ...Object.fromEntries(
-    ['cat', 'rabbit'].map((sp) => [
+    ['cat', 'rabbit', 'ferret', 'guinea_pig'].map((sp) => [
       sp,
       {
         work: `work/species/${sp}/organs/`,
         out: `public/models/${sp}/organs/`,
         cards: organStudyFor(sp),
-        attribution: `Dog organ layer retargeted to the ${sp}. ${BRAIN} Other organs: schematic shapes authored for Canine Atlas.`,
+        attribution: `Dog organ layer retargeted to the ${sp.replace('_', ' ')}. ${BRAIN} Other organs: schematic shapes authored for Canine Atlas.`,
       },
     ]),
   ),
@@ -43,13 +43,13 @@ const packs = {
       'Schematic clinical-anatomy markers authored for Canine Atlas.',
   },
   ...Object.fromEntries(
-    ['cat', 'rabbit'].map((sp) => [
+    ['cat', 'rabbit', 'ferret', 'guinea_pig'].map((sp) => [
       `${sp}-clinical`,
       {
         work: `work/species/${sp}/clinical/`,
         out: `public/models/${sp}/clinical/`,
         cards: clinicalStudyFor(sp),
-        attribution: `Dog clinical-anatomy markers retargeted to the ${sp}; authored for Canine Atlas.`,
+        attribution: `Dog clinical-anatomy markers retargeted to the ${sp.replace('_', ' ')}; authored for Canine Atlas.`,
       },
     ]),
   ),
@@ -121,4 +121,10 @@ for (const name of process.argv[2] ? [process.argv[2]] : Object.keys(packs)) {
   console.log(
     `${name} organs: ${parts.length} parts, ${(offset / 1e6).toFixed(2)} MB`,
   );
+}
+// Muscle attachment points computed from the dog model (scripts/blender/clinical.py).
+const attach = new URL('work/clinical/attachments.json', root);
+if (fs.existsSync(attach)) {
+  fs.copyFileSync(attach, new URL('public/models/attachments.json', root));
+  console.log('attachments copied');
 }

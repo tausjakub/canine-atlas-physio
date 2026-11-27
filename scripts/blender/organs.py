@@ -224,8 +224,23 @@ def brain_parts(cav_lo, cav_hi, grid):
     half_w = 0.2 * (b1[0] - b0[0])
     stem = brain & ~cere & ~olf & (J < j_stem - 0.45 * np.maximum(0, K - k_cere)) & (K < k_cere + 30) & (np.abs(I - (b0[0] + b1[0]) / 2) < half_w)
     cerebrum = brain & ~cere & ~olf & ~stem
-    masks = {'brain_cerebrum_L': cerebrum & (I < i_mid), 'brain_cerebrum_R': cerebrum & (I >= i_mid),
-             'brain_cerebellum': cere, 'brain_stem': stem, 'brain_olfactory_bulbs': olf}
+    # Cerebral lobes from the atlas lobe masks (1 frontal, 2 occipital, 3 parietal,
+    # 4 perisylvian/temporal, 5 sensorimotor); unlabelled cerebrum (subcortical,
+    # cingulate) joins the nearest lobe by growing the labels.
+    lobes = L('Lobe_masks/all_lobes.nii.gz').astype(np.int16)
+    lab5 = np.where(cerebrum & (lobes >= 1) & (lobes <= 5), lobes, 0)
+    for _ in range(40):
+        todo = cerebrum & (lab5 == 0)
+        if not todo.any():
+            break
+        for k in range(1, 6):
+            grow = dilate(lab5 == k, 1) & todo & (lab5 == 0)
+            lab5[grow] = k
+    names = {1: 'frontal', 2: 'occipital', 3: 'parietal', 4: 'temporal', 5: 'sensorimotor'}
+    masks = {'brain_cerebellum': cere, 'brain_stem': stem, 'brain_olfactory_bulbs': olf}
+    for k, n in names.items():
+        masks[f'brain_lobe_{n}_L'] = cerebrum & (lab5 == k) & (I < i_mid)
+        masks[f'brain_lobe_{n}_R'] = cerebrum & (lab5 == k) & (I >= i_mid)
     # Map atlas-frame grid centres to voxel indices (fit brain box to cavity box).
     c = grid.centres()
     lo, hi = np.array(cav_lo), np.array(cav_hi)
@@ -623,7 +638,7 @@ def main():
     print('cranial cavity', lo.round(3), hi.round(3), int(cc.sum()), f'{time.time() - t0:.1f}s', flush=True)
     gb = Grid(lo, hi, 0.0008)
     for name, m in brain_parts(lo, hi, gb).items():
-        organs.append((name, mask_to_mesh(m, gb, name, col, tris=8000 if 'cerebrum' in name else 3000, smooth_it=8)))
+        organs.append((name, mask_to_mesh(m, gb, name, col, tris=2500 if 'lobe' in name else 3000, smooth_it=8)))
     print(f'brain {time.time() - t0:.1f}s', flush=True)
     organs.append(('organ_tongue', tongue(by, tissue, col)))
     trunk(by, tissue, col, organs, t0)

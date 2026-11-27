@@ -1,12 +1,12 @@
 'use client';
-// Dental chart with modified Triadan numbering for dog, cat and rabbit, plus a
+// Dental chart with modified Triadan numbering for dog, cat, rabbit, ferret and guinea pig, plus a
 // "find the tooth" drill. Quadrants: 1 upper right, 2 upper left, 3 lower left,
 // 4 lower right (the animal's sides); 01 is the central incisor.
 import { useState } from 'react';
 import { type Language } from './i18n';
 import { shuffle } from './quiz-engine';
 
-type Species = 'dog' | 'cat' | 'rabbit';
+type Species = 'dog' | 'cat' | 'rabbit' | 'ferret' | 'guinea_pig';
 // Tooth positions present per arch (upper, lower), by Triadan position number.
 const formula: Record<
   Species,
@@ -26,6 +26,16 @@ const formula: Record<
     upper: [1, 2, 6, 7, 8, 9, 10, 11],
     lower: [1, 7, 8, 9, 10, 11],
     text: 'I 2/1 · C 0/0 · P 3/2 · M 3/3 = 28',
+  },
+  ferret: {
+    upper: [1, 2, 3, 4, 6, 7, 8, 9],
+    lower: [1, 2, 3, 4, 6, 7, 8, 9, 10],
+    text: 'I 3/3 · C 1/1 · P 3/3 · M 1/2 = 34',
+  },
+  guinea_pig: {
+    upper: [1, 8, 9, 10, 11],
+    lower: [1, 8, 9, 10, 11],
+    text: 'I 1/1 · C 0/0 · P 1/1 · M 3/3 = 20',
   },
 };
 const quadrants = [
@@ -47,14 +57,16 @@ function toothName(sp: Species, pos: number, upper: boolean, cs: boolean) {
   if (pos === 4) return cs ? 'špičák' : 'canine';
   if (pos <= 8) {
     const n = pos - 4;
-    const carn = sp !== 'rabbit' && upper && pos === 8;
+    const carn =
+      (sp === 'dog' || sp === 'cat' || sp === 'ferret') && upper && pos === 8;
     return (
       (cs ? `${ord(n)} premolár` : `${ord(n)} premolar`) +
       (carn ? (cs ? ' (trháč)' : ' (carnassial)') : '')
     );
   }
   const n = pos - 8;
-  const carn = sp !== 'rabbit' && !upper && pos === 9;
+  const carn =
+    (sp === 'dog' || sp === 'cat' || sp === 'ferret') && !upper && pos === 9;
   return (
     (cs ? `${ord(n)} molár` : `${ord(n)} molar`) +
     (carn ? (cs ? ' (trháč)' : ' (carnassial)') : '')
@@ -67,7 +79,7 @@ export default function DentalChart({
   onClose,
 }: {
   language: Language;
-  onClose: () => void;
+  onClose: (score?: number, total?: number) => void;
 }) {
   const cs = language === 'cs',
     e = (en: string, c: string) => (cs ? c : en);
@@ -75,7 +87,8 @@ export default function DentalChart({
     [picked, setPicked] = useState<string | null>(null),
     [ask, setAsk] = useState<string[]>([]),
     [score, setScore] = useState(0),
-    [feedback, setFeedback] = useState('');
+    [feedback, setFeedback] = useState(''),
+    [drilled, setDrilled] = useState(false);
   const all = quadrants.flatMap(({ q, upper }) =>
     (upper ? formula[sp].upper : formula[sp].lower).map((pos) => code(q, pos)),
   );
@@ -110,29 +123,40 @@ export default function DentalChart({
             </span>
             <h2>{e('Dental chart', 'Zubní diagram')}</h2>
           </div>
-          <button onClick={onClose}>{e('Close', 'Zavřít')}</button>
+          <button
+            onClick={() =>
+              onClose(drilled && !ask.length ? score : undefined, 10)
+            }
+          >
+            {e('Close', 'Zavřít')}
+          </button>
         </header>
         <div className="presets" role="group" aria-label={e('Species', 'Druh')}>
-          {(['dog', 'cat', 'rabbit'] as const).map((s) => (
-            <button
-              key={s}
-              aria-pressed={sp === s}
-              onClick={() => {
-                setSp(s);
-                setPicked(null);
-                setAsk([]);
-                setFeedback('');
-              }}
-            >
-              {
+          {(['dog', 'cat', 'rabbit', 'ferret', 'guinea_pig'] as const).map(
+            (s) => (
+              <button
+                key={s}
+                aria-pressed={sp === s}
+                onClick={() => {
+                  setSp(s);
+                  setPicked(null);
+                  setAsk([]);
+                  setDrilled(false);
+                  setFeedback('');
+                }}
+              >
                 {
-                  dog: e('Dog', 'Pes'),
-                  cat: e('Cat', 'Kočka'),
-                  rabbit: e('Rabbit', 'Králík'),
-                }[s]
-              }
-            </button>
-          ))}
+                  {
+                    dog: e('Dog', 'Pes'),
+                    cat: e('Cat', 'Kočka'),
+                    rabbit: e('Rabbit', 'Králík'),
+                    ferret: e('Ferret', 'Fretka'),
+                    guinea_pig: e('Guinea pig', 'Morče'),
+                  }[s]
+                }
+              </button>
+            ),
+          )}
         </div>
         <p>
           {e('Dental formula', 'Zubní vzorec')}:{' '}
@@ -182,6 +206,7 @@ export default function DentalChart({
           <button
             onClick={() => {
               setAsk(shuffle(all).slice(0, 10));
+              setDrilled(true);
               setScore(0);
               setFeedback('');
               setPicked(null);

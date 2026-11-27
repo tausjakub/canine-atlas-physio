@@ -513,8 +513,9 @@ export function studyFor(id, system, region, species) {
   const key = id.replace(/^m_/, '').replace(/_[LR]$/, '');
   const m = muscles[key],
     bone = bones.find((row) => row[0].test(id));
+  const base = { ferret: 'cat', guinea_pig: 'rabbit' }[species] ?? species;
   const reference =
-    species === 'cat'
+    base === 'cat'
       ? region === 'Forelimb'
         ? 'https://vanat.ahc.umn.edu/carnLabs/Lab04/Lab04.html'
         : region === 'Hindlimb'
@@ -549,15 +550,25 @@ export function studyFor(id, system, region, species) {
         );
   const nerve = m?.[4] ? b(m[4], m[4]) : null;
   const difference =
-    species === 'cat'
+    species === 'ferret'
       ? b(
-          'Kočka má 13 párů žeber, volnější rotaci předloktí a vyvinutý m. brachioradialis. Na pánevní končetině je přítomen m. soleus; psí atlas proto nelze pouze přejmenovat.',
-          'The cat has 13 rib pairs, greater forearm rotation and a developed brachioradialis. Soleus is present in the hindlimb; simply renaming the dog atlas is inappropriate.',
+          'Fretka má 15 párů žeber (15 hrudních a 5 bederních obratlů), pět prstů na každé končetině a krátké končetiny. Model je odvozen z kočičí šablony a psího modelu; tvary kostí jsou orientační.',
+          'The ferret has 15 rib pairs (15 thoracic and 5 lumbar vertebrae), five digits on every foot and short limbs. The model is derived from the cat template and the dog model; bone shapes are approximate.',
         )
-      : b(
-          'Králík má 12 párů žeber, 9 zápěstních kostí (model nerozlišuje malou centrální kost) a 6 zánártních kostí na končetině. Distální srůst tibie a fibuly, hlodavé řezáky bez špičáků a silná pánevní končetina jej odlišují od kočky.',
-          'Rabbits have 12 rib pairs, 9 carpal bones (the small central carpal is not separated here) and 6 tarsal bones per limb. Distal tibiofibular fusion, gnawing incisors without canines and the powerful hindlimb distinguish it from the cat.',
-        );
+      : species === 'guinea_pig'
+        ? b(
+            'Morče má 13 párů žeber, 6 bederních obratlů, čtyři prsty na hrudní a tři na pánevní končetině, žádný viditelný ocas a trvale dorůstající zuby. Model je odvozen z králičí šablony a psího modelu; tvary kostí jsou orientační.',
+            'The guinea pig has 13 rib pairs, 6 lumbar vertebrae, four digits on the forefoot and three on the hind foot, no visible tail and continuously growing teeth. The model is derived from the rabbit template and the dog model; bone shapes are approximate.',
+          )
+        : species === 'cat'
+          ? b(
+              'Kočka má 13 párů žeber, volnější rotaci předloktí a vyvinutý m. brachioradialis. Na pánevní končetině je přítomen m. soleus; psí atlas proto nelze pouze přejmenovat.',
+              'The cat has 13 rib pairs, greater forearm rotation and a developed brachioradialis. Soleus is present in the hindlimb; simply renaming the dog atlas is inappropriate.',
+            )
+          : b(
+              'Králík má 12 párů žeber, 9 zápěstních kostí (model nerozlišuje malou centrální kost) a 6 zánártních kostí na končetině. Distální srůst tibie a fibuly, hlodavé řezáky bez špičáků a silná pánevní končetina jej odlišují od kočky.',
+              'Rabbits have 12 rib pairs, 9 carpal bones (the small central carpal is not separated here) and 6 tarsal bones per limb. Distal tibiofibular fusion, gnawing incisors without canines and the powerful hindlimb distinguish it from the cat.',
+            );
   return {
     location,
     connections,

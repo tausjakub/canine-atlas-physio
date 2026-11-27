@@ -62,7 +62,7 @@ function find(node, predicate) {
   }
 }
 const projections = [];
-for (const species of ['cat', 'rabbit']) {
+for (const species of ['cat', 'rabbit', 'ferret', 'guinea_pig']) {
   const atlas = JSON.parse(
       fs.readFileSync(
         new URL(
@@ -148,13 +148,31 @@ for (const species of ['cat', 'rabbit']) {
     atlas.parts.filter((p) => p.id.startsWith('Carpal_')).length,
     // Cat: intermedioradiale, ulnare, accessorium, I-IV. Rabbit: radiale and
     // intermedium separate; the small os carpi centrale is not modelled.
-    species === 'cat' ? 14 : 16,
+    species === 'rabbit' ? 16 : 14,
+  );
+  // Vertebral counts: rib pairs follow thoracic vertebrae; the ferret's T14-T15
+  // are relabelled dog lumbars with copied ribs.
+  const counts = {
+    cat: [13, 7],
+    rabbit: [12, 7],
+    ferret: [15, 5],
+    guinea_pig: [13, 6],
+  }[species];
+  assert.equal(
+    atlas.parts.filter((p) => /^Rib_\d+_[LR]$/.test(p.id)).length,
+    counts[0] * 2,
+    species + ' ribs',
+  );
+  assert.equal(
+    atlas.parts.filter((p) => /^L_\d+$/.test(p.id)).length,
+    counts[1],
+    species + ' lumbar',
   );
   assert.equal(
     atlas.parts.filter((p) =>
       /^(Tarsus_|Tibial_tarsal_|Calcaneal_tuber_)/.test(p.id),
     ).length,
-    species === 'cat' ? 14 : 12,
+    species === 'rabbit' ? 12 : 14,
   );
   for (const id of [
     'rectus_femoris',

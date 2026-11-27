@@ -35,7 +35,7 @@ export type Atlas = {
   bytes: number;
   binaryPath?: string;
   poseConfig?: import('./poses').PoseConfig;
-  species?: 'cat' | 'rabbit';
+  species?: 'cat' | 'rabbit' | 'ferret' | 'guinea_pig';
   scientificName?: string;
 };
 export type SceneState = {
@@ -55,6 +55,16 @@ export type SceneState = {
   section?: { axis: 'x' | 'y' | 'z'; at: number } | null;
   xray?: boolean;
   measure?: boolean;
+  // Joint motion (gait player, range-of-motion sliders), muscles to highlight by
+  // id fragment, one part moved out of place (drill), instructor pins, high contrast.
+  motion?: import('./poses').Motion | null;
+  highlight?: string[];
+  displace?: { id: string; by: number[] } | null;
+  pins?: { at: number[]; text: string }[];
+  contrast?: boolean;
+  annotate?: boolean;
+  // Lettered markers (muscle attachments) drawn like pins.
+  marks?: { at: number[]; text: string }[];
 };
 export const systems: { id: System; name: string; color: string }[] = [
   { id: 'bone', name: 'Skeleton', color: '#e6d5ad' },
@@ -70,6 +80,11 @@ export const systems: { id: System; name: string; color: string }[] = [
 ];
 // Organs share one layer but are tinted by organ group so neighbours read apart.
 const organTints: [RegExp, string][] = [
+  [/lobe_frontal/, '#e8b9c4'],
+  [/lobe_sensorimotor/, '#d9a3e0'],
+  [/lobe_parietal/, '#a7c4ec'],
+  [/lobe_occipital/, '#9fd8c4'],
+  [/lobe_temporal/, '#f2c48d'],
   [/^brain_/, '#e8b9c4'],
   [/spinal_cord|thyroid|adrenal/, '#e9d48c'],
   [/heart|aorta/, '#c4505a'],

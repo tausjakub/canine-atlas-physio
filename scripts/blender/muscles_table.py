@@ -579,6 +579,28 @@ SPECIES_NOTE = {
             'The rabbit pelvic limb is powerful for saltatory locomotion, with a long foot and distally fused tibia and fibula.'),
     },
 }
+# Species built on another species' muscle map (ferret on the cat, guinea pig on
+# the rabbit) use their own region notes instead of the base species' notes.
+SPECIES_NOTE['ferret'] = {
+    H: ('Fretka má protáhlou lebku s krátkou obličejovou částí a masožravý chrup (I3/3 C1/1 P3/3 M1/2 = 34).',
+        'The ferret has an elongated skull with a short facial part and a carnivorous dentition (I3/3 C1/1 P3/3 M1/2 = 34).'),
+    N: ('Fretka má velmi ohebnou páteř s 15 hrudními a 5 bederními obratli (15 párů žeber).',
+        'The ferret has a very flexible spine with 15 thoracic and 5 lumbar vertebrae (15 rib pairs).'),
+    F: ('Hrudní končetina fretky je krátká, s pěti prsty a nezatažitelnými drápy.',
+        'The ferret forelimb is short, with five digits and non-retractile claws.'),
+    P: ('Pánevní končetina fretky je krátká, s pěti prsty.',
+        'The ferret pelvic limb is short, with five digits.'),
+}
+SPECIES_NOTE['guinea_pig'] = {
+    H: ('Morče má trvale dorůstající řezáky i stoličky (I1/1 C0/0 P1/1 M3/3 = 20), dlouhou mezeru (diastema) a mohutný žvýkací sval.',
+        'The guinea pig has continuously growing incisors and cheek teeth (I1/1 C0/0 P1/1 M3/3 = 20), a long diastema and a massive masseter.'),
+    N: ('Morče má kompaktní trup, 13 párů žeber a jen několik malých ocasních obratlů bez viditelného ocasu.',
+        'The guinea pig has a compact trunk, 13 rib pairs and only a few small caudal vertebrae with no visible tail.'),
+    F: ('Hrudní končetina morčete je krátká a má čtyři prsty.',
+        'The guinea pig forelimb is short and has four digits.'),
+    P: ('Pánevní končetina morčete je krátká a má tři prsty.',
+        'The guinea pig pelvic limb is short and has three digits.'),
+}
 UMN = 'https://vanat.ahc.umn.edu/carnLabs/Lab{0:02d}/Lab{0:02d}.html'
 FACIAL = {'buccinator', 'orbicularis_oris', 'orbicularis_oculi', 'levator_labii_superioris', 'caninus', 'zygomaticus',
           'retractor_anguli_oculi', 'interscutularis'}
@@ -623,7 +645,8 @@ LAYER = {0: ('nejhlubší vrstva přímo na kosti', 'deepest layer, directly on 
 
 
 def table(S, rows=None, include_mapped=False):
-    sp = S['species']
+    own = S['species']
+    sp = S.get('base', own)
     code = 'c' if sp == 'cat' else 'r'
     out = []
     for r in rows or ROWS:
@@ -644,7 +667,9 @@ def table(S, rows=None, include_mapped=False):
         if note and re.search(other, note[1].lower()):
             note = None
         diff = note or SPECIES_NOTE[sp][r['region']]
-        if sp == 'rabbit' and r['rt'] and r['rt'] != r['name']:
+        if own != sp:
+            diff = SPECIES_NOTE[own][r['region']]
+        elif sp == 'rabbit' and r['rt'] and r['rt'] != r['name']:
             diff = (diff[0] + f' U kočky: {r["name"][0]}.', diff[1] + f' In the cat: {r["name"][1]}.')
         elif sp == 'cat' and r['rt'] and r['rt'] != r['name']:
             diff = (diff[0] + f' U králíka: {r["rt"][0]}.', diff[1] + f' In the rabbit: {r["rt"][1]}.')

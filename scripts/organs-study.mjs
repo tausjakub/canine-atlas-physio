@@ -43,33 +43,6 @@ const vagus = p(
   'Autonomic: vagus nerve (parasympathetic) and sympathetic nerves.',
 );
 
-const cerebrum = (side, sideEn) =>
-  card(
-    p(`Koncový mozek · ${side}`, `Cerebrum · ${sideEn}`),
-    p(
-      'Vědomé vnímání, plánování a řízení volního pohybu, učení a paměť.',
-      'Conscious perception, planning and control of voluntary movement, learning and memory.',
-    ),
-    p(
-      'Největší část mozku v lebeční dutině; obě hemisféry odděluje podélná štěrbina.',
-      'Largest part of the brain in the cranial cavity; the hemispheres are separated by the longitudinal fissure.',
-    ),
-    p(
-      'Kaudálně navazuje mozkový kmen, kaudodorzálně mozeček, rostrálně čichové bulby.',
-      'Continues caudally into the brainstem, with the cerebellum caudodorsally and the olfactory bulbs rostrally.',
-    ),
-    p(
-      'Neuplatňuje se (sám je částí CNS).',
-      'Not applicable (part of the CNS itself).',
-    ),
-    p(
-      'Která část mozku plánuje volní pohyb?',
-      'Which part of the brain plans voluntary movement?',
-    ),
-    p('Koncový mozek (motorická kůra).', 'The cerebrum (motor cortex).'),
-    { mri: true },
-  );
-
 const ovary = (side, sideEn) =>
   card(
     p(`Vaječník · ${side} · samice`, `Ovary · ${sideEn} · female`),
@@ -99,9 +72,120 @@ const ovary = (side, sideEn) =>
     ),
   );
 
+// Cerebral lobes as delineated in the Johnson & Barry atlas (frontal,
+// sensorimotor, parietal, occipital, perisylvian/temporal).
+const lobeInfo = {
+  frontal: [
+    p('Čelní lalok', 'Frontal lobe'),
+    p(
+      'Rostrální část koncového mozku; podílí se na chování a plánování.',
+      'Rostral part of the cerebrum; involved in behaviour and planning.',
+    ),
+    p(
+      'Nejrostrálnější lalok hemisféry, kaudálně od čichového bulbu.',
+      'The most rostral lobe of the hemisphere, caudal to the olfactory bulb.',
+    ),
+    p(
+      'Který lalok leží hned za čichovým bulbem?',
+      'Which lobe lies just caudal to the olfactory bulb?',
+    ),
+    p('Čelní lalok.', 'The frontal lobe.'),
+  ],
+  sensorimotor: [
+    p('Senzomotorický lalok', 'Sensorimotor lobe'),
+    p(
+      'Kolem zkřížené brázdy (sulcus cruciatus): primární motorická a somatosenzorická kůra.',
+      'Around the cruciate sulcus: primary motor and somatosensory cortex.',
+    ),
+    p(
+      'Dorzálně mezi čelním a temenním lalokem.',
+      'Dorsally between the frontal and parietal lobes.',
+    ),
+    p(
+      'Kolem které brázdy leží u psa motorická kůra?',
+      'Around which sulcus does the dog’s motor cortex lie?',
+    ),
+    p(
+      'Kolem zkřížené brázdy (sulcus cruciatus).',
+      'Around the cruciate sulcus.',
+    ),
+  ],
+  parietal: [
+    p('Temenní lalok', 'Parietal lobe'),
+    p(
+      'Zpracování a propojování smyslových informací, prostorová orientace.',
+      'Processing and integration of sensory information, spatial orientation.',
+    ),
+    p(
+      'Dorzálně ve střední části hemisféry, mezi senzomotorickým a týlním lalokem.',
+      'Dorsally in the middle of the hemisphere, between the sensorimotor and occipital lobes.',
+    ),
+    p(
+      'Mezi kterými laloky leží temenní lalok?',
+      'Between which lobes does the parietal lobe lie?',
+    ),
+    p(
+      'Mezi senzomotorickým a týlním.',
+      'Between the sensorimotor and occipital lobes.',
+    ),
+  ],
+  occipital: [
+    p('Týlní lalok', 'Occipital lobe'),
+    p(
+      'Zraková kůra: zpracování zrakových podnětů.',
+      'Visual cortex: processing of visual input.',
+    ),
+    p(
+      'Kaudální pól hemisféry, dorzálně od mozečku (odděleno stanem mozečku, tentorium cerebelli).',
+      'Caudal pole of the hemisphere, dorsal to the cerebellum (separated by the tentorium cerebelli).',
+    ),
+    p('Který lalok zpracovává zrak?', 'Which lobe processes vision?'),
+    p('Týlní lalok.', 'The occipital lobe.'),
+  ],
+  temporal: [
+    p('Spánkový (perisylvijský) lalok', 'Temporal (perisylvian) lobe'),
+    p(
+      'Sluchová kůra a asociační oblasti kolem sylviovy brázdy.',
+      'Auditory cortex and association areas around the sylvian sulcus.',
+    ),
+    p(
+      'Laterálně a ventrálně na hemisféře, kolem sylviovy brázdy.',
+      'Lateral and ventral on the hemisphere, around the sylvian sulcus.',
+    ),
+    p('Kde leží sluchová kůra?', 'Where is the auditory cortex?'),
+    p(
+      'Ve spánkovém (perisylvijském) laloku.',
+      'In the temporal (perisylvian) lobe.',
+    ),
+  ],
+};
+const lobe = (key, side, sideEn) => {
+  const [label, action, location, recall, answer] = lobeInfo[key];
+  return card(
+    p(`${label.cs} · ${side}`, `${label.en} · ${sideEn}`),
+    action,
+    location,
+    p(
+      'Součást koncového mozku; hemisféry spojuje kalózní těleso (corpus callosum).',
+      'Part of the cerebrum; the hemispheres are joined by the corpus callosum.',
+    ),
+    p(
+      'Neuplatňuje se (sám je částí CNS).',
+      'Not applicable (part of the CNS itself).',
+    ),
+    recall,
+    answer,
+    { mri: true },
+  );
+};
+
 export const organStudy = {
-  brain_cerebrum_L: cerebrum('vlevo', 'left'),
-  brain_cerebrum_R: cerebrum('vpravo', 'right'),
+  ...Object.fromEntries(
+    Object.keys(lobeInfo).flatMap((k) => [
+      [`brain_lobe_${k}_L`, lobe(k, 'vlevo', 'left')],
+      [`brain_lobe_${k}_R`, lobe(k, 'vpravo', 'right')],
+    ]),
+  ),
   brain_cerebellum: card(
     p('Mozeček', 'Cerebellum'),
     p(
@@ -780,7 +864,102 @@ export const organStudy = {
 const SPECIES = {
   cat: { cs: 'kočky', en: 'cat' },
   rabbit: { cs: 'králíka', en: 'rabbit' },
+  ferret: { cs: 'fretky', en: 'ferret' },
+  guinea_pig: { cs: 'morčete', en: 'guinea pig' },
 };
+// Ferret and guinea pig: dog-derived layout with generic wording where the dog
+// values would mislead.
+const generic = (sp) => ({
+  organ_spinal_cord: {
+    location: p(
+      `V páteřním kanálu od velkého týlního otvoru; úroveň, kde mícha ${SPECIES[sp].cs} končí, se od psa liší (ověřte podle učebnice).`,
+      `In the vertebral canal from the foramen magnum; the level where the ${SPECIES[sp].en}’s cord ends differs from the dog (check your textbook).`,
+    ),
+    answer: p(
+      'Úroveň se liší od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_heart: {
+    location: p(
+      `Poloha srdce vůči žebrům u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The position of the heart relative to the ribs of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_kidney_L: {
+    location: p(
+      `Úroveň levé ledviny u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The vertebral level of the left kidney of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_kidney_R: {
+    location: p(
+      `Úroveň pravé ledviny u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The vertebral level of the right kidney of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_thyroid: {
+    location: p(
+      `Úroveň štítné žlázy vůči prstencům průdušnice u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The level of the thyroid along the trachea of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_bladder: {
+    location: p(
+      `Poloha močového měchýře vůči vchodu do pánve u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The position of the bladder relative to the pelvic inlet of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  ...(sp === 'guinea_pig'
+    ? {
+        organ_caecum: {
+          location: p(
+            'Velké, tenkostěnné, sakulované slepé střevo ve ventrální části břicha; fermentační komora.',
+            'A large, thin-walled, sacculated caecum in the ventral abdomen; a fermentation chamber.',
+          ),
+          connections: p(
+            'Kyčelník ústí do slepého střeva; pokračuje tlusté střevo (colon).',
+            'The ileum opens into the caecum; the colon continues from it.',
+          ),
+          recall: p(
+            'Jak je stavěno slepé střevo morčete?',
+            'How is the guinea pig caecum built?',
+          ),
+          answer: p(
+            'Velké, tenkostěnné, sakulované střevo; tvar a detaily ověřte podle učebnice.',
+            'A large, thin-walled, sacculated gut; check its shape and details in your textbook.',
+          ),
+        },
+      }
+    : {}),
+  organ_uterus: {
+    recall: p(
+      `Jaký typ dělohy má samice ${SPECIES[sp].cs}?`,
+      `What type of uterus does the female ${SPECIES[sp].en} have?`,
+    ),
+    answer: p('Dvourohou (uterus bicornis).', 'Bicornuate.'),
+  },
+});
 const retargeted = (sp) =>
   p(
     `Schematický tvar převzatý z modelu psa a přenesený do proporcí ${SPECIES[sp].cs}; poloha vychází z rozvržení u psa, nejde o segmentaci ani přesnou velikost.`,
@@ -944,18 +1123,35 @@ export function organStudyFor(sp) {
     };
   const all = {
     ...organStudy,
-    ...(sp === 'rabbit' ? { organ_caecum: rabbitCaecum } : {}),
+    ...(sp === 'rabbit' || sp === 'guinea_pig'
+      ? { organ_caecum: rabbitCaecum }
+      : {}),
   };
   return Object.fromEntries(
     Object.entries(all).map(([id, c]) => {
-      const o = overrides[sp][id] ?? {};
+      const o = (overrides[sp] ?? generic(sp))[id] ?? {};
       const study = { ...c.study };
       for (const k of ['location', 'connections', 'recall', 'answer'])
         study[k] = o[k] ?? swap(c.study[k]);
       study.difference = id.startsWith('brain_')
         ? brainNote(sp)
         : retargeted(sp);
-      return [id, { ...c, action: swap(c.action), study }];
+      // The guinea pig reuses the rabbit caecum card with its own name.
+      const named = (b) =>
+        sp === 'guinea_pig' && b
+          ? {
+              cs: b.cs
+                .replace(/králíka/g, 'morčete')
+                .replace(/králík/g, 'morče'),
+              en: b.en.replace(/\brabbit/g, 'guinea pig'),
+            }
+          : b;
+      for (const k of Object.keys(study))
+        if (study[k]?.cs) study[k] = named(study[k]);
+      return [
+        id,
+        { ...c, label: named(c.label), action: named(swap(c.action)), study },
+      ];
     }),
   );
 }

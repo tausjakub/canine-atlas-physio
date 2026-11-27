@@ -31,7 +31,9 @@ for m in ('common', 'skeleton', 'skull', 'limbs', 'muscles', 'species_' + specie
     if m in sys.modules:
         importlib.reload(sys.modules[m])
 spec = importlib.import_module('species_' + species)
-S = spec.S
+import species_derive  # noqa: E402
+importlib.reload(species_derive)
+S = species_derive.apply_stance(spec.S)
 
 
 
@@ -53,11 +55,14 @@ def load_layer(species, col, layer):
     out = []
     for p in built:
         pid = p['id']
+        # The guinea pig shares the rabbit's large caecum but has a bicornuate uterus.
+        wanted = {'rabbit': None, 'guinea_pig': {'organ_caecum', 'organ_small_intestine'}}.get(species, set())
+        takes = lambda base: wanted is None or (wanted and base in wanted)  # noqa: E731
         if pid.endswith('_rabbit'):
-            if species != 'rabbit':
+            if not takes(pid[:-len('_rabbit')]):
                 continue
             pid = pid[:-len('_rabbit')]
-        elif species == 'rabbit' and pid + '_rabbit' in ids:
+        elif pid + '_rabbit' in ids and takes(pid):
             continue
         n = p['vertexCount']
         pos = struct.unpack_from(f'<{n * 3}f', blob, p['vertexOffset'])

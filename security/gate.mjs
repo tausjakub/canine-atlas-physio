@@ -278,6 +278,49 @@ async function rangedAsset(asset, request, knownSize) {
   headers.set('Accept-Ranges', 'bytes');
   return new Response(body, { status: 206, headers });
 }
+// Class dashboard: anonymous, opt-in spotter results per structure for the
+// cohort, kept as one aggregate in the ATLAS_RESULTS KV namespace (no names,
+// no per-student records). Without the binding the endpoint reports 501.
+export async function results(request, env, url) {
+  const json = (body, status = 200) =>
+    response(JSON.stringify(body), status, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
+    });
+  if (!env.ATLAS_RESULTS) return json({ error: 'not configured' }, 501);
+  const read = async () =>
+    JSON.parse((await env.ATLAS_RESULTS.get('aggregate')) || '{}');
+  if (request.method === 'GET') return json(await read());
+  if (request.method !== 'POST')
+    return response('Method not allowed', 405, { Allow: 'GET, POST' });
+  if (request.headers.get('origin') !== url.origin)
+    return response('Origin denied', 403);
+  if (Number(request.headers.get('content-length') || 0) > 8192)
+    return response('Request too large', 413);
+  let items;
+  try {
+    items = JSON.parse((await request.text()).slice(0, 8192)).results;
+  } catch {
+    return response('Bad request', 400);
+  }
+  if (!Array.isArray(items) || items.length > 60)
+    return response('Bad request', 400);
+  const agg = await read();
+  for (const item of items) {
+    if (
+      !item ||
+      typeof item.id !== 'string' ||
+      !/^[\w().-]{1,80}$/.test(item.id) ||
+      typeof item.ok !== 'boolean'
+    )
+      continue;
+    const [right, wrong] = agg[item.id] ?? [0, 0];
+    agg[item.id] = item.ok ? [right + 1, wrong] : [right, wrong + 1];
+  }
+  await env.ATLAS_RESULTS.put('aggregate', JSON.stringify(agg));
+  return json({ saved: items.length });
+}
+
 export async function gate(
   request,
   env,
@@ -373,6 +416,7 @@ export async function gate(
           { 'Content-Type': 'text/plain; charset=utf-8' },
         );
   }
+  if (url.pathname === '/_api/results') return results(request, env, url);
   if (request.method !== 'GET' && request.method !== 'HEAD')
     return response('Method not allowed', 405, { Allow: 'GET, HEAD' });
   const asset = await rangedAsset(

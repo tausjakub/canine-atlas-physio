@@ -85,7 +85,11 @@ const fixed: Record<string, string> = {
   m_abdominis_Aponeurosis: 'Aponeurosis abdominis',
   m_biceps_femoris_tendon: 'Tendo m. bicipitis femoris',
   m_dorsi_Fascia_thoracolumbar_: 'Fascia thoracolumbalis',
-  brain_cerebrum: 'Cerebrum (hemispherium)',
+  brain_lobe_frontal: 'Lobus frontalis',
+  brain_lobe_sensorimotor: 'Cortex sensorimotorius (gyrus sigmoideus)',
+  brain_lobe_parietal: 'Lobus parietalis',
+  brain_lobe_occipital: 'Lobus occipitalis',
+  brain_lobe_temporal: 'Lobus temporalis (piriformis et perisylvius)',
   brain_cerebellum: 'Cerebellum',
   brain_stem: 'Truncus encephali',
   brain_olfactory_bulbs: 'Bulbi olfactorii',
@@ -131,6 +135,17 @@ const fixed: Record<string, string> = {
   lm_calcaneal_tuber: 'Tuber calcanei',
   lm_atlas_wing: 'Ala atlantis',
   lm_rib_numbers: 'Costae',
+  lm_body_regions: 'Regiones corporis',
+  n_cranial_nerves: 'Nn. craniales I-XII',
+  gp_humerus_proximal: 'Cartilago epiphysialis proximalis humeri',
+  gp_humerus_distal: 'Cartilago epiphysialis distalis humeri',
+  gp_radius_proximal: 'Cartilago epiphysialis proximalis radii',
+  gp_radius_distal: 'Cartilago epiphysialis distalis radii',
+  gp_ulna_distal: 'Cartilago epiphysialis distalis ulnae',
+  gp_femur_proximal: 'Cartilago epiphysialis capitis ossis femoris',
+  gp_femur_distal: 'Cartilago epiphysialis distalis ossis femoris',
+  gp_tibia_proximal: 'Cartilago epiphysialis proximalis tibiae',
+  gp_tibia_distal: 'Cartilago epiphysialis distalis tibiae',
   ausc_pulmonic: 'Punctum maximum valvae trunci pulmonalis',
   ausc_aortic: 'Punctum maximum valvae aortae',
   ausc_mitral: 'Punctum maximum valvae atrioventricularis sinistrae',
@@ -162,7 +177,7 @@ const fixed: Record<string, string> = {
 export function latinName(part: Part): string | null {
   const id = side(part.id);
   const base = id.replace(
-    /^(brain_cerebrum|organ_lung|organ_kidney|organ_adrenal|organ_ovary)_?.*/,
+    /^(brain_lobe_[a-z]+|organ_lung|organ_kidney|organ_adrenal|organ_ovary)_?.*/,
     '$1',
   );
   if (fixed[base]) return fixed[base];

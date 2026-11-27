@@ -19,7 +19,7 @@ import {
   Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import AnatomyScene, { type SceneTools } from './scene';
+import AnatomyScene, { type SceneTools, type Snapshot } from './scene';
 import PoseControls from './pose-controls';
 import { SpeciesPicker, type Species } from './species-atlas';
 import ThemePicker from './theme-picker';
@@ -35,6 +35,10 @@ const Library =
   process.env.NEXT_PUBLIC_ATLAS_LIBRARY !== '0'
     ? lazy(() => import('./library'))
     : () => null;
+const ClassResults =
+  process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0'
+    ? lazy(() => import('./class-results'))
+    : () => null;
 const DornMovementStudy =
   process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0'
     ? lazy(() => import('./dorn-movement'))
@@ -45,6 +49,15 @@ import { addLigaments, ligamentCount } from './ligaments';
 import { latinName } from './latin';
 import Spotter, { srsKey, readBoxes, dueIds } from './spotter';
 import DentalChart from './dental-chart';
+import MotionControls from './motion';
+import ClickQuiz, {
+  type Round,
+  connectionRounds,
+  misplacedRounds,
+} from './click-quiz';
+import ExamSim from './exam-sim';
+import { tours } from './tours';
+import { mnemonicFor } from './mnemonics';
 import { shuffle } from './quiz-engine';
 import { detailFor, noteCoverage, structureName } from './study-notes';
 import {
@@ -159,7 +172,12 @@ export default function Home() {
   const [pendingQuiz, setPendingQuiz] = useState<string[]>();
   useEffect(() => {
     const value = new URLSearchParams(window.location.search).get('species');
-    if (value === 'cat' || value === 'rabbit') {
+    if (
+      value === 'cat' ||
+      value === 'rabbit' ||
+      value === 'ferret' ||
+      value === 'guinea_pig'
+    ) {
       // oxlint-disable-next-line react/react-compiler -- read the URL after mount (static export)
       setSpecies(value);
       setTab('explore');
@@ -172,6 +190,27 @@ export default function Home() {
     const pose = params.get('pose'),
       cam = params.get('cam'),
       part = params.get('part');
+    // Instructor pins: ?pins=[[x,y,z,"text"],...]
+    let pins: { at: number[]; text: string }[] = [];
+    try {
+      const raw = JSON.parse(params.get('pins') || '[]');
+      if (Array.isArray(raw))
+        pins = raw
+          .filter(
+            (p) =>
+              Array.isArray(p) &&
+              p.length === 4 &&
+              p
+                .slice(0, 3)
+                .every((v) => Number.isFinite(v) && Math.abs(v) < 5) &&
+              typeof p[3] === 'string',
+          )
+          .slice(0, 20)
+          .map((p) => ({
+            at: p.slice(0, 3),
+            text: String(p[3]).slice(0, 140),
+          }));
+    } catch {}
     setState((s) => ({
       ...s,
       ...(layers.length ? { systems: layers } : {}),
@@ -179,6 +218,7 @@ export default function Home() {
       ...(pose === 'sitting' || pose === 'lying' ? { pose } : {}),
       ...(cam && cameraViews.includes(cam) ? { view: cam } : {}),
       ...(part ? { selected: part } : {}),
+      ...(pins.length ? { pins } : {}),
     }));
     // Instructor quiz set: ?quiz=id1,id2,... opens the spotter on those structures.
     const quiz = (params.get('quiz') ?? '')
@@ -198,8 +238,22 @@ export default function Home() {
     put('sex', state.sex === 'female' ? 'female' : null);
     put('pose', state.pose && state.pose !== 'standing' ? state.pose : null);
     put('cam', state.view !== 'lateral' ? state.view : null);
+    put(
+      'pins',
+      state.pins?.length
+        ? JSON.stringify(state.pins.map((p) => [...p.at, p.text]))
+        : null,
+    );
     window.history.replaceState(null, '', url);
-  }, [tab, state.selected, state.systems, state.sex, state.pose, state.view]);
+  }, [
+    tab,
+    state.selected,
+    state.systems,
+    state.sex,
+    state.pose,
+    state.view,
+    state.pins,
+  ]);
   const [copied, setCopied] = useState(false);
   // Learning tools: spotter rounds, a shareable quiz set, per-structure notes.
   const [quizSet, setQuizSet] = useState<string[]>([]);
@@ -433,9 +487,150 @@ export default function Home() {
     }));
     setMobile(false);
   };
-  const changePose = (pose: DogPose) =>
+  const [motionReset, setMotionReset] = useState(0);
+  const [drill, setDrill] = useState<{ title: string; rounds: Round[] }>();
+  const [classView, setClassView] = useState(false);
+  // Private edition: opt-in anonymous spotter results for the course dashboard.
+  const shareResults =
+    process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0'
+      ? (results: { id: string; ok: boolean }[]) =>
+          fetch(sitePath('/_api/results'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ results }),
+          })
+            .then((r) => r.ok)
+            .catch(() => false)
+      : undefined;
+  const [exam, setExam] = useState(false);
+  const [tour, setTour] = useState<{ id: string; step: number }>();
+  const [pinText, setPinText] = useState('');
+  const [pendingPin, setPendingPin] = useState<number[]>();
+  const [brand, setBrand] = useState<{ name: string; logo?: string }>();
+  // Muscle attachment points computed from the dog model (contact with bone).
+  const [attach, setAttach] =
+    useState<
+      Record<string, { a: number[]; ab: string; b: number[]; bb: string }>
+    >();
+  useEffect(() => {
+    fetch(sitePath('/models/attachments.json'))
+      .then((r) => (r.ok ? r.json() : undefined))
+      .then((a) => setAttach(a as typeof attach))
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    // Course branding for licensed cohorts: /branding.json, private edition only.
+    if (process.env.NEXT_PUBLIC_ATLAS_PRIVATE === '0') return;
+    fetch(sitePath('/branding.json'))
+      .then(
+        (r) =>
+          (r.ok ? r.json() : null) as Promise<{
+            name?: unknown;
+            logo?: unknown;
+            accent?: unknown;
+          } | null>,
+      )
+      .then(
+        (b: { name?: unknown; logo?: unknown; accent?: unknown } | null) => {
+          if (!b || typeof b.name !== 'string') return;
+          setBrand({
+            name: b.name.slice(0, 80),
+            logo:
+              typeof b.logo === 'string' && /^\/[\w./-]+$/.test(b.logo)
+                ? b.logo
+                : undefined,
+          });
+          if (typeof b.accent === 'string' && /^#[0-9a-f]{6}$/i.test(b.accent))
+            document.documentElement.style.setProperty(
+              '--brand-accent',
+              b.accent,
+            );
+        },
+      )
+      .catch(() => {});
+  }, []);
+  const selectedPart = view?.parts.find((p) => p.id === state.selected);
+  const attachment =
+    !otherSpecies && selectedPart?.system === 'muscle'
+      ? attach?.[selectedPart.id]
+      : undefined;
+  const limbMuscle =
+    !!selectedPart && ['Forelimb', 'Hindlimb'].includes(region(selectedPart));
+  // Shown on the standing, assembled model only (they do not follow poses).
+  const attachMarks =
+    attachment &&
+    (state.pose ?? 'standing') === 'standing' &&
+    !state.motion &&
+    !state.explode
+      ? [
+          { at: attachment.a, text: limbMuscle ? 'O' : 'A' },
+          { at: attachment.b, text: limbMuscle ? 'I' : 'B' },
+        ]
+      : undefined;
+  const boneName = (id: string) => {
+    const part = view?.parts.find((p) => p.id === id);
+    return part ? structureName(part, language) : id;
+  };
+  const tourStep = tour
+    ? tours.find((x) => x.id === tour.id)?.steps[tour.step]
+    : undefined;
+  const endTour = () => {
+    setTour(undefined);
+    setState((st) => ({ ...st, section: null }));
+  };
+  const goTour = (id: string, step: number) => {
+    const s = tours.find((x) => x.id === id)?.steps[step];
+    if (!s) return endTour();
+    setTour({ id, step });
+    setState((st) => ({
+      ...st,
+      systems: s.systems,
+      selected:
+        s.part && view?.parts.some((p) => p.id === s.part) ? s.part : null,
+      view: s.view ?? 'lateral',
+      section: s.section ?? null,
+      isolate: false,
+      explode: 0,
+      reset: st.reset + 1,
+    }));
+  };
+  // Flashcards for Anki: tab-separated front and back for the visible structures.
+  const exportFlashcards = () => {
+    if (!view) return;
+    const clean = (s: string) => s.replace(/[\t\r\n]+/g, ' ').trim();
+    const rows = view.parts
+      .filter((p) => isShown(p, { ...state, selected: null }))
+      .flatMap((p) => {
+        try {
+          const n = detailFor(p, language);
+          const latin = latinName(p);
+          return [
+            [
+              clean(structureName(p, language) + (latin ? ` (${latin})` : '')),
+              clean(
+                [n.location, n.function, n.recall].filter(Boolean).join('<br>'),
+              ),
+            ].join('\t'),
+          ];
+        } catch {
+          return [];
+        }
+      });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(
+      new Blob([`#separator:tab\n#html:true\n${rows.join('\n')}\n`], {
+        type: 'text/tab-separated-values',
+      }),
+    );
+    a.download = `canine-atlas-${otherSpecies ? species : 'dog'}-${language}.txt`;
+    a.click();
+  };
+  const changePose = (pose: DogPose) => {
+    setMotionReset((n) => n + 1);
     setState((s) => ({
       ...s,
+      motion: null,
+      highlight: [],
       pose,
       selected: null,
       isolate: false,
@@ -444,26 +639,50 @@ export default function Home() {
       rotate: false,
       reset: s.reset + 1,
     }));
+  };
   const sceneTools = useRef<SceneTools | null>(null);
   const [measureText, setMeasureText] = useState('');
   // Printable sheet: the current view with numbered structures and a key.
   const printSheet = () => {
     const snap = sceneTools.current?.snapshot();
-    if (!snap || !view) return;
+    if (snap) openSheet([snap], t('Labelled sheet'));
+  };
+  // Region handout: lateral, cranial and dorsal views, each with its own key.
+  const printHandout = () => {
+    const tools = sceneTools.current;
+    if (!tools) return;
+    openSheet(
+      ['lateral', 'cranial', 'dorsal'].map((v) => tools.snapshot(v)),
+      `${t('Region handout')}: ${t(area)}`,
+    );
+  };
+  const openSheet = (snaps: Snapshot[], title: string) => {
+    if (!view) return;
     const name = (id: string) => {
       const part = view.parts.find((p) => p.id === id);
       return part ? structureName(part, language) : id;
     };
     const esc = (s: string) =>
       s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
-    const marks = snap.marks
-      .map(
-        (m, i) =>
-          `<b style="left:${(m.x * 100).toFixed(2)}%;top:${(m.y * 100).toFixed(2)}%">${i + 1}</b>`,
-      )
+    const figures = snaps
+      .map((snap) => {
+        const marks = snap.marks
+          .map(
+            (m, i) =>
+              `<b style="left:${(m.x * 100).toFixed(2)}%;top:${(m.y * 100).toFixed(2)}%">${i + 1}</b>`,
+          )
+          .join('');
+        const key = snap.marks
+          .map((m) => {
+            const part = view.parts.find((p) => p.id === m.id);
+            const latin = part && latinName(part);
+            return `<li>${esc(name(m.id))}${latin ? ` <i>${esc(latin)}</i>` : ''}</li>`;
+          })
+          .join('');
+        return `<figure><img src="${snap.image}" alt="">${marks}</figure><ol>${key}</ol>`;
+      })
       .join('');
-    const key = snap.marks.map((m) => `<li>${esc(name(m.id))}</li>`).join('');
-    const html = `<!doctype html><meta charset="utf-8"><title>${esc(t('Labelled sheet'))}</title><style>body{font:14px sans-serif;margin:24px;color:#111}figure{position:relative;margin:0;background:#1b2530}img{width:100%;display:block}b{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#ffcf4a;color:#111;font-size:12px;display:grid;place-items:center;border:2px solid #111}ol{columns:2}@media print{.no{display:none}}</style><p class="no"><button onclick="print()">${esc(t('Print'))}</button> <button onclick="document.querySelector('ol').hidden=!document.querySelector('ol').hidden">${esc(t('Hide key'))}</button></p><figure><img src="${snap.image}" alt="">${marks}</figure><ol>${key}</ol><p><small>Canine Atlas · ${esc(t('Educational reference'))}</small></p>`;
+    const html = `<!doctype html><meta charset="utf-8"><title>${esc(title)}</title><style>body{font:14px sans-serif;margin:24px;color:#111}figure{position:relative;margin:0;background:#1b2530}img{width:100%;display:block}b{position:absolute;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#ffcf4a;color:#111;font-size:12px;display:grid;place-items:center;border:2px solid #111}ol{columns:2}@media print{.no{display:none}}</style><p class="no"><button onclick="print()">${esc(t('Print'))}</button> <button onclick="document.querySelectorAll('ol').forEach(o=>o.hidden=!o.hidden)">${esc(t('Hide key'))}</button></p><h1>${esc(title)}</h1>${figures}<p><small>Canine Atlas · ${esc(t('Educational reference'))}</small></p>`;
     window.open(
       URL.createObjectURL(new Blob([html], { type: 'text/html' })),
       '_blank',
@@ -471,6 +690,7 @@ export default function Home() {
   };
   const reset = () => {
     setPeel(0);
+    setMotionReset((n) => n + 1);
     setState((s) => ({ ...initial, reset: s.reset + 1 }));
     setQuery('');
     setArea('All regions');
@@ -504,6 +724,14 @@ export default function Home() {
             </h1>
             <p>{t('ANATOMY FOR MOVEMENT')}</p>
           </div>
+          {brand && (
+            <span className="brand-provider">
+              {brand.logo && (
+                <img src={sitePath(brand.logo)} alt="" height={24} />
+              )}
+              {t('Provided by')} {brand.name}
+            </span>
+          )}
         </div>
         <nav aria-label={t('Study modes')} className="mode-tabs">
           <button
@@ -654,6 +882,20 @@ export default function Home() {
             onChange={changePose}
             language={language}
             animal={otherSpecies ? species : 'dog'}
+          />
+          <div className="section-title">
+            <h2>{t('Movement')}</h2>
+          </div>
+          <MotionControls
+            language={language}
+            resetKey={motionReset}
+            onChange={(motion, highlight) =>
+              setState((s) =>
+                s.motion === motion && !highlight.length && !s.highlight?.length
+                  ? s
+                  : { ...s, motion, highlight, pose: 'standing', explode: 0 },
+              )
+            }
           />
           <div className="section-title">
             <h2>{t('Layers')}</h2>
@@ -858,7 +1100,87 @@ export default function Home() {
               >
                 {t('Compare species')}
               </button>
+              <button
+                aria-pressed={!!state.contrast}
+                onClick={() =>
+                  setState((s) => ({ ...s, contrast: !s.contrast }))
+                }
+              >
+                {t('High contrast')}
+              </button>
+              <button
+                aria-pressed={!!state.annotate}
+                onClick={() =>
+                  setState((s) => ({
+                    ...s,
+                    annotate: !s.annotate,
+                    measure: false,
+                  }))
+                }
+              >
+                {t('Annotate')}
+              </button>
+              <button onClick={printHandout}>{t('Region handout')}</button>
             </div>
+            {state.annotate && (
+              <div className="pin-editor">
+                <p className="small">
+                  {pendingPin
+                    ? t('Type a note for the new pin, then add it.')
+                    : t(
+                        'Click the model to place a pin. Pins are kept in the copied link.',
+                      )}
+                </p>
+                {pendingPin && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!pinText.trim()) return;
+                      setState((s) => ({
+                        ...s,
+                        pins: [
+                          ...(s.pins ?? []),
+                          {
+                            at: pendingPin,
+                            text: pinText.trim().slice(0, 140),
+                          },
+                        ].slice(0, 20),
+                      }));
+                      setPinText('');
+                      setPendingPin(undefined);
+                    }}
+                  >
+                    <input
+                      aria-label={t('Pin note')}
+                      value={pinText}
+                      maxLength={140}
+                      onChange={(e) => setPinText(e.target.value)}
+                    />
+                    <button type="submit">{t('Add pin')}</button>
+                  </form>
+                )}
+              </div>
+            )}
+            {!!state.pins?.length && (
+              <ol className="pin-list">
+                {state.pins.map((p, i) => (
+                  <li key={i}>
+                    {p.text}{' '}
+                    <button
+                      aria-label={t('Remove pin')}
+                      onClick={() =>
+                        setState((s) => ({
+                          ...s,
+                          pins: s.pins?.filter((_, j) => j !== i),
+                        }))
+                      }
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            )}
             {state.measure && (
               <p className="measure-readout" aria-live="polite">
                 {measureText ||
@@ -992,6 +1314,57 @@ export default function Home() {
                 </>
               )}
             </div>
+            <div className="presets">
+              <button
+                onClick={() =>
+                  view &&
+                  setDrill({
+                    title: t('Nerves and lymph drainage'),
+                    rounds: connectionRounds(view, language),
+                  })
+                }
+              >
+                {t('Connections quiz')}
+              </button>
+              <button
+                onClick={() =>
+                  view &&
+                  setDrill({
+                    title: t('Find the misplaced bone'),
+                    rounds: misplacedRounds(view),
+                  })
+                }
+              >
+                {t('Misplaced bone')}
+              </button>
+              <button onClick={() => setExam(true)}>
+                {t('Exam simulation')}
+              </button>
+              <button onClick={exportFlashcards}>
+                {t('Export flashcards')}
+              </button>
+              {process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0' && (
+                <button onClick={() => setClassView(true)}>
+                  {t('Class results')}
+                </button>
+              )}
+            </div>
+            <label>
+              {t('Guided tour')}
+              <select
+                value={tour?.id ?? ''}
+                onChange={(e) =>
+                  e.target.value ? goTour(e.target.value, 0) : endTour()
+                }
+              >
+                <option value="">{t('Off')}</option>
+                {tours.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.title[language]}
+                  </option>
+                ))}
+              </select>
+            </label>
             {offline && <p aria-live="polite">{offline}</p>}
             {Object.keys(myNotes).length > 0 && (
               <button className="text-link" onClick={exportNotes}>
@@ -1095,9 +1468,10 @@ export default function Home() {
                 key={otherSpecies ? species : 'dog'}
                 language={language}
                 atlas={view}
-                state={state}
+                state={attachMarks ? { ...state, marks: attachMarks } : state}
                 onSelect={choose}
                 onMeasure={setMeasureText}
+                onPick={setPendingPin}
                 onTools={(x) => {
                   sceneTools.current = x;
                 }}
@@ -1261,7 +1635,8 @@ export default function Home() {
           <footer className="viewer-footer">
             <span>
               {t('Drag to orbit')} <b>·</b> {t('Scroll / pinch to zoom')}{' '}
-              <b>·</b> {t('Click to inspect')}
+              <b>·</b> {t('Click to inspect')} <b>·</b>{' '}
+              {t('Arrow keys: next structure')}
             </span>
             <span>{t('Educational reference')}</span>
           </footer>
@@ -1388,6 +1763,38 @@ export default function Home() {
                 <span />
                 {t('Selected in 3D')}
               </div>
+              {attachment && (
+                <p className="memory-hook">
+                  <strong>{t('Attachments from the model')}:</strong>{' '}
+                  {limbMuscle ? t('Origin') : 'A'} ({limbMuscle ? 'O' : 'A'}){' '}
+                  {boneName(attachment.ab)}; {limbMuscle ? t('Insertion') : 'B'}{' '}
+                  ({limbMuscle ? 'I' : 'B'}) {boneName(attachment.bb)}.{' '}
+                  <span className="small">
+                    {t(
+                      'Computed where the muscle touches bone in this model; check against your textbook.',
+                    )}
+                  </span>
+                </p>
+              )}
+              {!otherSpecies && mnemonicFor(selected.id) && (
+                <p className="memory-hook">
+                  <strong>{t('Memory hook')}:</strong>{' '}
+                  {mnemonicFor(selected.id)![language]}
+                </p>
+              )}
+              <a
+                className="text-link small"
+                target="_blank"
+                rel="noreferrer"
+                href={`https://github.com/tausjakub/canine-atlas-physio/issues/new?${new URLSearchParams(
+                  {
+                    title: `Card: ${selected.id}`,
+                    body: `Structure: ${selected.id}\nSpecies: ${otherSpecies ? species : 'dog'}\nLanguage: ${language}\n\nWhat should change, and the source:\n`,
+                  },
+                )}`}
+              >
+                {t('Report an issue with this card')}
+              </a>
               <label className="my-note">
                 {t('My notes')}
                 <textarea
@@ -1603,10 +2010,71 @@ export default function Home() {
           ids={spotter.ids}
           systems={spotter.systems}
           title={spotter.title === 'Quiz set' ? t('Quiz set') : spotter.title}
+          onShare={shareResults}
           language={language}
           onClose={() => setSpotter(undefined)}
         />
       )}
+      {drill && view && (
+        <ClickQuiz
+          atlas={view}
+          rounds={drill.rounds}
+          title={drill.title}
+          language={language}
+          onClose={() => setDrill(undefined)}
+        />
+      )}
+      {process.env.NEXT_PUBLIC_ATLAS_PRIVATE !== '0' && classView && view && (
+        <Suspense fallback={null}>
+          <ClassResults
+            atlas={view}
+            language={language}
+            onClose={() => setClassView(false)}
+          />
+        </Suspense>
+      )}
+      {exam && view && (
+        <ExamSim
+          atlas={view}
+          language={language}
+          onClose={() => setExam(false)}
+        />
+      )}
+      {tourStep && tour && tab === 'explore' && (
+        <div className="tour-card" role="region" aria-label={t('Guided tour')}>
+          <p className="small">
+            {tours.find((x) => x.id === tour.id)!.title[language]} ·{' '}
+            {tour.step + 1} /{' '}
+            {tours.find((x) => x.id === tour.id)!.steps.length}
+          </p>
+          <p>{tourStep.text[language]}</p>
+          <div className="presets">
+            <button
+              disabled={!tour.step}
+              onClick={() => goTour(tour.id, tour.step - 1)}
+            >
+              {t('Back')}
+            </button>
+            <button onClick={() => goTour(tour.id, tour.step + 1)}>
+              {t(
+                tour.step + 1 ===
+                  tours.find((x) => x.id === tour.id)!.steps.length
+                  ? 'Finish'
+                  : 'Next',
+              )}
+            </button>
+            <button onClick={endTour}>{t('Close')}</button>
+          </div>
+        </div>
+      )}
+      <p className="sr-only" aria-live="polite">
+        {view && state.selected
+          ? (() => {
+              const p = view.parts.find((x) => x.id === state.selected);
+              return p ? structureName(p, language) : '';
+            })()
+          : ''}
+      </p>
       {dental && (
         <DentalChart language={language} onClose={() => setDental(false)} />
       )}
@@ -1708,6 +2176,11 @@ export default function Home() {
         <p>
           {t(
             'The cat and rabbit organ layers are the dog layer retargeted to each species, with a rabbit caecum and duplex uterus added; their placement follows the dog layout. Male and female reproductive organs are shown one at a time.',
+          )}
+        </p>
+        <p>
+          {t(
+            'The ferret and guinea pig atlases are previews built from the cat and rabbit templates on the same dog model: the ferret gains thoracic vertebrae and ribs (15 pairs), the guinea pig loses vertebrae and digits (four front, three hind toes) and its tail. Their notes are shorter and their shapes approximate; check them against your course materials.',
           )}
         </p>
         <a

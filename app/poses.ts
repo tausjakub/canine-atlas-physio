@@ -41,7 +41,58 @@ export type PoseConfig = {
   angles?: Partial<Record<DogPose, PoseAngles>>;
 };
 const defaultJoints = poseJoints;
-export function poseRig(pose: DogPose, config?: PoseConfig) {
+// Joint-angle offsets (radians) from the standing pose for one limb pair side,
+// used by the gait player and range-of-motion sliders. Positive turns the distal
+// segment cranially: shoulder/hip protraction, elbow and hock flexion, carpus
+// and stifle extension.
+export type Joint = 'shoulder' | 'elbow' | 'carpus' | 'hip' | 'stifle' | 'hock';
+export type Motion = Record<'L' | 'R', Partial<Record<Joint, number>>>;
+const limbSegments = [
+  'arm',
+  'forearm',
+  'forefoot',
+  'foretoes',
+  'thigh',
+  'shank',
+  'hindfoot',
+  'hindtoes',
+] as const;
+type Rig = ReturnType<typeof baseRig>;
+export type SidedRig = Rig & Record<string, Matrix4>;
+/** The rig with per-side limb keys (arm_L, shank_R, ...); motion bends each side. */
+export function poseRig(
+  pose: DogPose,
+  config?: PoseConfig,
+  motion?: Motion | null,
+): SidedRig {
+  const rig = baseRig(motion ? 'standing' : pose, config) as SidedRig;
+  const j = config?.joints || defaultJoints;
+  for (const side of ['L', 'R'] as const) {
+    const m = motion?.[side];
+    if (!m) {
+      for (const s of limbSegments) rig[`${s}_${side}`] = rig[s];
+      continue;
+    }
+    const arm = turn(j.shoulder, m.shoulder ?? 0),
+      forearm = arm.clone().multiply(turn(j.elbow, m.elbow ?? 0)),
+      forefoot = forearm.clone().multiply(turn(j.carpus, m.carpus ?? 0)),
+      thigh = turn(j.hip, m.hip ?? 0),
+      shank = thigh.clone().multiply(turn(j.stifle, m.stifle ?? 0)),
+      hindfoot = shank.clone().multiply(turn(j.hock, m.hock ?? 0));
+    Object.assign(rig, {
+      [`arm_${side}`]: arm,
+      [`forearm_${side}`]: forearm,
+      [`forefoot_${side}`]: forefoot,
+      [`foretoes_${side}`]: forefoot,
+      [`thigh_${side}`]: thigh,
+      [`shank_${side}`]: shank,
+      [`hindfoot_${side}`]: hindfoot,
+      [`hindtoes_${side}`]: hindfoot,
+    });
+  }
+  return rig;
+}
+function baseRig(pose: DogPose, config?: PoseConfig) {
   const poseJoints = config?.joints || defaultJoints;
   const sit = pose === 'sitting',
     lie = pose === 'lying';
@@ -131,8 +182,26 @@ export function poseSegment(part: Part): keyof ReturnType<typeof poseRig> {
     return 'hindfoot';
   return 'trunk';
 }
-export function poseMatrix(part: Part, pose: DogPose, config?: PoseConfig) {
-  return poseRig(pose, config)[poseSegment(part)].clone();
+// Side of a limb part from its id (Femoris_L, Tarsus_L_III, m_x_L.001); null if midline.
+export function sideOf(id: string): 'L' | 'R' | null {
+  const m = id.match(/(?:^|_)([LR])(?:_|$|\.|\()/);
+  return m ? (m[1] as 'L' | 'R') : null;
+}
+/** Rig key for a bone part: limb segments carry their side. */
+export function segmentKey(part: Part) {
+  const seg = poseSegment(part),
+    side = sideOf(part.id);
+  return (limbSegments as readonly string[]).includes(seg) && side
+    ? `${seg}_${side}`
+    : seg;
+}
+export function poseMatrix(
+  part: Part,
+  pose: DogPose,
+  config?: PoseConfig,
+  motion?: Motion | null,
+) {
+  return poseRig(pose, config, motion)[segmentKey(part)].clone();
 }
 export function posePoint(point: readonly number[], matrix: Matrix4) {
   return new Vector3(...(point as [number, number, number])).applyMatrix4(
@@ -140,7 +209,7 @@ export function posePoint(point: readonly number[], matrix: Matrix4) {
   );
 }
 
-type Segment = keyof ReturnType<typeof poseRig>;
+type Segment = string;
 type Influence = { segment: Segment; weight: number };
 // Spatial skinning of the unrigged source model. Blend nearby bone segments
 // per vertex so tissue spanning a joint follows both sides of that joint.
@@ -150,7 +219,7 @@ export function bindSoftVertices(
   bones: Part[],
 ): Influence[][] {
   const guides = bones.map((part) => ({
-    segment: poseSegment(part),
+    segment: segmentKey(part),
     bounds: part.bounds,
   }));
   const result: Influence[][] = [];
@@ -181,9 +250,10 @@ export function deformSoftVertices(
   bindings: Influence[][],
   pose: DogPose,
   config?: PoseConfig,
+  motion?: Motion | null,
 ) {
-  if (pose === 'standing') return rest.slice();
-  const rig = poseRig(pose, config),
+  if (pose === 'standing' && !motion) return rest.slice();
+  const rig = poseRig(pose, config, motion),
     output = new Float32Array(rest.length),
     point = new Vector3();
   for (let i = 0; i < rest.length; i += 3) {

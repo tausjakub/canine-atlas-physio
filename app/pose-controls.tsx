@@ -9,7 +9,7 @@ export default function PoseControls({
   pose: DogPose;
   onChange: (pose: DogPose) => void;
   language: Language;
-  animal?: 'dog' | 'cat' | 'rabbit';
+  animal?: 'dog' | 'cat' | 'rabbit' | 'ferret' | 'guinea_pig';
 }) {
   const dog = animal === 'dog';
   const cs = language === 'cs';

@@ -91,13 +91,16 @@ export default function Spotter({
   title,
   language,
   onClose,
+  onShare,
 }: {
   atlas: Atlas;
   ids: string[];
   systems: System[];
   title: string;
   language: Language;
-  onClose: () => void;
+  onClose: (score?: number, total?: number) => void;
+  // Private edition: send anonymous results to the course (opt-in).
+  onShare?: (results: { id: string; ok: boolean }[]) => Promise<boolean>;
 }) {
   const e = (en: string, cs: string) => (language === 'cs' ? cs : en);
   const deck = useMemo(
@@ -108,7 +111,9 @@ export default function Spotter({
     [answer, setAnswer] = useState(''),
     [result, setResult] = useState<boolean | null>(null),
     [score, setScore] = useState(0),
-    [left, setLeft] = useState(45);
+    [left, setLeft] = useState(45),
+    [log, setLog] = useState<{ id: string; ok: boolean }[]>([]),
+    [shared, setShared] = useState('');
   const target = atlas.parts.find((p) => p.id === deck[index]);
   const [scene, setScene] = useState<SceneState>({
     ...initial,
@@ -129,6 +134,7 @@ export default function Spotter({
     const ok = !timedOut && matches(answer, names);
     setResult(ok);
     if (ok) setScore((s) => s + 1);
+    setLog((l) => [...l, { id: target.id, ok }]);
     try {
       localStorage.setItem(
         srsKey,
@@ -179,7 +185,7 @@ export default function Spotter({
             </span>
             <h2>{title}</h2>
           </div>
-          <button onClick={onClose}>{e('Close', 'Zavřít')}</button>
+          <button onClick={() => onClose()}>{e('Close', 'Zavřít')}</button>
         </header>
         {!deck.length ? (
           <div className="challenge-intro">
@@ -201,7 +207,33 @@ export default function Spotter({
                 'Chybné struktury se vrátí k opakování dříve; správné se rozloží do dalších dnů.',
               )}
             </p>
-            <button onClick={onClose}>{e('Done', 'Hotovo')}</button>
+            {onShare && (
+              <p>
+                <button
+                  disabled={shared !== ''}
+                  onClick={() =>
+                    onShare(log).then((done) =>
+                      setShared(done ? 'sent' : 'failed'),
+                    )
+                  }
+                >
+                  {e(
+                    'Send anonymous results to my course',
+                    'Odeslat anonymní výsledky kurzu',
+                  )}
+                </button>{' '}
+                {shared === 'sent' &&
+                  e('Sent. No name is stored.', 'Odesláno. Jméno se neukládá.')}
+                {shared === 'failed' &&
+                  e(
+                    'Not available for this course.',
+                    'Pro tento kurz není k dispozici.',
+                  )}
+              </p>
+            )}
+            <button onClick={() => onClose(score, deck.length)}>
+              {e('Done', 'Hotovo')}
+            </button>
           </div>
         ) : (
           <div className="challenge-layout">

@@ -3,11 +3,13 @@
 import type { Language } from './i18n';
 type Pair = { en: string; cs: string };
 const b = (cs: string, en: string): Pair => ({ cs, en });
-export type Species = 'dog' | 'cat' | 'rabbit';
+export type Species = 'dog' | 'cat' | 'rabbit' | 'ferret' | 'guinea_pig';
 export const speciesNames = {
   dog: b('Pes', 'Dog'),
   cat: b('Kočka', 'Cat'),
   rabbit: b('Králík', 'Rabbit'),
+  ferret: b('Fretka', 'Ferret'),
+  guinea_pig: b('Morče', 'Guinea pig'),
 };
 export function SpeciesPicker({
   species,
@@ -24,7 +26,7 @@ export function SpeciesPicker({
       aria-label={language === 'cs' ? 'Druh zvířete' : 'Animal species'}
     >
       <span>{language === 'cs' ? 'Anatomický atlas' : 'Anatomy atlas'}</span>
-      {(['dog', 'cat', 'rabbit'] as const).map((s) => (
+      {(['dog', 'cat', 'rabbit', 'ferret', 'guinea_pig'] as const).map((s) => (
         <button
           key={s}
           aria-pressed={s === species}

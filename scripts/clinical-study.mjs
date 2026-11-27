@@ -928,8 +928,172 @@ const cordRegions = {
   ),
 };
 
+// Growth plates (physes): approximate closure ages in the dog; breed and size
+// change them (later in large and giant breeds).
+const physes = {
+  humerus_proximal: [
+    'proximální fýza pažní kosti',
+    'proximal humeral physis',
+    '10-13',
+    'Hlavice a velký hrbol pažní kosti.',
+    'Head and greater tubercle of the humerus.',
+  ],
+  humerus_distal: [
+    'distální fýza pažní kosti',
+    'distal humeral physis',
+    '6-8',
+    'Kondyl pažní kosti u lokte.',
+    'Humeral condyle at the elbow.',
+  ],
+  radius_proximal: [
+    'proximální fýza vřetenní kosti',
+    'proximal radial physis',
+    '6-11',
+    'Hlavice vřetenní kosti u lokte.',
+    'Radial head at the elbow.',
+  ],
+  radius_distal: [
+    'distální fýza vřetenní kosti',
+    'distal radial physis',
+    '6-12',
+    'Distální konec vřetenní kosti u karpu.',
+    'Distal radius at the carpus.',
+  ],
+  ulna_distal: [
+    'distální fýza loketní kosti',
+    'distal ulnar physis',
+    '6-12',
+    'Distální konec loketní kosti; fýza má kuželovitý tvar.',
+    'Distal ulna; the physis is cone-shaped.',
+  ],
+  femur_proximal: [
+    'fýza hlavice stehenní kosti',
+    'capital femoral physis',
+    '6-12',
+    'Hlavice stehenní kosti v kyčelním kloubu.',
+    'Femoral head in the hip joint.',
+  ],
+  femur_distal: [
+    'distální fýza stehenní kosti',
+    'distal femoral physis',
+    '6-12',
+    'Distální konec stehenní kosti u kolene.',
+    'Distal femur at the stifle.',
+  ],
+  tibia_proximal: [
+    'proximální fýza holenní kosti',
+    'proximal tibial physis',
+    '6-12',
+    'Proximální konec holenní kosti u kolene (s apofýzou drsnatiny).',
+    'Proximal tibia at the stifle (with the tibial tuberosity apophysis).',
+  ],
+  tibia_distal: [
+    'distální fýza holenní kosti',
+    'distal tibial physis',
+    '8-11',
+    'Distální konec holenní kosti u hlezna.',
+    'Distal tibia at the tarsus.',
+  ],
+};
+const growth = Object.fromEntries(
+  Object.entries(physes).flatMap(([key, [cs, en, months, locCs, locEn]]) =>
+    sides.map(([tag, sc, se]) => [
+      `gp_${key}_${tag}`,
+      card(
+        p(`Růstová ploténka · ${cs} · ${sc}`, `Growth plate · ${en} · ${se}`),
+        p(
+          'Chrupavčitá ploténka, ve které roste kost do délky; po ukončení růstu kostnatí (uzavírá se).',
+          'Cartilage plate where the bone grows in length; it ossifies (closes) when growth ends.',
+        ),
+        p(locCs, locEn),
+        p(
+          `Uzavírá se přibližně ve věku ${months} měsíců; u velkých a obřích plemen později. Rozmezí se podle zdrojů a plemen liší; ověřte podle učebnice. Model ukazuje dospělého psa, ploténka je vyznačena schematicky.`,
+          `Closes at about ${months} months; later in large and giant breeds. Ranges differ between sources and breeds; check your textbook. The model is an adult dog; the plate is marked schematically.`,
+        ),
+        null,
+        p(
+          'Kdy se tato růstová ploténka u psa přibližně uzavírá?',
+          'At about what age does this growth plate close in the dog?',
+        ),
+        p(`Přibližně v ${months} měsících.`, `At about ${months} months.`),
+      ),
+    ]),
+  ),
+);
+
+const regionNames = [
+  ['týl', 'poll'],
+  ['hřbet nosu', 'bridge of the nose'],
+  ['kohoutek', 'withers'],
+  ['bedra', 'loin'],
+  ['záď', 'croup'],
+  ['kořen ocasu', 'tail base'],
+  ['hrot ramene', 'point of the shoulder'],
+  ['loket', 'elbow'],
+  ['předhrudí (prsní kost)', 'brisket'],
+  ['slabina', 'flank'],
+  ['koleno', 'stifle'],
+  ['hlezno', 'hock'],
+];
+const bodyRegions = {
+  lm_body_regions: card(
+    p('Oblasti těla', 'Body regions'),
+    p(
+      'Názvy oblastí, kterými se popisuje poloha na těle psa při vyšetření a v dokumentaci.',
+      'Region names used to describe a position on the dog during examination and in records.',
+    ),
+    p(
+      regionNames.map(([cs], i) => `${i + 1} ${cs}`).join(', ') + '.',
+      regionNames.map(([, en], i) => `${i + 1} ${en}`).join(', ') + '.',
+    ),
+    p(
+      'Kohoutek leží nad trnovými výběžky kraniálních hrudních obratlů mezi lopatkami; záď nad křížovou kostí.',
+      'The withers lie over the spinous processes of the cranial thoracic vertebrae between the scapulae; the croup over the sacrum.',
+    ),
+    null,
+    p(
+      'Nad kterými obratli leží kohoutek?',
+      'Over which vertebrae do the withers lie?',
+    ),
+    p(
+      'Nad kraniálními hrudními obratli, mezi lopatkami.',
+      'Over the cranial thoracic vertebrae, between the scapulae.',
+    ),
+  ),
+};
+
+const cranialNerves = Object.fromEntries(
+  sides.map(([tag, cs, en]) => [
+    `n_cranial_nerves_${tag}`,
+    card(
+      p(`Hlavové nervy I-XII · ${cs}`, `Cranial nerves I-XII · ${en}`),
+      p(
+        'Dvanáct párů nervů vycházejících z mozku: smysly hlavy, pohyb očí, žvýkání, mimika, polykání, hlas a parasympatikus k orgánům.',
+        'Twelve pairs of nerves leaving the brain: special senses of the head, eye movement, chewing, facial expression, swallowing, voice and parasympathetic supply to the viscera.',
+      ),
+      p(
+        'I čichový, II zrakový, III okohybný, IV kladkový, V trojklaný, VI odtahující, VII lícní, VIII sluchově-rovnovážný, IX jazykohltanový, X bloudivý, XI přídatný, XII podjazykový. Průběh v modelu je schematický, od mozku k cílové oblasti.',
+        'I olfactory, II optic, III oculomotor, IV trochlear, V trigeminal, VI abducent, VII facial, VIII vestibulocochlear, IX glossopharyngeal, X vagus, XI accessory, XII hypoglossal. Courses in the model are schematic, from the brain to the target area.',
+      ),
+      p(
+        'III, IV a VI hýbou okem; V je senzitivní pro hlavu a motorický pro žvýkací svaly; VII pro mimické svaly; X sestupuje krkem k hrudním a břišním orgánům; XII pro jazyk.',
+        'III, IV and VI move the eye; V is sensory to the head and motor to the chewing muscles; VII supplies the facial muscles; X descends the neck to the thoracic and abdominal viscera; XII supplies the tongue.',
+      ),
+      null,
+      p(
+        'Který hlavový nerv inervuje jazyk motoricky?',
+        'Which cranial nerve is motor to the tongue?',
+      ),
+      p('XII, n. hypoglossus.', 'XII, the hypoglossal nerve.'),
+    ),
+  ]),
+);
+
 export const clinicalStudy = {
   ...landmarks,
+  ...growth,
+  ...bodyRegions,
+  ...cranialNerves,
   ...auscultation,
   ...nodes,
   ...vessels,
@@ -937,7 +1101,12 @@ export const clinicalStudy = {
   ...cordRegions,
 };
 
-const SPECIES = { cat: ['kočky', 'cat'], rabbit: ['králíka', 'rabbit'] };
+const SPECIES = {
+  cat: ['kočky', 'cat'],
+  rabbit: ['králíka', 'rabbit'],
+  ferret: ['fretky', 'ferret'],
+  guinea_pig: ['morčete', 'guinea pig'],
+};
 /** Cards for the cat or rabbit pack: the dog layer retargeted, flagged as such. */
 export function clinicalStudyFor(sp) {
   const [cs, en] = SPECIES[sp];
