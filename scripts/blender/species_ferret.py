@@ -15,13 +15,14 @@ S = derive(
     trunk=1.35,
     height=0.72,
     head=0.85,
-    legs=0.72,
+    legs=0.82,
     tail=0.75,
+    stance={'humerus': -115, 'radius': -92, 'manus': -60, 'femur': -65, 'tibia': -125, 'pes': -55, 'toes': -10, 'arch': 0.015, 'head_pitch': 0},
     vertebrae=(7, 15, 5, 3, 18),
     relabel_lumbar=2,
     retarget={
         **CAT['retarget'],
-        'girth': {**CAT['retarget']['girth'], 'thorax': 0.72, 'lumbar': 0.72, 'pelvis': 0.78, 'neck': 0.95,
-                  'arm': 0.85, 'forearm': 0.8, 'thigh': 0.85, 'crus': 0.8},
+        'girth': {**CAT['retarget']['girth'], 'thorax': 0.72, 'lumbar': 0.72, 'pelvis': 0.78, 'neck': 0.78, 'scap': 0.72,
+                  'arm': 0.72, 'forearm': 0.75, 'thigh': 0.85, 'crus': 0.8},
     },
 )

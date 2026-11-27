@@ -31,7 +31,9 @@ for m in ('common', 'skeleton', 'skull', 'limbs', 'muscles', 'species_' + specie
     if m in sys.modules:
         importlib.reload(sys.modules[m])
 spec = importlib.import_module('species_' + species)
-S = spec.S
+import species_derive  # noqa: E402
+importlib.reload(species_derive)
+S = species_derive.apply_stance(spec.S)
 
 
 

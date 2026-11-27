@@ -336,7 +336,7 @@ export default function AnatomyScene({
                     );
                   }
             }
-            fit *= 1.12;
+            fit *= 1.2; // room for the camera toolbar over the canvas edge
           } else {
             const radius = size.length() / 2;
             fit =
