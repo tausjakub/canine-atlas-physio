@@ -1776,7 +1776,7 @@ export default function Home() {
                   </span>
                 </p>
               )}
-              {mnemonicFor(selected.id) && (
+              {!otherSpecies && mnemonicFor(selected.id) && (
                 <p className="memory-hook">
                   <strong>{t('Memory hook')}:</strong>{' '}
                   {mnemonicFor(selected.id)![language]}

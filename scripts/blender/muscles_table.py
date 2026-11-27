@@ -582,8 +582,8 @@ SPECIES_NOTE = {
 # Species built on another species' muscle map (ferret on the cat, guinea pig on
 # the rabbit) use their own region notes instead of the base species' notes.
 SPECIES_NOTE['ferret'] = {
-    H: ('Fretka má krátkou, protáhlou lebku a masožravý chrup (I3/3 C1/1 P3/3 M1/2 = 34).',
-        'The ferret has a short, elongated skull and a carnivorous dentition (I3/3 C1/1 P3/3 M1/2 = 34).'),
+    H: ('Fretka má protáhlou lebku s krátkou obličejovou částí a masožravý chrup (I3/3 C1/1 P3/3 M1/2 = 34).',
+        'The ferret has an elongated skull with a short facial part and a carnivorous dentition (I3/3 C1/1 P3/3 M1/2 = 34).'),
     N: ('Fretka má velmi ohebnou páteř s 15 hrudními a 5 bederními obratli (15 párů žeber).',
         'The ferret has a very flexible spine with 15 thoracic and 5 lumbar vertebrae (15 rib pairs).'),
     F: ('Hrudní končetina fretky je krátká, s pěti prsty a nezatažitelnými drápy.',

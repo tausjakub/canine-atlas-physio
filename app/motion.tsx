@@ -36,7 +36,7 @@ function hind(t: number) {
 // Phase offsets of each limb: walk is a four-beat lateral sequence, trot moves
 // diagonal pairs together.
 const gaits = {
-  walk: { LH: 0, LF: 0.25, RH: 0.5, RF: 0.75 },
+  walk: { LH: 0, RF: 0.25, RH: 0.5, LF: 0.75 }, // strikes: LH, LF, RH, RF
   trot: { LH: 0, RF: 0, RH: 0.5, LF: 0.5 },
 };
 type Gait = keyof typeof gaits;
@@ -252,7 +252,7 @@ export default function MotionControls({
         ))}
         <p className="muted small">
           {t(
-            'Sliders turn the model from its standing position. Reference values: normal goniometry in Labrador Retrievers (Jaegger et al. 2002); breeds differ.',
+            'Sliders turn the model from its standing position. Reference values: normal goniometry in Labrador Retrievers (Jaegger et al. 2002); other breeds differ. Not clinical limits.',
           )}
         </p>
         <button onClick={() => setRom({})}>{t('Reset joints')}</button>

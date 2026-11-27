@@ -1,5 +1,5 @@
 'use client';
-// Dental chart with modified Triadan numbering for dog, cat and rabbit, plus a
+// Dental chart with modified Triadan numbering for dog, cat, rabbit, ferret and guinea pig, plus a
 // "find the tooth" drill. Quadrants: 1 upper right, 2 upper left, 3 lower left,
 // 4 lower right (the animal's sides); 01 is the central incisor.
 import { useState } from 'react';

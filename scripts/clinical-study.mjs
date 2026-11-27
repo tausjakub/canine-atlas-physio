@@ -1007,8 +1007,8 @@ const growth = Object.fromEntries(
         ),
         p(locCs, locEn),
         p(
-          `Uzavírá se přibližně ve věku ${months} měsíců; u velkých a obřích plemen později. Model ukazuje dospělého psa, ploténka je vyznačena schematicky.`,
-          `Closes at about ${months} months; later in large and giant breeds. The model is an adult dog; the plate is marked schematically.`,
+          `Uzavírá se přibližně ve věku ${months} měsíců; u velkých a obřích plemen později. Rozmezí se podle zdrojů a plemen liší; ověřte podle učebnice. Model ukazuje dospělého psa, ploténka je vyznačena schematicky.`,
+          `Closes at about ${months} months; later in large and giant breeds. Ranges differ between sources and breeds; check your textbook. The model is an adult dog; the plate is marked schematically.`,
         ),
         null,
         p(
@@ -1022,15 +1022,15 @@ const growth = Object.fromEntries(
 );
 
 const regionNames = [
-  ['týl (vaz)', 'poll'],
-  ['hřbet nosu', 'muzzle'],
+  ['týl', 'poll'],
+  ['hřbet nosu', 'bridge of the nose'],
   ['kohoutek', 'withers'],
   ['bedra', 'loin'],
   ['záď', 'croup'],
   ['kořen ocasu', 'tail base'],
   ['hrot ramene', 'point of the shoulder'],
   ['loket', 'elbow'],
-  ['hrudník (prsní kost)', 'brisket'],
+  ['předhrudí (prsní kost)', 'brisket'],
   ['slabina', 'flank'],
   ['koleno', 'stifle'],
   ['hlezno', 'hock'],
@@ -1047,8 +1047,8 @@ const bodyRegions = {
       regionNames.map(([, en], i) => `${i + 1} ${en}`).join(', ') + '.',
     ),
     p(
-      'Kohoutek leží nad trnovými výběžky prvních hrudních obratlů mezi lopatkami; záď nad křížovou kostí.',
-      'The withers lie over the spinous processes of the first thoracic vertebrae between the scapulae; the croup over the sacrum.',
+      'Kohoutek leží nad trnovými výběžky kraniálních hrudních obratlů mezi lopatkami; záď nad křížovou kostí.',
+      'The withers lie over the spinous processes of the cranial thoracic vertebrae between the scapulae; the croup over the sacrum.',
     ),
     null,
     p(
@@ -1056,8 +1056,8 @@ const bodyRegions = {
       'Over which vertebrae do the withers lie?',
     ),
     p(
-      'Nad prvními hrudními obratli, mezi lopatkami.',
-      'Over the first thoracic vertebrae, between the scapulae.',
+      'Nad kraniálními hrudními obratli, mezi lopatkami.',
+      'Over the cranial thoracic vertebrae, between the scapulae.',
     ),
   ),
 };

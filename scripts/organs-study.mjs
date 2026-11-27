@@ -78,8 +78,8 @@ const lobeInfo = {
   frontal: [
     p('Čelní lalok', 'Frontal lobe'),
     p(
-      'Rostrální část koncového mozku; podílí se na chování, plánování a čichových asociacích.',
-      'Rostral part of the cerebrum; involved in behaviour, planning and olfactory associations.',
+      'Rostrální část koncového mozku; podílí se na chování a plánování.',
+      'Rostral part of the cerebrum; involved in behaviour and planning.',
     ),
     p(
       'Nejrostrálnější lalok hemisféry, kaudálně od čichového bulbu.',
@@ -136,14 +136,14 @@ const lobeInfo = {
       'Visual cortex: processing of visual input.',
     ),
     p(
-      'Kaudální pól hemisféry, nad mozečkem.',
-      'Caudal pole of the hemisphere, above the cerebellum.',
+      'Kaudální pól hemisféry, dorzálně od mozečku (odděleno stanem mozečku, tentorium cerebelli).',
+      'Caudal pole of the hemisphere, dorsal to the cerebellum (separated by the tentorium cerebelli).',
     ),
     p('Který lalok zpracovává zrak?', 'Which lobe processes vision?'),
     p('Týlní lalok.', 'The occipital lobe.'),
   ],
   temporal: [
-    p('Spánkový (perisylvický) lalok', 'Temporal (perisylvian) lobe'),
+    p('Spánkový (perisylvijský) lalok', 'Temporal (perisylvian) lobe'),
     p(
       'Sluchová kůra a asociační oblasti kolem sylviovy brázdy.',
       'Auditory cortex and association areas around the sylvian sulcus.',
@@ -154,7 +154,7 @@ const lobeInfo = {
     ),
     p('Kde leží sluchová kůra?', 'Where is the auditory cortex?'),
     p(
-      'Ve spánkovém (perisylvickém) laloku.',
+      'Ve spánkovém (perisylvijském) laloku.',
       'In the temporal (perisylvian) lobe.',
     ),
   ],
@@ -880,6 +880,78 @@ const generic = (sp) => ({
       'It differs from the dog; check your textbook.',
     ),
   },
+  organ_heart: {
+    location: p(
+      `Poloha srdce vůči žebrům u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The position of the heart relative to the ribs of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_kidney_L: {
+    location: p(
+      `Úroveň levé ledviny u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The vertebral level of the left kidney of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_kidney_R: {
+    location: p(
+      `Úroveň pravé ledviny u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The vertebral level of the right kidney of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_thyroid: {
+    location: p(
+      `Úroveň štítné žlázy vůči prstencům průdušnice u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The level of the thyroid along the trachea of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_bladder: {
+    location: p(
+      `Poloha močového měchýře vůči vchodu do pánve u ${SPECIES[sp].cs} se od psa liší; ověřte podle učebnice.`,
+      `The position of the bladder relative to the pelvic inlet of the ${SPECIES[sp].en} differs from the dog; check your textbook.`,
+    ),
+    answer: p(
+      'Liší se od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  ...(sp === 'guinea_pig'
+    ? {
+        organ_caecum: {
+          location: p(
+            'Velké, tenkostěnné, sakulované slepé střevo ve ventrální části břicha; fermentační komora.',
+            'A large, thin-walled, sacculated caecum in the ventral abdomen; a fermentation chamber.',
+          ),
+          connections: p(
+            'Kyčelník ústí do slepého střeva; pokračuje tlusté střevo (colon).',
+            'The ileum opens into the caecum; the colon continues from it.',
+          ),
+          recall: p(
+            'Jak je stavěno slepé střevo morčete?',
+            'How is the guinea pig caecum built?',
+          ),
+          answer: p(
+            'Velké, tenkostěnné, sakulované střevo; tvar a detaily ověřte podle učebnice.',
+            'A large, thin-walled, sacculated gut; check its shape and details in your textbook.',
+          ),
+        },
+      }
+    : {}),
   organ_uterus: {
     recall: p(
       `Jaký typ dělohy má samice ${SPECIES[sp].cs}?`,
@@ -1071,7 +1143,7 @@ export function organStudyFor(sp) {
               cs: b.cs
                 .replace(/králíka/g, 'morčete')
                 .replace(/králík/g, 'morče'),
-              en: b.en.replace(/rabbit/g, 'guinea pig'),
+              en: b.en.replace(/\brabbit/g, 'guinea pig'),
             }
           : b;
       for (const k of Object.keys(study))

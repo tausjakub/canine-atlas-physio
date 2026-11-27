@@ -49,8 +49,8 @@ export const tours: Tour[] = [
         'm_supraspinatus_L',
       ),
       s(
-        'M. infraspinatus leží kaudálně od hřebene; s m. supraspinatus stabilizuje ramenní kloub laterálně.',
-        'The infraspinatus lies caudal to the spine; with the supraspinatus it stabilises the shoulder laterally.',
+        'M. infraspinatus leží kaudálně od hřebene a stabilizuje rameno laterálně; m. supraspinatus ho stabilizuje kraniálně.',
+        'The infraspinatus lies caudal to the spine and stabilises the shoulder laterally; the supraspinatus stabilises it cranially.',
         ['bone', 'muscle'],
         'm_infraspinatus_L',
       ),
@@ -85,7 +85,7 @@ export const tours: Tour[] = [
         'lm_patella_L',
       ),
       s(
-        'Přímý vaz čéšky se upíná na drsnatinu holenní kosti.',
+        'Vaz čéšky (lig. patellae) se upíná na drsnatinu holenní kosti.',
         'The patellar ligament inserts on the tibial tuberosity.',
         ['bone', 'landmark'],
         'lm_tibial_tuberosity_L',

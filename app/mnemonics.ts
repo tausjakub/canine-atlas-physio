@@ -11,8 +11,8 @@ export const mnemonics: { match: RegExp; text: Bi }[] = [
   {
     match: /^Rib_|rib_numbers/,
     text: {
-      cs: '13 žeber = 9 sternálních + 4 asternální; mezižebří n leží za žebrem n.',
-      en: '13 ribs = 9 sternal + 4 asternal; intercostal space n lies behind rib n.',
+      cs: '13 párů žeber = 9 sternálních + 4 asternální; mezižebří n leží kaudálně od žebra n.',
+      en: '13 pairs of ribs = 9 sternal + 4 asternal; intercostal space n lies caudal to rib n.',
     },
   },
   {
@@ -26,7 +26,7 @@ export const mnemonics: { match: RegExp; text: Bi }[] = [
     match: /biceps_femoris|semitendinosus|semimembranosus|tuber_ischiadicum/,
     text: {
       cs: 'Hamstringy "BSS": biceps femoris, semitendinosus, semimembranosus, všechny ze sedacího hrbolu.',
-      en: 'Hamstrings "BSS": biceps femoris, semitendinosus, semimembranosus, all from the ischiatic tuberosity.',
+      en: 'Hamstrings "BSS": biceps femoris, semitendinosus, semimembranosus, all from the ischial tuberosity.',
     },
   },
   {
@@ -67,12 +67,12 @@ export const mnemonics: { match: RegExp; text: Bi }[] = [
   {
     match: /^Jaw$|^MergedSkull$/,
     text: {
-      cs: 'Triadanovo "pravidlo 4 a 9": špičák je vždy 04, první molár vždy 09. Pes 42 zubů, kočka 30, králík 28.',
-      en: 'Triadan "rule of 4 and 9": the canine is always 04, the first molar always 09. Dog 42 teeth, cat 30, rabbit 28.',
+      cs: 'Triadanovo "pravidlo 4 a 9": špičák je vždy 04, první molár vždy 09. Pes 42 zubů, kočka 30, králík 28, fretka 34, morče 20.',
+      en: 'Triadan "rule of 4 and 9": the canine is always 04, the first molar always 09. Dog 42 teeth, cat 30, rabbit 28, ferret 34, guinea pig 20.',
     },
   },
   {
-    match: /^brain_|^organ_spinal_cord/,
+    match: /^brain_|^n_cranial_nerves/,
     text: {
       cs: 'Hlavové nervy I-XII: čichový, zrakový, okohybný, kladkový, trojklaný, odtahující, lícní, sluchově-rovnovážný, jazykohltanový, bloudivý, přídatný, podjazykový.',
       en: 'Cranial nerves I-XII: Oh Oh Oh To Touch And Feel Very Good Velvet, Such Heaven (olfactory, optic, oculomotor, trochlear, trigeminal, abducent, facial, vestibulocochlear, glossopharyngeal, vagus, accessory, hypoglossal).',
