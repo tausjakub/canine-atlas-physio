@@ -333,7 +333,9 @@ def warp(parts, segs, power=4.0, eps=0.004, trees=None):
     for p in parts:
         ob = p['ob']
         me = ob.data
-        rig = rigid_segment('Jaw' if p['id'] == 'organ_tongue' else p['id'], segs) if p['system'] == 'bone' or p['id'] == 'organ_tongue' else None
+        # Bones move rigidly; so do parts riding on one bone (tongue on the jaw, landmarks).
+        rid = p['id'] if p['system'] == 'bone' else 'Jaw' if p['id'] == 'organ_tongue' else p.get('rigid')
+        rig = rigid_segment(rid, segs) if rid else None
         if rig is not None:
             for v in me.vertices:
                 v.co = rig.apply(v.co)

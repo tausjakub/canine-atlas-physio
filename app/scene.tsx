@@ -159,6 +159,32 @@ export default function AnatomyScene({
           m.userData.part = p;
           scene.add(m);
           meshes.push(m);
+          // Text anchored in 3D (rib numbers), drawn over the model.
+          m.userData.labels = (p.labels ?? []).map(({ text, at }) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = 64;
+            const c = canvas.getContext('2d')!;
+            c.fillStyle = 'rgba(16,24,32,0.8)';
+            c.beginPath();
+            c.arc(32, 32, 30, 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = '#ffe9a8';
+            c.font = 'bold 34px sans-serif';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.fillText(text, 32, 34);
+            const sprite = new THREE.Sprite(
+              new THREE.SpriteMaterial({
+                map: new THREE.CanvasTexture(canvas),
+                depthTest: false,
+              }),
+            );
+            sprite.position.set(at[0], at[1] + 0.012, at[2]);
+            sprite.scale.setScalar(0.014);
+            sprite.renderOrder = 10;
+            scene.add(sprite);
+            return sprite;
+          });
         });
         const poseMatrices = new Map(
           dogPoses.map((pose) => [
@@ -340,6 +366,12 @@ export default function AnatomyScene({
               );
             m.matrix.setPosition(translation);
             m.matrixWorldNeedsUpdate = true;
+            // Labels are anchored to the standing, assembled model only.
+            for (const sprite of m.userData.labels as THREE.Sprite[])
+              sprite.visible =
+                m.visible &&
+                (s.pose ?? 'standing') === 'standing' &&
+                !s.explode;
           });
           controls.autoRotate = s.rotate;
           if (
@@ -416,6 +448,10 @@ export default function AnatomyScene({
           meshes.forEach((m) => {
             m.geometry.dispose();
             m.material.dispose();
+            for (const sprite of m.userData.labels as THREE.Sprite[]) {
+              sprite.material.map?.dispose();
+              sprite.material.dispose();
+            }
           });
           renderer.dispose();
           renderer.domElement.remove();

@@ -35,6 +35,9 @@ for (const species of [
   'organs',
   'cat/organs',
   'rabbit/organs',
+  'clinical',
+  'cat/clinical',
+  'rabbit/clinical',
 ]) {
   const atlas = JSON.parse(
     fs.readFileSync(path.join(root, 'models', species, 'catalog.json'), 'utf8'),
@@ -46,7 +49,7 @@ for (const species of [
   for (const name of fs.readdirSync(path.join(root, 'models', species)))
     assert(
       /^(catalog.json|anatomy.bin)$/.test(name) ||
-        (name === 'organs' && !species.includes('/')),
+        (['organs', 'clinical'].includes(name) && !species.includes('/')),
       'Unexpected species asset: ' + name,
     );
 }

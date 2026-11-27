@@ -61,15 +61,19 @@ import {
   languageStorageKey,
 } from './i18n';
 import cardsCs from './cards.cs.json';
-// Organs ship as separate packs (own binary) merged into each species atlas;
-// a missing pack just leaves the organ layer out.
-function organPack(path: string, signal: AbortSignal) {
-  return fetch(sitePath(path), { signal })
-    .then((r) => (r.ok ? (r.json() as Promise<Atlas>) : null))
-    .catch((e) => {
-      if (e.name === 'AbortError') throw e;
-      return null;
-    });
+// Organ and clinical layers ship as separate packs (own binaries) merged into
+// each species atlas; a missing pack just leaves that layer out.
+function extraParts(dir: string, signal: AbortSignal) {
+  return Promise.all(
+    ['organs', 'clinical'].map((layer) =>
+      fetch(sitePath(`${dir}/${layer}/catalog.json`), { signal })
+        .then((r) => (r.ok ? (r.json() as Promise<Atlas>) : null))
+        .catch((e) => {
+          if (e.name === 'AbortError') throw e;
+          return null;
+        }),
+    ),
+  ).then((packs) => packs.flatMap((a) => a?.parts ?? []));
 }
 
 const cameraViews = ['lateral', 'right', 'cranial', 'dorsal', 'three-quarter'];
@@ -203,14 +207,11 @@ export default function Home() {
         return r.json();
       })
       .then(async (data) => {
-        const organs = await organPack(
-          `/models/${species}/organs/catalog.json`,
-          abort.signal,
-        );
+        const extra = await extraParts(`/models/${species}`, abort.signal);
         const a = data as Atlas;
         setSpeciesAtlas((all) => ({
           ...all,
-          [species]: { ...a, parts: [...a.parts, ...(organs?.parts ?? [])] },
+          [species]: { ...a, parts: [...a.parts, ...extra] },
         }));
       })
       .catch((e) => {
@@ -256,17 +257,9 @@ export default function Home() {
         return r.json();
       })
       .then(async (data) => {
-        const organs = await organPack(
-          '/models/organs/catalog.json',
-          abort.signal,
-        );
+        const extra = await extraParts('/models', abort.signal);
         const dog = data as Atlas;
-        setAtlas(
-          addLigaments({
-            ...dog,
-            parts: [...dog.parts, ...(organs?.parts ?? [])],
-          }),
-        );
+        setAtlas(addLigaments({ ...dog, parts: [...dog.parts, ...extra] }));
       })
       .catch((e) => {
         if (e.name !== 'AbortError') setError(e.message);
@@ -584,6 +577,21 @@ export default function Home() {
                 }
               >
                 {t('Bones + organs')}
+              </button>
+            )}
+            {presentSystems.some((sys) => sys.id === 'landmark') && (
+              <button
+                onClick={() =>
+                  setState((s) => ({
+                    ...s,
+                    systems: ['bone', 'landmark', 'lymph', 'vessel', 'nerve'],
+                    selected: null,
+                    isolate: false,
+                    hidden: [],
+                  }))
+                }
+              >
+                {t('Clinical anatomy')}
               </button>
             )}
           </div>

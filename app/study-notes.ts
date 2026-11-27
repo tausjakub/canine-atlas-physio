@@ -53,6 +53,7 @@ function speciesNote(part: SpeciesPart, language: Language) {
   const s = part.study,
     cs = language === 'cs',
     organ = part.system === 'organ',
+    clinical = ['landmark', 'lymph', 'vessel', 'nerve'].includes(part.system),
     pick = (b: Bilingual | null | undefined) => (b ? b[language] : '');
   const side = part.id.endsWith('_L')
     ? cs
@@ -73,14 +74,22 @@ function speciesNote(part: SpeciesPart, language: Language) {
     function: pick(part.action),
     nerve:
       pick(s?.nerve) ||
-      (organ ? '' : cs ? 'Neuplatňuje se (kost).' : 'Not applicable (bone).'),
-    physio: organ
+      (part.system !== 'bone'
+        ? ''
+        : cs
+          ? 'Neuplatňuje se (kost).'
+          : 'Not applicable (bone).'),
+    physio: clinical
       ? cs
-        ? 'Orgán slouží k orientaci v hlavě a tělních dutinách: všimněte si jeho vztahu k lebce, páteři, žebrům, bránici a pánvi. Model je schematický a neslouží k posouzení zdravotního stavu.'
-        : 'Use the organ to orient yourself in the head and body cavities: note its relation to the skull, spine, ribs, diaphragm and pelvis. The model is schematic and not a basis for judging health.'
-      : cs
-        ? 'Sledujte vztah struktury k okolním kloubům. Pohyb v zatížené končetině se může lišit od izolovaného pohybu; polohy modelu ukazují prostorové vztahy, nikoli bezpečný rozsah pohybu živého zvířete.'
-        : 'Follow the structure’s relationship to neighbouring joints. Weight-bearing function may differ from isolated movement; model poses show spatial relationships, not a safe range of motion for a living animal.',
+        ? 'Propojuje povrchovou anatomii s hlubšími strukturami. Polohy jsou přibližné a mezi jedinci se liší; nácvik na živém zvířeti patří pod vedení vyučujícího.'
+        : 'Links surface anatomy to the deeper structures. Positions are approximate and vary between individuals; practise on live animals only under an instructor’s supervision.'
+      : organ
+        ? cs
+          ? 'Orgán slouží k orientaci v hlavě a tělních dutinách: všimněte si jeho vztahu k lebce, páteři, žebrům, bránici a pánvi. Model je schematický a neslouží k posouzení zdravotního stavu.'
+          : 'Use the organ to orient yourself in the head and body cavities: note its relation to the skull, spine, ribs, diaphragm and pelvis. The model is schematic and not a basis for judging health.'
+        : cs
+          ? 'Sledujte vztah struktury k okolním kloubům. Pohyb v zatížené končetině se může lišit od izolovaného pohybu; polohy modelu ukazují prostorové vztahy, nikoli bezpečný rozsah pohybu živého zvířete.'
+          : 'Follow the structure’s relationship to neighbouring joints. Weight-bearing function may differ from isolated movement; model poses show spatial relationships, not a safe range of motion for a living animal.',
     recall: s ? `${pick(s.recall)} ${pick(s.answer)}` : '',
     sources: [] as string[],
     profile: '',
