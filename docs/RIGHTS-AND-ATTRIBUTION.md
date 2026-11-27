@@ -2,19 +2,19 @@
 
 Status of every third-party asset, kept for the sales plan's "clear the content
 and assets" step. Update the **Status** column when evidence is recorded.
-Last reviewed: 2026-11-11. This is an engineering record, not legal advice.
+Last reviewed: 2026-11-27. This is an engineering record, not legal advice.
 
 | Asset | Where | Source and licence | Ships in | Status |
 | --- | --- | --- | --- | --- |
 | 3D bone/muscle meshes (425 pieces) | `public/models/anatomy.bin`, `catalog.json` | [MusculoskeletalDog](https://github.com/vittorione94/MusculoskeletalDog), © 2025 Vittorio La Barbera, MIT (`public/models/LICENSE-MODEL.txt`) | demo + private | **Pending**: see geometry provenance below |
-| Cat and rabbit atlases (bones + 260/254 muscles) | `public/models/cat/`, `public/models/rabbit/` | **Derived from the dog meshes above** (MusculoskeletalDog, MIT): retargeted to cat/rabbit proportions by `scripts/blender/` (Blender 5.3), plus a few muscles generated there. Attribution is in each catalog (`attribution`, `geometryOrigin`, `sources`). Third-party cat/rabbit models (Sketchfab skeletons, CC BY-NC; Feline Ecorche, CC BY) were visual reference only and are not shipped | demo + private | **Pending, inherited**: same upstream provenance question as the dog meshes (leo3Dmodels). Resolve before selling. The NC skeleton scans remain in the history of branch `feature/feline-rabbit-atlas` |
+| Cat and rabbit atlases (482 / 468 pieces: 197 / 189 bones, 285 / 279 muscle parts) | `public/models/cat/`, `public/models/rabbit/` | **Derived from the dog meshes above** (MusculoskeletalDog, MIT): retargeted to cat/rabbit proportions by `scripts/blender/` (Blender 5.3), plus a few muscles generated there. Attribution is in each catalog (`attribution`, `geometryOrigin`, `sources`) and shown in the Sources & scope dialog. Third-party cat/rabbit models (Sketchfab skeletons, CC BY-NC; Feline Ecorche, CC BY) were visual reference only and are not shipped | demo + private | **Pending, inherited**: same upstream provenance question as the dog meshes (leo3Dmodels). Resolve before selling. The NC skeleton scans remain in the history of branch `feature/feline-rabbit-atlas` |
 | 17 ligament guides | `app/ligaments.ts` | Original, generated in code from source bone vertices | demo + private | Cleared (own work) |
 | Skeleton photo | `public/study/dog-skeleton-museum.jpg` | Museum of Veterinary Anatomy FMVZ USP / Wagner Souza e Silva; edited by Rodrigo Tetsuo Argenton. CC BY-SA 4.0 | demo + private | Attribution shown in-app; see ShareAlike note |
 | Knee photo | `public/study/dog-knee-museum.jpg` | Museum of Veterinary Anatomy FMVZ USP / Wagner Souza e Silva. CC BY-SA 4.0 | demo + private | Attribution shown in-app; see ShareAlike note |
 | Numbered photo overlays | `app/study-visuals.tsx` | Adaptations of the two photos above, released CC BY-SA 4.0 | demo + private | ShareAlike applies to the overlay compositions |
 | Concept diagrams (10) | `app/study-visuals.tsx` | Original SVG | demo + private | Cleared (own work) |
 | Practical illustrations (3) | `public/study/practice/*.webp` | AI-generated (OpenAI), September 2026; see `public/study/practice/README.md` | demo + private | Check the generator's current commercial terms before sale |
-| Study notes, quizzes, lessons | `app/*-data.ts`, `app/study-data*.json` | Original text with per-item references | demo + private | Needs instructor review (sales plan step 4) |
+| Study notes, quizzes, lessons | `app/*-data.ts`, `app/study-data*.json` | Original text with per-item references; includes `app/study-notes.ts` and the cat/rabbit muscle cards generated from `scripts/species-study.mjs` and `scripts/blender/muscles_table.py` | demo + private | Needs instructor review (sales plan step 4); cat/rabbit cards also need veterinary-anatomist review (see `docs/species-asset-candidates.md`) |
 | Textbook PDFs (3 books, 69 sections) | `private-assets/library/` (ignored by Git) | User-supplied copyrighted books | **private only** | Never publish. Removed from Git tree on 2026-11-11; still present in history (see below) |
 | Dorn course material | `app/dorn-*` | Original wording, structured after a course manual | **private only** | Keep out of commercial builds unless the course owner agrees |
 | Personal exam plan | `app/personal-plan*` | Owner's own schedule | **private only** | Personal data; not for distribution |
@@ -35,6 +35,11 @@ Before charging for access:
 2. Check dm_control's asset licence and NOTICE requirements.
 3. Record the answer here. If redistribution in a paid browser app is not
    allowed, use cleared illustrations for the demo and replace the meshes.
+
+Affected assets: `public/models/anatomy.bin`, `public/models/cat/anatomy.bin`,
+`public/models/rabbit/anatomy.bin`. Replacing or clearing the dog meshes also
+means regenerating the cat and rabbit meshes with `scripts/blender/` and
+`scripts/build-species-models.mjs`; the recorded answer must cover all three.
 
 ## CC BY-SA 4.0 obligations
 

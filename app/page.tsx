@@ -1204,6 +1204,12 @@ export default function Home() {
             'Converted from STL and SKN to indexed geometry in the source reference pose. Colors, labels and the exploded layout are adapted for this viewer; no simulated joint movement or treatment guidance is provided.',
           )}
         </p>
+        <h3>{t('Cat and rabbit geometry')}</h3>
+        <p>
+          {t(
+            'The cat and rabbit atlases are derived from MusculoskeletalDog (Vittorio La Barbera, 2025, MIT): the dog meshes are retargeted in Blender to species proportions, with a few muscles generated from attachment landmarks. The same geometry provenance note applies. They are study models, not CT reconstructions or validated dissections.',
+          )}
+        </p>
         <a
           href="https://github.com/vittorione94/MusculoskeletalDog"
           target="_blank"
