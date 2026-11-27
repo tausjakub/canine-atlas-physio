@@ -71,6 +71,10 @@ KEEP_TEETH = {
     # rabbit: no incisor-canine row (rabbit incisors are added later); cheek teeth
     # upper P2-M3 (6) and lower P3-M3 (5) take the dog's caudal cheek-tooth slots.
     'rabbit': {'MergedSkull': [4, 5, 6, 7, 8, 9], 'Jaw': [6, 7, 8, 9, 10]},
+    # ferret: upper I3 C1 P3 M1; lower I3 C1 P3 M2
+    'ferret': {'MergedSkull': [0, 1, 2, 3, 5, 6, 7, 8], 'Jaw': [0, 1, 2, 3, 5, 6, 7, 8, 9]},
+    # guinea pig: incisors added later; cheek teeth upper and lower P1 M3 (4 each)
+    'guinea_pig': {'MergedSkull': [6, 7, 8, 9], 'Jaw': [7, 8, 9, 10]},
 }
 
 

@@ -18,7 +18,7 @@ const text = (b, where) => {
   assert(!/[–—“”]/.test(b.cs + b.en), `${where}: use plain hyphens and quotes`);
 };
 let total = 0;
-for (const dir of ['', 'cat/', 'rabbit/'])
+for (const dir of ['', 'cat/', 'rabbit/', 'ferret/', 'guinea_pig/'])
   for (const layer of ['organs', 'clinical']) {
     const base = `public/models/${dir}${layer}/`;
     const cat = JSON.parse(fs.readFileSync(base + 'catalog.json', 'utf8'));

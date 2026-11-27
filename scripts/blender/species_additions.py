@@ -1,3 +1,4 @@
+import re
 """Muscles the species has but the dog model lacks, generated between
 landmarks measured on the retargeted bones, then given the same polish."""
 import muscles_table
@@ -52,11 +53,14 @@ def _lm(bones, side):
         top = max(v.y for v in vs)
         return Vector((cc.x, cc.y + 0.55 * (top - cc.y), 0)) + lat * out
 
-    for n in range(1, 14):
+    for n in range(1, 16):
         if f'T_{n}' in bones:
             L[f'T{n}.sp'] = spinous_base(f'T_{n}')
+    # Landmarks are named for the dog's seven lumbar vertebrae; species with
+    # fewer map them proportionally onto the ones they have.
+    nl = max(int(k[2:]) for k in bones if re.match(r'^L_\d+$', k))
     for n in range(1, 8):
-        L[f'L{n}.sp'] = spinous_base(f'L_{n}', 0.005)
+        L[f'L{n}.sp'] = spinous_base(f'L_{max(1, min(nl, round(n * nl / 7)))}', 0.005)
     for n in (2, 4, 6):
         L[f'C{n}.d'] = spinous_base(f'C_{n}', 0.006)
     sac = _verts(bones['Sacrum'])
@@ -138,7 +142,7 @@ def reshape_head(parts, S):
 def add_incisors(parts, S, col):
     """Rabbit: two pairs of upper incisors (large and peg teeth) and one lower
     pair, curving from the premaxilla and mandible tips (gnawing incisors)."""
-    if S['species'] != 'rabbit':
+    if S.get('base', S['species']) != 'rabbit':
         return
     by = {p['id']: p['ob'] for p in parts}
     h = S['head']
@@ -161,6 +165,8 @@ def add_incisors(parts, S, col):
     upper = [(0.0026, [(-0.008, 0.003), (0.0015, -0.3 * du - 0.001), (0.001, bite_u)], 0.0032, 0.0024),
              # Peg teeth: short, directly behind the large incisors.
              (0.0030, [(-0.006, 0.002), (-0.003, -0.001), (-0.0035, -0.0025)], 0.0012, 0.0010)]
+    if not S.get('pegs', True):
+        upper = upper[:1]  # one pair of upper incisors (guinea pig)
     # Lower incisors: long and procumbent, erupting from the front of the
     # mandible and curving up so the tips occlude behind the upper crowns.
     lower = [(0.0020, [(-0.014, -0.004), (da - 0.004, -0.002), (da - 0.0055, du + 0.001)], 0.0026, 0.0021)]
@@ -180,7 +186,7 @@ def add_incisors(parts, S, col):
 
 
 def add_muscles(parts, S, col):
-    species = S['species']
+    species = S.get('base', S['species'])
     entries = {m['id']: m for m in muscles_table.table(S, muscles_table.ROWS + species_map.MAP_ROWS, include_mapped=True)}
     bones = {p['id']: p['ob'] for p in parts if p['system'] == 'bone'}
     tree = bvh_of([p['ob'] for p in parts])

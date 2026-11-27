@@ -77,38 +77,86 @@ const ovary = (side, sideEn) =>
 const lobeInfo = {
   frontal: [
     p('Čelní lalok', 'Frontal lobe'),
-    p('Rostrální část koncového mozku; podílí se na chování, plánování a čichových asociacích.', 'Rostral part of the cerebrum; involved in behaviour, planning and olfactory associations.'),
-    p('Nejrostrálnější lalok hemisféry, kaudálně od čichového bulbu.', 'The most rostral lobe of the hemisphere, caudal to the olfactory bulb.'),
-    p('Který lalok leží hned za čichovým bulbem?', 'Which lobe lies just caudal to the olfactory bulb?'),
+    p(
+      'Rostrální část koncového mozku; podílí se na chování, plánování a čichových asociacích.',
+      'Rostral part of the cerebrum; involved in behaviour, planning and olfactory associations.',
+    ),
+    p(
+      'Nejrostrálnější lalok hemisféry, kaudálně od čichového bulbu.',
+      'The most rostral lobe of the hemisphere, caudal to the olfactory bulb.',
+    ),
+    p(
+      'Který lalok leží hned za čichovým bulbem?',
+      'Which lobe lies just caudal to the olfactory bulb?',
+    ),
     p('Čelní lalok.', 'The frontal lobe.'),
   ],
   sensorimotor: [
     p('Senzomotorický lalok', 'Sensorimotor lobe'),
-    p('Kolem zkřížené brázdy (sulcus cruciatus): primární motorická a somatosenzorická kůra.', 'Around the cruciate sulcus: primary motor and somatosensory cortex.'),
-    p('Dorzálně mezi čelním a temenním lalokem.', 'Dorsally between the frontal and parietal lobes.'),
-    p('Kolem které brázdy leží u psa motorická kůra?', 'Around which sulcus does the dog’s motor cortex lie?'),
-    p('Kolem zkřížené brázdy (sulcus cruciatus).', 'Around the cruciate sulcus.'),
+    p(
+      'Kolem zkřížené brázdy (sulcus cruciatus): primární motorická a somatosenzorická kůra.',
+      'Around the cruciate sulcus: primary motor and somatosensory cortex.',
+    ),
+    p(
+      'Dorzálně mezi čelním a temenním lalokem.',
+      'Dorsally between the frontal and parietal lobes.',
+    ),
+    p(
+      'Kolem které brázdy leží u psa motorická kůra?',
+      'Around which sulcus does the dog’s motor cortex lie?',
+    ),
+    p(
+      'Kolem zkřížené brázdy (sulcus cruciatus).',
+      'Around the cruciate sulcus.',
+    ),
   ],
   parietal: [
     p('Temenní lalok', 'Parietal lobe'),
-    p('Zpracování a propojování smyslových informací, prostorová orientace.', 'Processing and integration of sensory information, spatial orientation.'),
-    p('Dorzálně ve střední části hemisféry, mezi senzomotorickým a týlním lalokem.', 'Dorsally in the middle of the hemisphere, between the sensorimotor and occipital lobes.'),
-    p('Mezi kterými laloky leží temenní lalok?', 'Between which lobes does the parietal lobe lie?'),
-    p('Mezi senzomotorickým a týlním.', 'Between the sensorimotor and occipital lobes.'),
+    p(
+      'Zpracování a propojování smyslových informací, prostorová orientace.',
+      'Processing and integration of sensory information, spatial orientation.',
+    ),
+    p(
+      'Dorzálně ve střední části hemisféry, mezi senzomotorickým a týlním lalokem.',
+      'Dorsally in the middle of the hemisphere, between the sensorimotor and occipital lobes.',
+    ),
+    p(
+      'Mezi kterými laloky leží temenní lalok?',
+      'Between which lobes does the parietal lobe lie?',
+    ),
+    p(
+      'Mezi senzomotorickým a týlním.',
+      'Between the sensorimotor and occipital lobes.',
+    ),
   ],
   occipital: [
     p('Týlní lalok', 'Occipital lobe'),
-    p('Zraková kůra: zpracování zrakových podnětů.', 'Visual cortex: processing of visual input.'),
-    p('Kaudální pól hemisféry, nad mozečkem.', 'Caudal pole of the hemisphere, above the cerebellum.'),
+    p(
+      'Zraková kůra: zpracování zrakových podnětů.',
+      'Visual cortex: processing of visual input.',
+    ),
+    p(
+      'Kaudální pól hemisféry, nad mozečkem.',
+      'Caudal pole of the hemisphere, above the cerebellum.',
+    ),
     p('Který lalok zpracovává zrak?', 'Which lobe processes vision?'),
     p('Týlní lalok.', 'The occipital lobe.'),
   ],
   temporal: [
     p('Spánkový (perisylvický) lalok', 'Temporal (perisylvian) lobe'),
-    p('Sluchová kůra a asociační oblasti kolem sylviovy brázdy.', 'Auditory cortex and association areas around the sylvian sulcus.'),
-    p('Laterálně a ventrálně na hemisféře, kolem sylviovy brázdy.', 'Lateral and ventral on the hemisphere, around the sylvian sulcus.'),
+    p(
+      'Sluchová kůra a asociační oblasti kolem sylviovy brázdy.',
+      'Auditory cortex and association areas around the sylvian sulcus.',
+    ),
+    p(
+      'Laterálně a ventrálně na hemisféře, kolem sylviovy brázdy.',
+      'Lateral and ventral on the hemisphere, around the sylvian sulcus.',
+    ),
     p('Kde leží sluchová kůra?', 'Where is the auditory cortex?'),
-    p('Ve spánkovém (perisylvickém) laloku.', 'In the temporal (perisylvian) lobe.'),
+    p(
+      'Ve spánkovém (perisylvickém) laloku.',
+      'In the temporal (perisylvian) lobe.',
+    ),
   ],
 };
 const lobe = (key, side, sideEn) => {
@@ -121,7 +169,10 @@ const lobe = (key, side, sideEn) => {
       'Součást koncového mozku; hemisféry spojuje kalózní těleso (corpus callosum).',
       'Part of the cerebrum; the hemispheres are joined by the corpus callosum.',
     ),
-    p('Neuplatňuje se (sám je částí CNS).', 'Not applicable (part of the CNS itself).'),
+    p(
+      'Neuplatňuje se (sám je částí CNS).',
+      'Not applicable (part of the CNS itself).',
+    ),
     recall,
     answer,
     { mri: true },
@@ -813,7 +864,30 @@ export const organStudy = {
 const SPECIES = {
   cat: { cs: 'kočky', en: 'cat' },
   rabbit: { cs: 'králíka', en: 'rabbit' },
+  ferret: { cs: 'fretky', en: 'ferret' },
+  guinea_pig: { cs: 'morčete', en: 'guinea pig' },
 };
+// Ferret and guinea pig: dog-derived layout with generic wording where the dog
+// values would mislead.
+const generic = (sp) => ({
+  organ_spinal_cord: {
+    location: p(
+      `V páteřním kanálu od velkého týlního otvoru; úroveň, kde mícha ${SPECIES[sp].cs} končí, se od psa liší (ověřte podle učebnice).`,
+      `In the vertebral canal from the foramen magnum; the level where the ${SPECIES[sp].en}’s cord ends differs from the dog (check your textbook).`,
+    ),
+    answer: p(
+      'Úroveň se liší od psa; ověřte podle učebnice.',
+      'It differs from the dog; check your textbook.',
+    ),
+  },
+  organ_uterus: {
+    recall: p(
+      `Jaký typ dělohy má samice ${SPECIES[sp].cs}?`,
+      `What type of uterus does the female ${SPECIES[sp].en} have?`,
+    ),
+    answer: p('Dvourohou (uterus bicornis).', 'Bicornuate.'),
+  },
+});
 const retargeted = (sp) =>
   p(
     `Schematický tvar převzatý z modelu psa a přenesený do proporcí ${SPECIES[sp].cs}; poloha vychází z rozvržení u psa, nejde o segmentaci ani přesnou velikost.`,
@@ -977,18 +1051,35 @@ export function organStudyFor(sp) {
     };
   const all = {
     ...organStudy,
-    ...(sp === 'rabbit' ? { organ_caecum: rabbitCaecum } : {}),
+    ...(sp === 'rabbit' || sp === 'guinea_pig'
+      ? { organ_caecum: rabbitCaecum }
+      : {}),
   };
   return Object.fromEntries(
     Object.entries(all).map(([id, c]) => {
-      const o = overrides[sp][id] ?? {};
+      const o = (overrides[sp] ?? generic(sp))[id] ?? {};
       const study = { ...c.study };
       for (const k of ['location', 'connections', 'recall', 'answer'])
         study[k] = o[k] ?? swap(c.study[k]);
       study.difference = id.startsWith('brain_')
         ? brainNote(sp)
         : retargeted(sp);
-      return [id, { ...c, action: swap(c.action), study }];
+      // The guinea pig reuses the rabbit caecum card with its own name.
+      const named = (b) =>
+        sp === 'guinea_pig' && b
+          ? {
+              cs: b.cs
+                .replace(/králíka/g, 'morčete')
+                .replace(/králík/g, 'morče'),
+              en: b.en.replace(/rabbit/g, 'guinea pig'),
+            }
+          : b;
+      for (const k of Object.keys(study))
+        if (study[k]?.cs) study[k] = named(study[k]);
+      return [
+        id,
+        { ...c, label: named(c.label), action: named(swap(c.action)), study },
+      ];
     }),
   );
 }

@@ -38,6 +38,12 @@ for (const species of [
   'clinical',
   'cat/clinical',
   'rabbit/clinical',
+  'ferret',
+  'guinea_pig',
+  'ferret/organs',
+  'guinea_pig/organs',
+  'ferret/clinical',
+  'guinea_pig/clinical',
 ]) {
   const atlas = JSON.parse(
     fs.readFileSync(path.join(root, 'models', species, 'catalog.json'), 'utf8'),

@@ -97,18 +97,60 @@ def edit_bones(parts, S):
         p['ob'].name = cid
         merged[cid] = p
         out.append(p)
+    shift = S.get('relabel_lumbar', 0)
+    if shift:
+        # Ferret: the dog's first lumbar vertebrae become the last thoracic ones
+        # (same thoracolumbar total) and get ribs copied from the last dog rib.
+        nt = S['vertebrae'][1]
+        by = {p['id']: p for p in out}
+        t13 = by['T_13']['ob']
+        c13 = sum((v.co for v in t13.data.vertices), Vector()) / len(t13.data.vertices)
+        for p in sorted(out, key=lambda q: q['id']):
+            m = re.match(r'^L_(\d+)$', p['id'])
+            if not m:
+                continue
+            k = int(m.group(1))
+            p['id'] = p['ob'].name = f'T_{13 + k}' if k <= shift else f'L_{k - shift}'
+        for p in [q for q in out if re.match(r'^T_(1[4-9])$', q['id'])]:
+            k = int(p['id'][2:])
+            if k > nt:
+                continue
+            c = sum((v.co for v in p['ob'].data.vertices), Vector()) / len(p['ob'].data.vertices)
+            for side in ('L', 'R'):
+                src = by.get(f'Rib_13_{side}')
+                if not src:
+                    continue
+                ob = src['ob'].copy()
+                ob.data = src['ob'].data.copy()
+                ob.name = f'Rib_{k}_{side}'
+                bpy.context.scene.collection.objects.link(ob)
+                d = c - c13
+                for v in ob.data.vertices:
+                    v.co += d
+                out.append({'id': ob.name, 'system': 'bone', 'ob': ob, 'profile': None, 'region': 'Neck & trunk'})
+    # Vertebral counts: remove thoracic/rib, lumbar and caudal pieces beyond the species' numbers.
+    nt, nl, nca = S['vertebrae'][1], S['vertebrae'][2], S['vertebrae'][4]
+    digits = S.get('remove_digits', {})
+    keep = []
+    for p in out:
+        m = re.match(r'^(?:T_|Rib_)(\d+)', p['id'])
+        drop = bool(m and int(m.group(1)) > nt)
+        m = re.match(r'^L_(\d+)$', p['id'])
+        drop |= bool(m and int(m.group(1)) > nl)
+        m = re.match(r'^Ca_(\d+)$', p['id'])
+        drop |= bool(m and int(m.group(1)) > nca)
+        m = re.match(r'^(?:Os_metacarpale_|Phalanx_)(\d)', p['id'])
+        drop |= bool(m and int(m.group(1)) in digits.get('fore', []))
+        m = re.match(r'^(?:Metatarsi_|Phalanges_B_)(\d)', p['id'])
+        drop |= bool(m and int(m.group(1)) in digits.get('hind', []))
+        if drop:
+            bpy.data.objects.remove(p['ob'])
+        else:
+            keep.append(p)
+    out = keep
     if species == 'rabbit':
         keep = []
-        nt = S['vertebrae'][1]
         for p in out:
-            m = re.match(r'^(?:T_|Rib_)(\d+)', p['id'])
-            if m and int(m.group(1)) > nt:
-                bpy.data.objects.remove(p['ob'])
-                continue
-            m = re.match(r'^Ca_(\d+)$', p['id'])
-            if m and int(m.group(1)) > S['vertebrae'][4]:
-                bpy.data.objects.remove(p['ob'])
-                continue
             m = re.match(r'^Tarsus_1_(L|R)$', p['id'])
             if m:
                 # The rabbit has no separate first tarsal bone: fuse it with T2.
@@ -130,7 +172,7 @@ def edit_bones(parts, S):
 
 def label_muscles(parts, S):
     """Rename dog muscles to species ids and attach species study texts."""
-    species = S['species']
+    species = S.get('base', S['species'])
     entries = {m['id']: m for m in muscles_table.table(S, muscles_table.ROWS + species_map.MAP_ROWS, include_mapped=True)}
     used, out, missing = {}, [], set()
     for p in parts:
@@ -181,7 +223,7 @@ RENAME_CRANIAL = {'cat': [('pectoralis_major', 'pectoantebrachialis')], 'rabbit'
 
 def split_muscles(parts, S):
     import numpy as np
-    species = S['species']
+    species = S.get('base', S['species'])
     entries = {m['id']: m for m in muscles_table.table(S, muscles_table.ROWS + species_map.MAP_ROWS, include_mapped=True)}
 
     def meta(key):

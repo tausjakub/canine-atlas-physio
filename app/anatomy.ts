@@ -35,7 +35,7 @@ export type Atlas = {
   bytes: number;
   binaryPath?: string;
   poseConfig?: import('./poses').PoseConfig;
-  species?: 'cat' | 'rabbit';
+  species?: 'cat' | 'rabbit' | 'ferret' | 'guinea_pig';
   scientificName?: string;
 };
 export type SceneState = {

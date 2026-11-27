@@ -58,6 +58,8 @@ const views = [
   { name: 'explore', query: '' },
   { name: 'cat', query: 'species=cat' },
   { name: 'rabbit', query: 'species=rabbit' },
+  { name: 'ferret', query: 'species=ferret' },
+  { name: 'guinea_pig', query: 'species=guinea_pig' },
   { name: 'exam', query: 'view=exam' },
   { name: 'topics', query: 'view=topics' },
   { name: 'exam-day', query: 'view=exam-day' },

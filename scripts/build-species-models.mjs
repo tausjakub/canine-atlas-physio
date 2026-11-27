@@ -242,9 +242,24 @@ function solvePoses(J, rabbit) {
 }
 
 const only = process.argv[2];
-for (const species of ['cat', 'rabbit']) {
+// Ferret and guinea pig are built on the cat and rabbit templates.
+const info = {
+  cat: ['cat', 'Felis catus', 'kočka domácí', 'domestic cat'],
+  rabbit: [
+    'rabbit',
+    'Oryctolagus cuniculus',
+    'králík domácí',
+    'domestic rabbit',
+  ],
+  ferret: ['cat', 'Mustela putorius furo', 'fretka domácí', 'domestic ferret'],
+  guinea_pig: ['rabbit', 'Cavia porcellus', 'morče domácí', 'guinea pig'],
+};
+sources.ferret = sources.cat.slice(0, 2);
+sources.guinea_pig = sources.rabbit.slice(0, 2);
+for (const species of Object.keys(info)) {
   if (only && only !== species) continue;
-  const rabbit = species === 'rabbit';
+  const [base, scientificName, nameCs, nameEn] = info[species];
+  const rabbit = base === 'rabbit';
   const work = new URL(`work/species/${species}/`, root);
   const raw = JSON.parse(fs.readFileSync(new URL('parts.json', work), 'utf8'));
   const geometry = fs.readFileSync(new URL('geometry.bin', work));
@@ -277,10 +292,10 @@ for (const species of ['cat', 'rabbit']) {
     binaryPath: `/models/${species}/anatomy.bin`,
     poseConfig,
     sources: sources[species],
-    scientificName: rabbit ? 'Oryctolagus cuniculus' : 'Felis catus',
+    scientificName,
     scope: pair(
-      `3D model vytvořený v Blenderu přenesením profesionálního psího modelu MusculoskeletalDog (MIT) na proporce druhu ${rabbit ? 'králík domácí' : 'kočka domácí'}: ${parts.length - muscles} kostních částí a ${muscles} samostatných svalů (obě strany) s druhovými názvy, vrstvami a doplněnými svaly, které pes nemá. Jde o studijní pomůcku, ne o CT, sken ani odborně ověřenou disekci; tvary kostí a svalů zůstávají částečně psí. Chybí cévy, nervy, vazy a orgány.`,
-      `3D model built in Blender by retargeting the professional MusculoskeletalDog model (MIT) onto ${rabbit ? 'domestic rabbit' : 'domestic cat'} proportions: ${parts.length - muscles} skeletal pieces and ${muscles} separate muscles (both sides) with species names, layers and added muscles the dog lacks. This is a study aid, not a CT, scan or expert-validated dissection; bone and muscle shapes remain partly canine. Vessels, nerves, ligaments and organs are omitted.`,
+      `3D model vytvořený v Blenderu přenesením profesionálního psího modelu MusculoskeletalDog (MIT) na proporce druhu ${nameCs}${base !== species ? ` (přes šablonu: ${base === 'cat' ? 'kočka' : 'králík'})` : ''}: ${parts.length - muscles} kostních částí a ${muscles} samostatných svalů (obě strany) s druhovými názvy, vrstvami a doplněnými svaly, které pes nemá. Jde o studijní pomůcku, ne o CT, sken ani odborně ověřenou disekci; tvary kostí a svalů zůstávají částečně psí. Chybí cévy, nervy, vazy a orgány.`,
+      `3D model built in Blender by retargeting the professional MusculoskeletalDog model (MIT) onto ${nameEn} proportions${base !== species ? ` (via the ${base} template)` : ''}: ${parts.length - muscles} skeletal pieces and ${muscles} separate muscles (both sides) with species names, layers and added muscles the dog lacks. This is a study aid, not a CT, scan or expert-validated dissection; bone and muscle shapes remain partly canine. Vessels, nerves, ligaments and organs are omitted.`,
     ),
     created: new Date().toISOString().slice(0, 10),
     geometryRevision: 4,

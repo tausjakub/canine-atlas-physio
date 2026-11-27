@@ -1101,7 +1101,12 @@ export const clinicalStudy = {
   ...cordRegions,
 };
 
-const SPECIES = { cat: ['kočky', 'cat'], rabbit: ['králíka', 'rabbit'] };
+const SPECIES = {
+  cat: ['kočky', 'cat'],
+  rabbit: ['králíka', 'rabbit'],
+  ferret: ['fretky', 'ferret'],
+  guinea_pig: ['morčete', 'guinea pig'],
+};
 /** Cards for the cat or rabbit pack: the dog layer retargeted, flagged as such. */
 export function clinicalStudyFor(sp) {
   const [cs, en] = SPECIES[sp];

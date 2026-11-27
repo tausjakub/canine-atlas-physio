@@ -172,7 +172,12 @@ export default function Home() {
   const [pendingQuiz, setPendingQuiz] = useState<string[]>();
   useEffect(() => {
     const value = new URLSearchParams(window.location.search).get('species');
-    if (value === 'cat' || value === 'rabbit') {
+    if (
+      value === 'cat' ||
+      value === 'rabbit' ||
+      value === 'ferret' ||
+      value === 'guinea_pig'
+    ) {
       // oxlint-disable-next-line react/react-compiler -- read the URL after mount (static export)
       setSpecies(value);
       setTab('explore');
@@ -2171,6 +2176,11 @@ export default function Home() {
         <p>
           {t(
             'The cat and rabbit organ layers are the dog layer retargeted to each species, with a rabbit caecum and duplex uterus added; their placement follows the dog layout. Male and female reproductive organs are shown one at a time.',
+          )}
+        </p>
+        <p>
+          {t(
+            'The ferret and guinea pig atlases are previews built from the cat and rabbit templates on the same dog model: the ferret gains thoracic vertebrae and ribs (15 pairs), the guinea pig loses vertebrae and digits (four front, three hind toes) and its tail. Their notes are shorter and their shapes approximate; check them against your course materials.',
           )}
         </p>
         <a
