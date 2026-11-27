@@ -222,7 +222,9 @@ def rigid_segment(pid, segs):
 CANDIDATES = {
     'Head': {'cranium', 'face', 'neck'},
     'Neck & trunk': {'neck', 'thorax', 'tl', 'lumbar', 'pelvis', 'tail', 'cranium'},
-    'Forelimb': {'scap', 'arm', 'forearm', 'manus', 'thorax', 'tl'},
+    # neck: serratus ventralis cervical slips (weights use bone distance, so
+    # intrinsic limb muscles stay on the limb).
+    'Forelimb': {'scap', 'arm', 'forearm', 'manus', 'thorax', 'tl', 'neck'},
     'NeckLimb': {'scap', 'arm', 'forearm', 'neck', 'thorax', 'cranium'},
     'Hindlimb': {'thigh', 'crus', 'pes', 'hdigits', 'tl', 'lumbar', 'pelvis', 'tail'},
 }

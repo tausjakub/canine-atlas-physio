@@ -73,7 +73,7 @@ def _lm(bones, side):
     for n in (2, 4, 6, 9, 12):
         rv = [v for v in _verts(bones[f'Rib_{n}_{side}'])]
         topy = max(v.y for v in rv)
-        L[f'rib{n}.angle'] = max((v for v in rv if v.y > topy - 0.012), key=lambda v: s * v.z) + lat * 0.003
+        L[f'rib{n}.angle'] = max((v for v in rv if v.y > topy - 0.012), key=lambda v: s * v.z)
     return L
 
 
@@ -86,7 +86,7 @@ ADD = {
     ] + [
         # Deep epaxial muscles and piriformis are absent from the dog model.
         ('multifidus', ['sac.dl'], ['T6.sp'], ['L6.sp', 'L4.sp', 'L2.sp', 'T12.sp', 'T9.sp'], 5, 4),
-        ('iliocostalis', ['pel.tc'], ['rib2.angle'], ['rib12.angle', 'rib9.angle', 'rib6.angle', 'rib4.angle'], 6, 3),
+        ('iliocostalis', ['pel.tc'], ['rib2.angle'], ['rib12.angle', 'rib9.angle', 'rib6.angle', 'rib4.angle'], 8, 1.8),
         ('semispinalis_capitis', ['T2.sp'], ['occ'], ['C6.d', 'C4.d', 'C2.d'], 7, 4),
         ('piriformis', ['sac.lat'], ['fem.gt'], [], 7, 3),
         ('cleidomastoideus', ['clav'], ['mastoid'], [], 4, 2.5),
@@ -94,7 +94,7 @@ ADD = {
     'rabbit': [
         ('soleus', ['fib.head'], ['calc.tuber'], ['tib.cd_mid'], 5, 3),
         ('multifidus', ['sac.dl'], ['T6.sp'], ['L6.sp', 'L4.sp', 'L2.sp', 'T12.sp', 'T9.sp'], 5, 4),
-        ('iliocostalis', ['pel.tc'], ['rib2.angle'], ['rib12.angle', 'rib9.angle', 'rib6.angle', 'rib4.angle'], 6, 3),
+        ('iliocostalis', ['pel.tc'], ['rib2.angle'], ['rib12.angle', 'rib9.angle', 'rib6.angle', 'rib4.angle'], 8, 1.8),
         ('semispinalis_capitis', ['T2.sp'], ['occ'], ['C6.d', 'C4.d', 'C2.d'], 7, 4),
         ('piriformis', ['sac.lat'], ['fem.gt'], [], 7, 3),
         ('cleidomastoideus', ['clav'], ['mastoid'], [], 4, 2.5),
