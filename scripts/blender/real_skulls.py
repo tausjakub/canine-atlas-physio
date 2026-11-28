@@ -330,6 +330,31 @@ def _articulate(skull_ob, jaw_ob, cfg):
     print('mandible articulated on reference', cfg['reference'], flush=True)
 
 
+def _snap_to_atlas(by, meshes):
+    """Seat the occipital condyles in the atlas: the condyles are the caudal-
+    most bone in the ventral half of the skull's caudal face (beside the
+    foramen magnum), the atlas' cranial articular foveae the cranial part of
+    C1 near the midline. The skull and mandible move together by the offset."""
+    if 'C_1' not in by:
+        return
+    P = np.array([v.co[:] for v in meshes[0].vertices])
+    lo, hi = P.min(0), P.max(0)
+    L, W = hi[0] - lo[0], hi[2] - lo[2]
+    slab = P[(P[:, 0] < lo[0] + 0.1 * L) & (np.abs(P[:, 2] - (lo[2] + hi[2]) / 2) < 0.25 * W)]
+    low = slab[slab[:, 1] < np.median(slab[:, 1])]
+    cond = low[low[:, 0] < np.percentile(low[:, 0], 30)].mean(0)
+    A = np.array([v.co[:] for v in by['C_1']['ob'].data.vertices])
+    alo, ahi = A.min(0), A.max(0)
+    fov = A[(A[:, 0] > ahi[0] - 0.3 * (ahi[0] - alo[0])) & (np.abs(A[:, 2] - (alo[2] + ahi[2]) / 2) < 0.35 * (ahi[2] - alo[2]))]
+    if not len(fov):
+        return
+    d = fov.mean(0) - cond
+    d[2] = 0.0  # both are on the midline
+    for me in meshes:
+        me.transform(Matrix.Translation(Vector(d)))
+    print(f'skull seated on the atlas: moved {np.linalg.norm(d) * 1000:.1f} mm', flush=True)
+
+
 def replace_skull(parts, S):
     """Returns the retargeted skull and mandible surfaces (for follow_skull), or None."""
     cfg = S.get('skull_scan')
@@ -387,6 +412,7 @@ def replace_skull(parts, S):
         target.data.name = pid
         bpy.data.objects.remove(ob)
         print(f'{pid}: real scan {cfg["skull"]} fitted', flush=True)
+    _snap_to_atlas(by, [by[pid]['ob'].data for pid in ('MergedSkull', 'Jaw') if pid in by])
     return old
 
 
@@ -521,6 +547,7 @@ def follow_skull(parts, old, brain_map=None):
         signs.append(1.0 if np.einsum('ij,ij->i', P[F[:, 0]], np.cross(P[F[:, 1]], P[F[:, 2]])).sum() >= 0 else -1.0)
     old_trees = [_tree(me) for me in old.values()]
     lo, hi = _bbox([v.co for me in old.values() for v in me.vertices])
+    nose = max(v.co.x for me in new.values() for v in me.vertices) - 0.01 * (hi.x - lo.x)
     L = hi.x - lo.x
     r_in, r_out = 0.1 * L, 0.45 * L
     moved = 0
@@ -541,6 +568,11 @@ def follow_skull(parts, old, brain_map=None):
         w = (t * t * (3 - 2 * t))[:, None]
         Q = np.array([v.co[:] for v in vs])
         T = Q + (warp(Q) - Q) * w
+        # Dog face muscles run to the tip of a long muzzle; the warp would
+        # carry them past a short real rostrum: keep head tissue behind it.
+        if p['system'] in ('muscle', 'surface', 'connective'):
+            head = w[:, 0] > 0.5
+            T[head, 0] = np.minimum(T[head, 0], nose)
         if brain_map is not None and p['id'].startswith('n_cranial'):
             blo, bhi, bc, cc, k = (np.array(x[:]) for x in brain_map)
             gap = np.maximum(np.maximum(blo - Q, Q - bhi), 0).max(1)

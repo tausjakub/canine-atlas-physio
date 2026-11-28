@@ -172,6 +172,7 @@ if not PROCEDURAL:
     import real_bones
     importlib.reload(real_bones)
     real_bones.replace_bones(dog, S)
+    real_bones.replace_single(dog, S)
     old_head = real_skulls.replace_skull(dog, S)
     if old_head:
         brain_map = real_skulls.fit_brain(organs, next(p['ob'] for p in dog if p['id'] == 'MergedSkull'))

@@ -91,10 +91,12 @@ S = {
     },
     # Standing pose from limb segment angles (species_derive.apply_stance).
     'stance': {'humerus': -130, 'radius': -98, 'manus': -42, 'femur': -45, 'tibia': -158, 'pes': -10, 'toes': -6, 'arch': 0.022, 'head_pitch': -6,
-               'neck_raise': 0.035},  # head carried up: the crown above the back line
+               'neck_raise': 0.01},  # the skull sits on the atlas; a slightly upright neck
     # Real skull and mandible (CC BY 4.0), see scripts/blender/real_skulls.py.
     # Skull ~21% of rostrum-to-ischium length in domestic rabbits (the warp alone gives 17%).
     'head_scale': 1.32,
+    # Scans of a European rabbit's left humerus and femur (CDHR ANU, CC BY).
+    'bone_scans': {'humerus': 'rabbit/humerus.glb', 'Femoris': 'rabbit/femur.glb'},
     'skull_scan': {'skull': 'rabbit/skull.glb', 'jaw': 'rabbit/jaw.glb', 'up': 'z', 'reference': 'rabbit/reference.glb'},
     'skull': build_skull,
     'limbs': build_limbs,

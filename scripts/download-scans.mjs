@@ -14,6 +14,8 @@ const files = [
   ['rabbit/jaw.glb', H + '000-048/65d078562ec44d5a802a7e18fac7b639.glb'],
   // Articulated leporid skull: only the mandible's placement is taken from it.
   ['rabbit/reference.glb', H + '000-070/0f1072891e96483187cfa924ab0764dc.glb'],
+  ['rabbit/humerus.glb', H + '000-013/ab8e61889ad1483fa5b4a967b2b8a658.glb'],
+  ['rabbit/femur.glb', H + '000-005/4e1b6f0c45d1446993c828b53369582c.glb'],
   ['ferret/skull.glb', H + '000-005/062cc6aa52e64784b969738d81d4ceff.glb'],
   ['guinea_pig/skull.glb', H + '000-013/385b2c21ad1b47b3a4f50eb875a917ef.glb'],
 ];

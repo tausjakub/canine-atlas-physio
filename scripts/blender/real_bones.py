@@ -292,3 +292,48 @@ def replace_organs(organs, S):
         if o.name in bpy.data.objects:
             bpy.data.objects.remove(o)
     print(f'organ scan: {done} organs replaced by {cfg["file"]}', flush=True)
+
+
+def replace_single(parts, S):
+    """Scans of single bones (S['bone_scans'] = {bone: file}), fitted onto the
+    retargeted bone on both sides; the mirror image of the scan is tried as
+    well, since a scan shows one side only, and the better fit wins."""
+    scans = S.get('bone_scans') or {}
+    by = {p['id']: p for p in parts}
+    done = 0
+    for bone, f in scans.items():
+        path = os.path.join(R.SCANS, f)
+        if not os.path.exists(path):
+            print(f'bone scan missing ({path})', flush=True)
+            continue
+        src = R._import(path)
+        R._decimate(src, 6000)
+        P = np.array([v.co[:] for v in src.data.vertices])
+        F = [list(p.vertices) for p in src.data.polygons]
+        bpy.data.objects.remove(src)
+        for side in ('L', 'R'):
+            pid = f'{bone}_{side}'
+            if pid not in by:
+                continue
+            target = by[pid]['ob']
+            best = None
+            for mirror in (1, -1):
+                ob = _mesh('scan_' + pid, P * [1, 1, mirror], F, 1800)
+                A = np.array([v.co[:] for v in ob.data.vertices])
+                T, err = _fit(A, target, axes=True)
+                if best is None or err < best[1]:
+                    if best:
+                        bpy.data.objects.remove(best[0])
+                    best = (ob, err, T)
+                else:
+                    bpy.data.objects.remove(ob)
+            ob, err, T = best
+            ob.data.transform(Matrix(T.tolist()))
+            target.data = ob.data
+            target.data.name = pid
+            target['scan'] = 1
+            by[pid]['meta'] = {**(by[pid].get('meta') or {}), 'scan': 'bone'}
+            bpy.data.objects.remove(ob)
+            done += 1
+    if scans:
+        print(f'single bone scans: {done} bones replaced', flush=True)

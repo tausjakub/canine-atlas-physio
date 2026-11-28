@@ -425,6 +425,18 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
               Math.max(1, 1 / camera.aspect) *
               1.05;
           }
+          // The camera toolbar covers the canvas' left edge: frame the model
+          // about 60 px to the right of the canvas centre.
+          const width = renderer.domElement.clientWidth || 1;
+          const span =
+            2 *
+            Math.max(fit, 0.08) *
+            Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) *
+            camera.aspect;
+          const across = new THREE.Vector3(0, 1, 0)
+            .cross(dir.clone().normalize())
+            .normalize();
+          center.addScaledVector(across, (-60 / width) * span);
           controls.target.copy(center);
           camera.position
             .copy(center)

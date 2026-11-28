@@ -300,6 +300,14 @@ const SKELETON_CREDITS = {
     url: 'https://sketchfab.com/3d-models/a5d0bb8f55dc4f49b103cd20d65e0b17',
   },
 };
+// Scans of single bones (real_bones.replace_single marks them meta.scan 'bone').
+const BONE_CREDITS = {
+  rabbit: {
+    title:
+      'European rabbit humerus and femur by Sofia Samper Carro, Skullbook Digital Bone Library, CDHR, Australian National University (CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/ab8e61889ad1483fa5b4a967b2b8a658',
+  },
+};
 // Ferret and guinea pig are built on the cat and rabbit templates.
 const info = {
   cat: ['cat', 'Felis catus', 'kočka domácí', 'domestic cat'],
@@ -342,6 +350,12 @@ for (const species of Object.keys(info)) {
         `${study.difference.cs} Tvar této kosti pochází z 3D skenu skutečného exempláře: ${scan.title}.`,
         `${study.difference.en} This bone's shape comes from a 3D scan of a real specimen: ${scan.title}.`,
       );
+    const single = BONE_CREDITS[species];
+    if (single && meta?.scan === 'bone')
+      study.difference = pair(
+        `${study.difference.cs} Tvar této kosti pochází z 3D skenu skutečné kosti: ${single.title}; poloha a velikost odpovídají atlasu.`,
+        `${study.difference.en} This bone's shape comes from a 3D scan of a real bone: ${single.title}; its position and size follow the atlas.`,
+      );
     const skeleton = SKELETON_CREDITS[species];
     if (skeleton && meta?.scan === 'skeleton')
       study.difference = pair(
@@ -365,6 +379,7 @@ for (const species of Object.keys(info)) {
       ...sources[species],
       ...(SKULL_CREDITS[species] ? [SKULL_CREDITS[species]] : []),
       ...(SKELETON_CREDITS[species] ? [SKELETON_CREDITS[species]] : []),
+      ...(BONE_CREDITS[species] ? [BONE_CREDITS[species]] : []),
     ],
     scientificName,
     scope: pair(
@@ -384,6 +399,9 @@ for (const species of Object.keys(info)) {
         : '') +
       (SKELETON_CREDITS[species]
         ? `; girdle, long bones, vertebrae and ribs: ${SKELETON_CREDITS[species].title}, ${SKELETON_CREDITS[species].url}`
+        : '') +
+      (BONE_CREDITS[species]
+        ? `; humerus and femur: ${BONE_CREDITS[species].title}, ${BONE_CREDITS[species].url}`
         : ''),
   };
   const dir = new URL(`public/models/${species}/`, root);
