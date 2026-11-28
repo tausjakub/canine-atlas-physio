@@ -7,6 +7,7 @@
 // Geometry is authored parametrically in scripts/blender (no scans, sculpts or
 // dog meshes). Muscle study text comes from scripts/blender/muscles_table.py;
 // bone study text from scripts/species-study.mjs.
+import { pack16 } from './pack16.mjs';
 import fs from 'node:fs';
 import { studyFor } from './species-study.mjs';
 
@@ -404,11 +405,14 @@ for (const species of Object.keys(info)) {
         ? `; humerus and femur: ${BONE_CREDITS[species].title}, ${BONE_CREDITS[species].url}`
         : ''),
   };
+  const packed = pack16(atlas.parts, geometry);
+  atlas.parts = packed.parts;
+  atlas.bytes = packed.buffer.length;
   const dir = new URL(`public/models/${species}/`, root);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(new URL('anatomy.bin', dir), geometry);
+  fs.writeFileSync(new URL('anatomy.bin', dir), packed.buffer);
   fs.writeFileSync(new URL('catalog.json', dir), JSON.stringify(atlas));
   console.log(
-    `${species}: ${parts.length} parts (${muscles} muscles), ${(raw.bytes / 1e6).toFixed(1)} MB`,
+    `${species}: ${parts.length} parts (${muscles} muscles), ${(atlas.bytes / 1e6).toFixed(1)} MB`,
   );
 }

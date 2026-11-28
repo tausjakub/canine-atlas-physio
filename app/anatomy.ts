@@ -16,6 +16,8 @@ export type Part = {
   vertexOffset: number;
   vertexCount: number;
   indexOffset: number;
+  // 16 when the indices are uint16 (species packs); absent means uint32.
+  indexBits?: 16;
   indexCount: number;
   center: number[];
   bounds: number[][];

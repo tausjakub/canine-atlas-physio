@@ -295,7 +295,9 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
             );
             g.setIndex(
               new THREE.BufferAttribute(
-                new Uint32Array(source, p.indexOffset, p.indexCount),
+                p.indexBits === 16
+                  ? new Uint16Array(source, p.indexOffset, p.indexCount)
+                  : new Uint32Array(source, p.indexOffset, p.indexCount),
                 1,
               ),
             );
@@ -320,8 +322,10 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
           }
           scene.add(m);
           meshes.push(m);
-          // Text anchored in 3D (rib numbers), drawn over the model.
-          m.userData.labels = (p.labels ?? []).map(({ text, at }) => {
+          // Text anchored in 3D (rib numbers, body regions), drawn over the
+          // model. Nerves carry no numbers: their names are on the card.
+          const labels = p.system === 'nerve' ? [] : (p.labels ?? []);
+          m.userData.labels = labels.map(({ text, at }) => {
             const sprite = textSprite(text, '#ffe9a8');
             sprite.position.set(at[0], at[1] + 0.012, at[2]);
             scene.add(sprite);
@@ -436,7 +440,8 @@ if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
           const across = new THREE.Vector3(0, 1, 0)
             .cross(dir.clone().normalize())
             .normalize();
-          center.addScaledVector(across, (-60 / width) * span);
+          // Only the main viewer has the toolbar; the compare cells do not.
+          if (width > 600) center.addScaledVector(across, (-60 / width) * span);
           controls.target.copy(center);
           camera.position
             .copy(center)

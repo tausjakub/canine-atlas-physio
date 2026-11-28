@@ -11,6 +11,7 @@
 // The app merges each pack into its species atlas; each part names its own binary.
 import fs from 'node:fs';
 import { organStudy, organStudyFor } from './organs-study.mjs';
+import { pack16 } from './pack16.mjs';
 import { clinicalStudy, clinicalStudyFor } from './clinical-study.mjs';
 
 const root = new URL('../', import.meta.url);
@@ -125,20 +126,21 @@ for (const name of process.argv[2] ? [process.argv[2]] : Object.keys(packs)) {
   );
   if (missing.length)
     throw Error(`${name}: built model lacks ${missing.join(', ')}`);
+  const packed = pack16(parts, Buffer.concat(chunks));
   const out = new URL(pack.out, root);
   fs.mkdirSync(out, { recursive: true });
-  fs.writeFileSync(new URL('anatomy.bin', out), Buffer.concat(chunks));
+  fs.writeFileSync(new URL('anatomy.bin', out), packed.buffer);
   fs.writeFileSync(
     new URL('catalog.json', out),
     JSON.stringify({
-      bytes: offset,
+      bytes: packed.buffer.length,
       binaryPath,
       attribution: pack.attribution,
-      parts,
+      parts: packed.parts,
     }),
   );
   console.log(
-    `${name} organs: ${parts.length} parts, ${(offset / 1e6).toFixed(2)} MB`,
+    `${name} organs: ${parts.length} parts, ${(packed.buffer.length / 1e6).toFixed(2)} MB`,
   );
 }
 // Muscle attachment points computed from the dog model (scripts/blender/clinical.py).

@@ -29,7 +29,11 @@ for (const dir of ['', 'cat/', 'rabbit/', 'ferret/', 'guinea_pig/'])
       assert(!ids.has(p.id), `${where}: duplicate id`);
       ids.add(p.id);
       assert(p.vertexOffset + p.vertexCount * 12 <= cat.bytes, where);
-      assert(p.indexOffset + p.indexCount * 4 <= cat.bytes, where);
+      assert(
+        p.indexOffset + p.indexCount * (p.indexBits === 16 ? 2 : 4) <=
+          cat.bytes,
+        where,
+      );
       text(p.label, where + ' label');
       text(p.action, where + ' action');
       for (const k of [
