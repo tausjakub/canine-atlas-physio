@@ -81,15 +81,23 @@ S = {
     'linea': [(0.03, 0.058, 0), (-0.02, 0.064, 0), (-0.07, 0.072, 0), (-0.11, 0.098, 0), (-0.127, 0.103, 0)],
     'retarget': {
         'fore_toe': (0.178, 0.004, 0.024), 'hind_toe': (-0.085, 0.004, 0.028), 'hind_mtp': (-0.112, 0.008, 0.029), 'orbit': 0.45, 'jaw_close': 0.95,
-        'girth': {'cranium': 1.0, 'face': 1.18, 'neck': 1.0, 'thorax': 0.85, 'lumbar': 0.9, 'pelvis': 0.95, 'tail': 1.5,
-                  'scap': 0.8, 'arm': 0.75, 'forearm': 0.7, 'manus': 0.8, 'thigh': 1.0, 'crus': 0.95, 'pes': 0.9},
-        'width': {'cranium': 0.95, 'face': 0.6},
+        # Slim neck and shoulders: a rabbit's highest point is the lumbar back, not the withers.
+        'girth': {'cranium': 1.0, 'face': 1.18, 'neck': 0.8, 'thorax': 0.85, 'lumbar': 0.9, 'pelvis': 0.95, 'tail': 1.5,
+                  'scap': 0.7, 'arm': 0.75, 'forearm': 0.7, 'manus': 0.8, 'thigh': 1.0, 'crus': 0.95, 'pes': 0.9},
+        'width': {'cranium': 0.95, 'face': 0.8},
         # Post-warp head shaping (fractions of skull length).
         'head_shape': {'orbit_at': 0.45, 'orbit_up': 0.06, 'orbit_radius': 0.36, 'orbit_grow': 0.9,
                        'nasal': (0.5, 1.0, 0.04)},
     },
     # Standing pose from limb segment angles (species_derive.apply_stance).
-    'stance': {'humerus': -130, 'radius': -98, 'manus': -42, 'femur': -45, 'tibia': -158, 'pes': -10, 'toes': -6, 'arch': 0.022, 'head_pitch': -12},
+    'stance': {'humerus': -130, 'radius': -98, 'manus': -42, 'femur': -45, 'tibia': -158, 'pes': -10, 'toes': -6, 'arch': 0.022, 'head_pitch': -6,
+               'neck_raise': 0.01},  # the skull sits on the atlas; a slightly upright neck
+    # Real skull and mandible (CC BY 4.0), see scripts/blender/real_skulls.py.
+    # Skull ~21% of rostrum-to-ischium length in domestic rabbits (the warp alone gives 17%).
+    'head_scale': 1.32,
+    # Scans of a European rabbit's left humerus and femur (CDHR ANU, CC BY).
+    'bone_scans': {'humerus': 'rabbit/humerus.glb', 'Femoris': 'rabbit/femur.glb'},
+    'skull_scan': {'skull': 'rabbit/skull.glb', 'jaw': 'rabbit/jaw.glb', 'up': 'z', 'reference': 'rabbit/reference.glb'},
     'skull': build_skull,
     'limbs': build_limbs,
 }

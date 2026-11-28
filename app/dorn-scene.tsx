@@ -78,7 +78,9 @@ function geometryFor(part: Part, buffer: ArrayBuffer) {
   );
   geometry.setIndex(
     new THREE.BufferAttribute(
-      new Uint32Array(buffer, part.indexOffset, part.indexCount),
+      part.indexBits === 16
+        ? new Uint16Array(buffer, part.indexOffset, part.indexCount)
+        : new Uint32Array(buffer, part.indexOffset, part.indexCount),
       1,
     ),
   );

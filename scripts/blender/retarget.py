@@ -230,6 +230,20 @@ CANDIDATES = {
 }
 
 
+# Muscles that start and end on the thoracic limb (scapula to digits) follow
+# only limb segments, so they stay on a shortened limb instead of being pulled
+# into a sheet toward the trunk.
+FORE_INTRINSIC = {'triceps_brachii_long', 'triceps_brachii_lateral', 'triceps_brachii_medial', 'triceps_brachii_accessory',
+                  'anconeus', 'biceps_brachii', 'brachialis', 'coracobrachialis', 'supraspinatus', 'infraspinatus',
+                  'subscapularis', 'teres_major', 'teres_minor', 'deltoideus_acromialis', 'deltoideus_scapularis',
+                  'pronator_teres', 'flexor_carpi_ulnaris', 'extensor_digitorum_communis', 'extensor_digitorum_lat',
+                  'flexor_digitorum_superficialis_fore', 'flexor_digitorum_profundus_fore'}
+HIND_INTRINSIC = {'biceps_femoris', 'semitendinosus', 'semimembranosus', 'gastrocnemius', 'tibialis_cranialis',
+                  'tibialis_caudalis', 'extensor_digitorum_longus', 'extensor_digitorum_lateralis', 'peroneus_longus',
+                  'peroneus_brevis', 'popliteus', 'flexor_digitorum_superficialis_hind', 'flexor_digitorum_profundus_hind',
+                  'vastus_lat', 'vastus_med', 'vastus_intermedius', 'rectus_femoris', 'gracilis', 'adductor_magnus',
+                  'adductor_longus', 'pectineus', 'quadratus_femoris', 'gemellus', 'obturatorius_int', 'obturatorius_ext',
+                  'gluteus_medius', 'gluteus_profundus_minor'}
 # Abdominal wall: also follows the thigh near the groin (closes the inguinal gap).
 ABDOMINAL = {'obliquus_ext_abdominis', 'obliquus_int_abdominis', 'tranversus_abdominis', 'rectus_abdominis'}
 
@@ -345,6 +359,10 @@ def warp(parts, segs, power=4.0, eps=0.004, trees=None):
         allowed = CANDIDATES['NeckLimb' if p.get('profile') in NECK_LIMB else p.get('region', 'Neck & trunk')]
         if p.get('profile') in ABDOMINAL:
             allowed = allowed | {'thigh'}
+        if p.get('profile') in FORE_INTRINSIC:
+            allowed = {'scap', 'arm', 'forearm', 'manus'}
+        elif p.get('profile') in HIND_INTRINSIC:
+            allowed = {'pelvis', 'thigh', 'crus', 'pes', 'hdigits'}
         if p['system'] == 'organ':
             allowed = allowed - {'tail'}  # pelvic organs stay in the pelvis, not on the tail curve
         cand = [s for s in segs if s.name.split('_')[0].rstrip('0123456789') in allowed
@@ -356,3 +374,48 @@ def warp(parts, segs, power=4.0, eps=0.004, trees=None):
             tot = sum(w for w, _ in ws)
             v.co = sum((s.apply(co) * (w / tot) for w, s in ws), Vector())
         me.update()
+
+
+def relax_stretched(parts, rest, ratio=1.6, iterations=25, step=0.5):
+    """Smooth muscle vertices whose edges stretched far more than the rest of
+    the same muscle during the warp (thin plates pulled out when a limb is much
+    shorter than the trunk). Stretch is relative to the muscle's median, so a
+    uniformly smaller species is untouched."""
+    import numpy as np
+    for p in parts:
+        if p['system'] != 'muscle' or p['id'] not in rest:
+            continue
+        me = p['ob'].data
+        n = len(me.vertices)
+        if n < 8:
+            continue
+        before = rest[p['id']]
+        after = np.array([v.co[:] for v in me.vertices])
+        e = np.array([ed.vertices[:] for ed in me.edges])
+        if len(e) == 0:
+            continue
+        l0 = np.linalg.norm(before[e[:, 0]] - before[e[:, 1]], axis=1) + 1e-9
+        l1 = np.linalg.norm(after[e[:, 0]] - after[e[:, 1]], axis=1)
+        s = l1 / l0
+        s = s / np.median(s)
+        vs = np.zeros(n)
+        cnt = np.zeros(n)
+        for k in (0, 1):
+            np.add.at(vs, e[:, k], s)
+            np.add.at(cnt, e[:, k], 1)
+        stretch = vs / np.maximum(cnt, 1)
+        bad = stretch > ratio
+        if not bad.any():
+            continue
+        w = np.clip((stretch - ratio) / ratio, 0, 1)[:, None] * step
+        pos = after.copy()
+        for _ in range(iterations):
+            acc = np.zeros_like(pos)
+            np.add.at(acc, e[:, 0], pos[e[:, 1]])
+            np.add.at(acc, e[:, 1], pos[e[:, 0]])
+            avg = acc / np.maximum(cnt, 1)[:, None]
+            pos = pos + (avg - pos) * w
+        for v, co in zip(me.vertices, pos):
+            v.co = co
+        me.update()
+        print(f'relaxed {p["id"]}: {int(bad.sum())} stretched vertices', flush=True)

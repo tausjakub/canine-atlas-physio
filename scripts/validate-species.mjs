@@ -86,7 +86,9 @@ for (const species of ['cat', 'rabbit', 'ferret', 'guinea_pig']) {
   for (const p of atlas.parts) {
     assert(p.label.cs && p.label.en && p.action.cs && p.action.en);
     assert(p.vertexCount > 0 && p.indexCount % 3 === 0);
-    assert(p.indexOffset + p.indexCount * 4 <= bytes.length);
+    const ib = p.indexBits === 16 ? 2 : 4;
+    assert(p.indexOffset + p.indexCount * ib <= bytes.length);
+    assert(p.vertexOffset % 4 === 0 && p.indexOffset % ib === 0);
     for (const field of [
       'location',
       'connections',
@@ -108,7 +110,11 @@ for (const species of ['cat', 'rabbit', 'ferret', 'guinea_pig']) {
       rest[i] = bytes.readFloatLE(p.vertexOffset + i * 4);
     assert(rest.every(Number.isFinite));
     for (let i = 0; i < p.indexCount; i++)
-      assert(bytes.readUInt32LE(p.indexOffset + i * 4) < p.vertexCount);
+      assert(
+        (ib === 2
+          ? bytes.readUInt16LE(p.indexOffset + i * 2)
+          : bytes.readUInt32LE(p.indexOffset + i * 4)) < p.vertexCount,
+      );
     const bindings = p.system === 'bone' ? null : bindSoftVertices(rest, bones);
     for (const view of views) {
       const posed = bindings

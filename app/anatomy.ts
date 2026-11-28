@@ -16,6 +16,8 @@ export type Part = {
   vertexOffset: number;
   vertexCount: number;
   indexOffset: number;
+  // 16 when the indices are uint16 (species packs); absent means uint32.
+  indexBits?: 16;
   indexCount: number;
   center: number[];
   bounds: number[][];
@@ -58,6 +60,12 @@ export type SceneState = {
   // Joint motion (gait player, range-of-motion sliders), muscles to highlight by
   // id fragment, one part moved out of place (drill), instructor pins, high contrast.
   motion?: import('./poses').Motion | null;
+  // Gait player: the scene advances the phase itself while playing.
+  gait?: {
+    kind: import('./gait').GaitKind;
+    playing: boolean;
+    phase?: number;
+  } | null;
   highlight?: string[];
   displace?: { id: string; by: number[] } | null;
   pins?: { at: number[]; text: string }[];

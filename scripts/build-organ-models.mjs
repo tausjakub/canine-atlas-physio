@@ -11,9 +11,15 @@
 // The app merges each pack into its species atlas; each part names its own binary.
 import fs from 'node:fs';
 import { organStudy, organStudyFor } from './organs-study.mjs';
+import { pack16 } from './pack16.mjs';
 import { clinicalStudy, clinicalStudyFor } from './clinical-study.mjs';
 
 const root = new URL('../', import.meta.url);
+// CT-based organ models whose organs replace the schematic ones
+// (scripts/blender/real_bones.py replace_organs marks them meta.scan).
+const ORGAN_SCAN = {
+  cat: 'Normal Feline Anatomy - Digestive System by pixelbeaker (Sketchfab ab92a2a9, CC BY 4.0), placed by one fit of the organ centroids',
+};
 const BRAIN =
   'Brain: Johnson PJ, Barry EF (2019) Cortical Atlas of the Canine Brain, Cornell eCommons, doi:10.7298/4t8z-aw34 (CC0).';
 const packs = {
@@ -30,7 +36,8 @@ const packs = {
         work: `work/species/${sp}/organs/`,
         out: `public/models/${sp}/organs/`,
         cards: organStudyFor(sp),
-        attribution: `Dog organ layer retargeted to the ${sp.replace('_', ' ')}. ${BRAIN} Other organs: schematic shapes authored for Canine Atlas.`,
+        attribution: `Dog organ layer retargeted to the ${sp.replace('_', ' ')}. ${BRAIN} ${ORGAN_SCAN[sp] ? `Liver, stomach, intestines, kidneys and bladder: ${ORGAN_SCAN[sp]}. ` : ''}Other organs: schematic shapes authored for Canine Atlas.`,
+        scan: ORGAN_SCAN[sp],
       },
     ]),
   ),
@@ -73,8 +80,21 @@ for (const name of process.argv[2] ? [process.argv[2]] : Object.keys(packs)) {
   const parts = built.parts
     .filter((p) => pack.cards[p.id] || !p.id.endsWith('_rabbit'))
     .map((p) => {
-      const card = pack.cards[p.id];
+      let card = pack.cards[p.id];
       if (!card) throw Error(`${name}: no study card for ${p.id}`);
+      if (pack.scan && p.meta?.scan === 'organs') {
+        const d = card.study.difference;
+        card = {
+          ...card,
+          study: {
+            ...card.study,
+            difference: {
+              cs: `${d.cs} Tvar orgánu pochází z modelu podle CT: ${pack.scan}.`,
+              en: `${d.en} The organ's shape comes from a CT-based model: ${pack.scan}.`,
+            },
+          },
+        };
+      }
       const vb = geometry.subarray(
         p.vertexOffset,
         p.vertexOffset + p.vertexCount * 12,
@@ -106,20 +126,21 @@ for (const name of process.argv[2] ? [process.argv[2]] : Object.keys(packs)) {
   );
   if (missing.length)
     throw Error(`${name}: built model lacks ${missing.join(', ')}`);
+  const packed = pack16(parts, Buffer.concat(chunks));
   const out = new URL(pack.out, root);
   fs.mkdirSync(out, { recursive: true });
-  fs.writeFileSync(new URL('anatomy.bin', out), Buffer.concat(chunks));
+  fs.writeFileSync(new URL('anatomy.bin', out), packed.buffer);
   fs.writeFileSync(
     new URL('catalog.json', out),
     JSON.stringify({
-      bytes: offset,
+      bytes: packed.buffer.length,
       binaryPath,
       attribution: pack.attribution,
-      parts,
+      parts: packed.parts,
     }),
   );
   console.log(
-    `${name} organs: ${parts.length} parts, ${(offset / 1e6).toFixed(2)} MB`,
+    `${name} organs: ${parts.length} parts, ${(packed.buffer.length / 1e6).toFixed(2)} MB`,
   );
 }
 // Muscle attachment points computed from the dog model (scripts/blender/clinical.py).

@@ -7,6 +7,7 @@
 // Geometry is authored parametrically in scripts/blender (no scans, sculpts or
 // dog meshes). Muscle study text comes from scripts/blender/muscles_table.py;
 // bone study text from scripts/species-study.mjs.
+import { pack16 } from './pack16.mjs';
 import fs from 'node:fs';
 import { studyFor } from './species-study.mjs';
 
@@ -161,7 +162,7 @@ function boneLabel(id) {
 
 // Solve illustrative sitting/lying poses: two-bone chains keep their segment
 // lengths. A teaching pose, not measured joint range or a movement prescription.
-function solvePoses(J, rabbit) {
+function solvePoses(J, rabbit, upright = false) {
   const v = (p) => p.slice(0, 2);
   const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   const direction = (a, b) => Math.atan2(b[1] - a[1], b[0] - a[0]);
@@ -173,7 +174,29 @@ function solvePoses(J, rabbit) {
   const ground = Math.min(toe[1], hindtoe[1]);
   const out = {};
   for (const pose of ['sitting', 'lying']) {
-    const trunk = pose === 'sitting' ? (rabbit ? 0.45 : 0.62) : 0;
+    // Sitting tips the trunk about the shoulder, but never so far that the
+    // hip drops below about 30% of its standing height: long-bodied, short-
+    // legged species (cat, ferret) would otherwise sit through the floor and
+    // the leg solver would throw the hind limbs backwards.
+    // An upright sit (cat) straightens the forelimbs under the shoulder, which
+    // lifts the shoulder by the bend of the standing elbow; the trunk can then
+    // tip further and the hip comes down close to the ground.
+    const sit = pose === 'sitting';
+    const dirH = direction(shoulder, elbow),
+      dirF = direction(elbow, carpus);
+    const rise =
+      sit && upright
+        ? carpus[1] + dist(shoulder, elbow) + dist(elbow, carpus) - shoulder[1]
+        : 0;
+    const hipLift = (a) =>
+      rise +
+      shoulder[1] +
+      (hip[0] - shoulder[0]) * Math.sin(a) +
+      (hip[1] - shoulder[1]) * Math.cos(a);
+    let trunk = sit ? (upright ? 0.95 : rabbit ? 0.45 : 0.62) : 0;
+    const floor = upright ? 0.22 : 0.3;
+    while (trunk > 0 && hipLift(trunk) < ground + floor * (hip[1] - ground))
+      trunk -= 0.01;
     const lower = pose === 'lying' ? J.lower : 0;
     const transform = (p) => [
       shoulder[0] +
@@ -182,7 +205,8 @@ function solvePoses(J, rabbit) {
       shoulder[1] +
         (p[0] - shoulder[0]) * Math.sin(trunk) +
         (p[1] - shoulder[1]) * Math.cos(trunk) -
-        lower,
+        lower +
+        rise,
     ];
     const solve = (origin, mid, end, target, sign) => {
       const base = transform(origin),
@@ -217,7 +241,9 @@ function solvePoses(J, rabbit) {
     const fore =
       pose === 'lying'
         ? solve(shoulder, elbow, carpus, targetCarpus, -1)
-        : [-trunk, 0];
+        : upright
+          ? [-Math.PI / 2 - dirH - trunk, dirH - dirF] // humerus and forearm vertical
+          : [-trunk, 0];
     const footAngle = (a, b, height) =>
       Math.asin(Math.max(-1, Math.min(1, (ground - height) / dist(a, b)))) -
       direction(a, b);
@@ -226,6 +252,7 @@ function solvePoses(J, rabbit) {
     const hindfoot =
       footAngle(hock, hindtoe, targetHock[1]) - trunk - hind[0] - hind[1];
     out[pose] = {
+      ...(rise ? { rise } : {}),
       trunk,
       arm: fore[0],
       forearm: fore[1],
@@ -242,6 +269,46 @@ function solvePoses(J, rabbit) {
 }
 
 const only = process.argv[2];
+// Real skull and mandible scans (CC BY 4.0) replace the retargeted dog skull
+// (scripts/blender/real_skulls.py).
+const SKULL_CREDITS = {
+  cat: {
+    title:
+      'Domestic cat (Felis catus) CT, courtesy of Dr Tobias Schwarz, prepared by Brian Mather, Royal (Dick) School of Veterinary Studies, The University of Edinburgh (CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/7c99ca836d834c39872ecf5e9b5e2087',
+  },
+  rabbit: {
+    title:
+      'Oryctolagus cuniculus MZB 97-0280, Museu de Ciències Naturals de Barcelona (CC BY 4.0); mandible placed on the articulated rabbit skull 178.05 of the RISD Nature Lab (CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/6640c63cf58341758e99255cec1a8976',
+  },
+  ferret: {
+    title:
+      'Mustela putorius (European polecat, wild form of the ferret) 27896, skull and mandible articulated, Mammal Research Institute PAS, Open Forest Data (CC BY 4.0)',
+    url: 'https://doi.org/10.48370/OFD/RWXIPA',
+  },
+  guinea_pig: {
+    title: 'Cavia porcellus 122.17, RISD Nature Lab (CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/385b2c21ad1b47b3a4f50eb875a917ef',
+  },
+};
+// Complete skeleton models whose bones replace the main retargeted bones
+// (scripts/blender/real_bones.py marks them with meta.scan).
+const SKELETON_CREDITS = {
+  cat: {
+    title:
+      'Feline Skeleton Dec by westerly, an anatomical sculpt of a cat skeleton (Sketchfab, CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/a5d0bb8f55dc4f49b103cd20d65e0b17',
+  },
+};
+// Scans of single bones (real_bones.replace_single marks them meta.scan 'bone').
+const BONE_CREDITS = {
+  rabbit: {
+    title:
+      'European rabbit humerus and femur by Sofia Samper Carro, Skullbook Digital Bone Library, CDHR, Australian National University (CC BY 4.0)',
+    url: 'https://sketchfab.com/3d-models/ab8e61889ad1483fa5b4a967b2b8a658',
+  },
+};
 // Ferret and guinea pig are built on the cat and rabbit templates.
 const info = {
   cat: ['cat', 'Felis catus', 'kočka domácí', 'domestic cat'],
@@ -278,12 +345,30 @@ for (const species of Object.keys(info)) {
       };
     }
     const study = studyFor(p.id, p.system, p.anatomicalRegion, species);
+    const scan = SKULL_CREDITS[species];
+    if (scan && (p.id === 'MergedSkull' || p.id === 'Jaw'))
+      study.difference = pair(
+        `${study.difference.cs} Tvar této kosti pochází z 3D skenu skutečného exempláře: ${scan.title}.`,
+        `${study.difference.en} This bone's shape comes from a 3D scan of a real specimen: ${scan.title}.`,
+      );
+    const single = BONE_CREDITS[species];
+    if (single && meta?.scan === 'bone')
+      study.difference = pair(
+        `${study.difference.cs} Tvar této kosti pochází z 3D skenu skutečné kosti: ${single.title}; poloha a velikost odpovídají atlasu.`,
+        `${study.difference.en} This bone's shape comes from a 3D scan of a real bone: ${single.title}; its position and size follow the atlas.`,
+      );
+    const skeleton = SKELETON_CREDITS[species];
+    if (skeleton && meta?.scan === 'skeleton')
+      study.difference = pair(
+        `${study.difference.cs} Tvar této kosti pochází z modelu celé kostry: ${skeleton.title}; poloha a velikost odpovídají atlasu.`,
+        `${study.difference.en} This bone's shape comes from a complete skeleton model: ${skeleton.title}; its position and size follow the atlas.`,
+      );
     return { ...p, label: boneLabel(p.id), action: study.connections, study };
   });
   const J = raw.pose;
   const shoulderY = J.joints.shoulder[1];
   const poseConfig = { ...J, lower: shoulderY * 0.42 };
-  poseConfig.angles = solvePoses(poseConfig, rabbit);
+  poseConfig.angles = solvePoses(poseConfig, rabbit, species === 'cat');
   const muscles = parts.filter((p) => p.system === 'muscle').length;
   const atlas = {
     species,
@@ -291,7 +376,12 @@ for (const species of Object.keys(info)) {
     bytes: raw.bytes,
     binaryPath: `/models/${species}/anatomy.bin`,
     poseConfig,
-    sources: sources[species],
+    sources: [
+      ...sources[species],
+      ...(SKULL_CREDITS[species] ? [SKULL_CREDITS[species]] : []),
+      ...(SKELETON_CREDITS[species] ? [SKELETON_CREDITS[species]] : []),
+      ...(BONE_CREDITS[species] ? [BONE_CREDITS[species]] : []),
+    ],
     scientificName,
     scope: pair(
       `3D model vytvořený v Blenderu přenesením profesionálního psího modelu MusculoskeletalDog (MIT) na proporce druhu ${nameCs}${base !== species ? ` (přes šablonu: ${base === 'cat' ? 'kočka' : 'králík'})` : ''}: ${parts.length - muscles} kostních částí a ${muscles} samostatných svalů (obě strany) s druhovými názvy, vrstvami a doplněnými svaly, které pes nemá. Jde o studijní pomůcku, ne o CT, sken ani odborně ověřenou disekci; tvary kostí a svalů zůstávají částečně psí. Chybí cévy, nervy, vazy a orgány.`,
@@ -304,13 +394,25 @@ for (const species of Object.keys(info)) {
       'Derived from MusculoskeletalDog, © 2025 Vittorio La Barbera, MIT licence (models/LICENSE-MODEL.txt), retargeted by scripts/blender. Anatomical references inform names, layers and attachments.',
     ),
     attribution:
-      'MusculoskeletalDog by Vittorio La Barbera (MIT), https://github.com/vittorione94/MusculoskeletalDog',
+      'MusculoskeletalDog by Vittorio La Barbera (MIT), https://github.com/vittorione94/MusculoskeletalDog' +
+      (SKULL_CREDITS[species]
+        ? `; skull and mandible: ${SKULL_CREDITS[species].title}, ${SKULL_CREDITS[species].url}`
+        : '') +
+      (SKELETON_CREDITS[species]
+        ? `; girdle, long bones, vertebrae and ribs: ${SKELETON_CREDITS[species].title}, ${SKELETON_CREDITS[species].url}`
+        : '') +
+      (BONE_CREDITS[species]
+        ? `; humerus and femur: ${BONE_CREDITS[species].title}, ${BONE_CREDITS[species].url}`
+        : ''),
   };
+  const packed = pack16(atlas.parts, geometry);
+  atlas.parts = packed.parts;
+  atlas.bytes = packed.buffer.length;
   const dir = new URL(`public/models/${species}/`, root);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(new URL('anatomy.bin', dir), geometry);
+  fs.writeFileSync(new URL('anatomy.bin', dir), packed.buffer);
   fs.writeFileSync(new URL('catalog.json', dir), JSON.stringify(atlas));
   console.log(
-    `${species}: ${parts.length} parts (${muscles} muscles), ${(raw.bytes / 1e6).toFixed(1)} MB`,
+    `${species}: ${parts.length} parts (${muscles} muscles), ${(atlas.bytes / 1e6).toFixed(1)} MB`,
   );
 }

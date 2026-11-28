@@ -5,8 +5,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { type Atlas, type SceneState, isShown, partColor } from './anatomy';
 import { type Language, translate } from './i18n';
+import { type GaitRig, gaitFrame, gaitPeriod } from './gait';
 import {
   dogPoses,
+  poseJoints,
   poseMatrix,
   poseRig,
   segmentKey,
@@ -15,6 +17,10 @@ import {
   deformSoftVertices,
   type DogPose,
 } from './poses';
+// Materials accept shader defines at runtime; the MeshStandardMaterial type omits them.
+type WithDefines = THREE.MeshStandardMaterial & {
+  defines?: Record<string, unknown>;
+};
 type Engine = { update: (s: SceneState) => void; destroy: () => void };
 export type Snapshot = {
   image: string;
@@ -49,6 +55,7 @@ export default function AnatomyScene({
   onMeasure,
   onTools,
   onPick,
+  onStance,
 }: {
   atlas: Atlas;
   state: SceneState;
@@ -57,6 +64,7 @@ export default function AnatomyScene({
   onMeasure?: (text: string) => void;
   onTools?: (tools: SceneTools | null) => void;
   onPick?: (point: number[]) => void;
+  onStance?: (stance: string[]) => void;
 }) {
   const t = (key: string) => translate(language, key),
     locale = useRef(language);
@@ -66,7 +74,8 @@ export default function AnatomyScene({
     select = useRef(onSelect),
     measured = useRef(onMeasure),
     toolsReady = useRef(onTools),
-    picked = useRef(onPick);
+    picked = useRef(onPick),
+    stanceCb = useRef(onStance);
   const [status, setStatus] = useState('Loading anatomy…'),
     [error, setError] = useState('');
   // Keep the imperative engine's view of props current without re-initialising it.
@@ -77,6 +86,7 @@ export default function AnatomyScene({
     measured.current = onMeasure;
     toolsReady.current = onTools;
     picked.current = onPick;
+    stanceCb.current = onStance;
   });
   useEffect(() => {
     const el = host.current!;
@@ -183,6 +193,49 @@ export default function AnatomyScene({
           THREE.MeshStandardMaterial
         >[] = [];
         const bones = atlas.parts.filter((p) => p.system === 'bone');
+        // GPU skinning for joint motion: soft tissue blends up to three rig
+        // segments per vertex in the vertex shader, so a moving limb only
+        // updates a few matrices per frame instead of every vertex on the CPU.
+        const segNames = Object.keys(
+          poseRig('standing', atlas.poseConfig, { L: {}, R: {} }),
+        );
+        const segIndex = new Map(segNames.map((n, i) => [n, i]));
+        const skinUniforms = {
+          uBones: { value: segNames.map(() => new THREE.Matrix4()) },
+          uSkin: { value: 0 },
+        };
+        const injectSkin = (sh: THREE.WebGLProgramParametersWithUniforms) => {
+          sh.uniforms.uBones = skinUniforms.uBones;
+          sh.uniforms.uSkin = skinUniforms.uSkin;
+          sh.vertexShader = sh.vertexShader
+            .replace(
+              '#include <common>',
+              `#include <common>
+#ifdef SKIN
+attribute vec3 skinI;
+attribute vec3 skinW;
+uniform mat4 uBones[${segNames.length}];
+uniform float uSkin;
+mat4 skinMat() {
+  return skinW.x * uBones[int(skinI.x)] + skinW.y * uBones[int(skinI.y)] + skinW.z * uBones[int(skinI.z)];
+}
+#endif`,
+            )
+            .replace(
+              '#include <beginnormal_vertex>',
+              `#include <beginnormal_vertex>
+#ifdef SKIN
+if (uSkin > 0.5) objectNormal = mat3(skinMat()) * objectNormal;
+#endif`,
+            )
+            .replace(
+              '#include <begin_vertex>',
+              `#include <begin_vertex>
+#ifdef SKIN
+if (uSkin > 0.5) transformed = (skinMat() * vec4(transformed, 1.0)).xyz;
+#endif`,
+            );
+        };
         const softGeometry = new Map<
           (typeof meshes)[number],
           {
@@ -190,8 +243,31 @@ export default function AnatomyScene({
             bindings: ReturnType<typeof bindSoftVertices> | null;
             poses: Map<DogPose, Float32Array>;
             active: string;
+            skinned?: boolean;
           }
         >();
+        // Give a soft mesh its skin weights (once) and switch its shader to skinning.
+        function enableSkin(m: (typeof meshes)[number]) {
+          const soft = softGeometry.get(m)!;
+          if (soft.skinned) return;
+          soft.bindings ??= bindSoftVertices(soft.rest, bones);
+          const n = soft.bindings.length,
+            idx = new Float32Array(n * 3),
+            w = new Float32Array(n * 3);
+          soft.bindings.forEach((influences, v) =>
+            influences.slice(0, 3).forEach(({ segment, weight }, k) => {
+              idx[v * 3 + k] = segIndex.get(segment) ?? 0;
+              w[v * 3 + k] = weight;
+            }),
+          );
+          m.geometry.setAttribute('skinI', new THREE.BufferAttribute(idx, 3));
+          m.geometry.setAttribute('skinW', new THREE.BufferAttribute(w, 3));
+          const mat = m.material as WithDefines;
+          mat.defines = { ...mat.defines, SKIN: 1 };
+          m.material.needsUpdate = true;
+          m.frustumCulled = false;
+          soft.skinned = true;
+        }
         const loaded = (p: (typeof atlas.parts)[number]) =>
           !p.binaryPath || buffers.has(p.binaryPath);
         function addMesh(p: (typeof atlas.parts)[number]) {
@@ -219,7 +295,9 @@ export default function AnatomyScene({
             );
             g.setIndex(
               new THREE.BufferAttribute(
-                new Uint32Array(source, p.indexOffset, p.indexCount),
+                p.indexBits === 16
+                  ? new Uint16Array(source, p.indexOffset, p.indexCount)
+                  : new Uint32Array(source, p.indexOffset, p.indexCount),
                 1,
               ),
             );
@@ -237,10 +315,17 @@ export default function AnatomyScene({
             }),
           );
           m.userData.part = p;
+          if (p.system !== 'bone') {
+            m.material.onBeforeCompile = injectSkin;
+            m.material.customProgramCacheKey = () =>
+              (m.material as WithDefines).defines?.SKIN ? 'skin' : 'plain';
+          }
           scene.add(m);
           meshes.push(m);
-          // Text anchored in 3D (rib numbers), drawn over the model.
-          m.userData.labels = (p.labels ?? []).map(({ text, at }) => {
+          // Text anchored in 3D (rib numbers, body regions), drawn over the
+          // model. Nerves carry no numbers: their names are on the card.
+          const labels = p.system === 'nerve' ? [] : (p.labels ?? []);
+          m.userData.labels = labels.map(({ text, at }) => {
             const sprite = textSprite(text, '#ffe9a8');
             sprite.position.set(at[0], at[1] + 0.012, at[2]);
             scene.add(sprite);
@@ -344,6 +429,19 @@ export default function AnatomyScene({
               Math.max(1, 1 / camera.aspect) *
               1.05;
           }
+          // The camera toolbar covers the canvas' left edge: frame the model
+          // about 60 px to the right of the canvas centre.
+          const width = renderer.domElement.clientWidth || 1;
+          const span =
+            2 *
+            Math.max(fit, 0.08) *
+            Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) *
+            camera.aspect;
+          const across = new THREE.Vector3(0, 1, 0)
+            .cross(dir.clone().normalize())
+            .normalize();
+          // Only the main viewer has the toolbar; the compare cells do not.
+          if (width > 600) center.addScaledVector(across, (-60 / width) * span);
           controls.target.copy(center);
           camera.position
             .copy(center)
@@ -395,12 +493,23 @@ export default function AnatomyScene({
             cut.set(new THREE.Vector3().setComponent(i, sign), -sign * at);
           }
           ensurePacks(s);
-          const poseKey = s.motion
-            ? `motion:${JSON.stringify(s.motion)}`
-            : s.pose || 'standing';
-          const motionRig = s.motion
-            ? poseRig('standing', atlas.poseConfig, s.motion)
+          if (s.gait && !s.gait.playing && s.gait.phase !== undefined)
+            gaitPhase = s.gait.phase;
+          const gaitNow = s.gait
+            ? gaitFrame(s.gait.kind, gaitPhase, rigForGait())
             : null;
+          const motion = gaitNow?.motion ?? s.motion ?? null;
+          if (gaitNow) {
+            s = { ...s, highlight: gaitNow.highlight };
+            highlightKey = gaitNow.highlight.join();
+            reportStance(gaitNow.stance);
+          }
+          // Joint motion is skinned on the GPU: soft tissue keeps its rest shape.
+          const poseKey = motion ? 'standing' : s.pose || 'standing';
+          const motionRig = motion
+            ? setRig(poseRig('standing', atlas.poseConfig, motion), gaitNow)
+            : null;
+          skinUniforms.uSkin.value = motion ? 1 : 0;
           // Instructor pins: numbered markers, rebuilt when they change.
           if (JSON.stringify([s.pins, s.marks]) !== pinKey) {
             pinKey = JSON.stringify([s.pins, s.marks]);
@@ -487,15 +596,12 @@ export default function AnatomyScene({
             }
             m.material.transparent = m.material.opacity < 1;
             m.material.depthWrite = m.material.opacity >= 1;
-            const pose = s.pose || 'standing',
+            const pose = (motion ? 'standing' : s.pose) || 'standing',
               soft = softGeometry.get(m);
-            // Joint motion deforms only visible soft tissue, and is not cached.
-            if (soft && soft.active !== poseKey && (m.visible || !s.motion)) {
-              let positions = s.motion
-                ? undefined
-                : pose === 'standing'
-                  ? soft.rest
-                  : soft.poses.get(pose);
+            if (soft && motion && m.visible) enableSkin(m);
+            if (soft && soft.active !== poseKey) {
+              let positions =
+                pose === 'standing' ? soft.rest : soft.poses.get(pose);
               if (!positions) {
                 soft.bindings ??= bindSoftVertices(soft.rest, bones);
                 positions = deformSoftVertices(
@@ -503,9 +609,8 @@ export default function AnatomyScene({
                   soft.bindings,
                   pose,
                   atlas.poseConfig,
-                  s.motion,
                 );
-                if (!s.motion) soft.poses.set(pose, positions);
+                soft.poses.set(pose, positions);
               }
               const attribute = m.geometry.getAttribute(
                 'position',
@@ -625,6 +730,99 @@ export default function AnatomyScene({
         update(latest.current);
         const ray = new THREE.Raycaster(),
           pointer = new THREE.Vector2();
+        // Gait playback state, advanced by the render loop.
+        let gaitPhase = 0,
+          highlightKey = '',
+          stanceKey = '',
+          lastTime = 0;
+        function reportStance(stance: string[]) {
+          const k = stance.join();
+          if (k === stanceKey) return;
+          stanceKey = k;
+          stanceCb.current?.(stance);
+        }
+        // Rig matrices to the skinning uniforms and the rigid bone meshes.
+        // A gait also lifts and pitches the whole trunk (share of body height).
+        let trunkPivot: THREE.Vector3 | null = null,
+          trunkHeight = 0,
+          gaitRig: GaitRig | undefined;
+        // Limb geometry for foot placement (the dog's catalog has no pose
+        // config: its default joints, paws under carpus and hock).
+        function rigForGait(): GaitRig {
+          bodyFrame();
+          if (!gaitRig) {
+            const c = atlas.poseConfig,
+              J = c?.joints ?? poseJoints,
+              ground = trunkPivot!.y - trunkHeight / 2;
+            gaitRig = {
+              joints: J as Record<string, number[]>,
+              foretoes: c?.foretoes ?? [J.carpus[0], ground, 0],
+              hindtoes: c?.hindtoes ?? [J.hock[0], ground, 0],
+              pivot: [trunkPivot!.x, trunkPivot!.y],
+              height: trunkHeight,
+            };
+          }
+          return gaitRig;
+        }
+        function bodyFrame() {
+          if (trunkPivot) return;
+          const b = new THREE.Box3();
+          for (const m of meshes)
+            if (m.userData.part.system === 'bone') {
+              m.geometry.computeBoundingBox();
+              b.union(m.geometry.boundingBox!);
+            }
+          trunkPivot = b.getCenter(new THREE.Vector3());
+          trunkHeight = b.max.y - b.min.y;
+        }
+        const trunkMatrix = new THREE.Matrix4(),
+          trunkStep = new THREE.Matrix4();
+        function setRig(
+          rig: ReturnType<typeof poseRig>,
+          trunk?: { lift: number; pitch: number } | null,
+        ) {
+          if (trunk && (trunk.lift || trunk.pitch)) {
+            bodyFrame();
+            const pv = trunkPivot!;
+            trunkMatrix
+              .makeTranslation(pv.x, pv.y + trunk.lift * trunkHeight, pv.z)
+              .multiply(
+                trunkStep.makeRotationZ(THREE.MathUtils.degToRad(trunk.pitch)),
+              )
+              .multiply(trunkStep.makeTranslation(-pv.x, -pv.y, -pv.z));
+            rig = Object.fromEntries(
+              Object.entries(rig).map(([k, m]) => [
+                k,
+                trunkMatrix.clone().multiply(m),
+              ]),
+            ) as typeof rig;
+          }
+          segNames.forEach((n, i) => skinUniforms.uBones.value[i].copy(rig[n]));
+          return rig;
+        }
+        function stepGait(now: number) {
+          const g = latest.current.gait;
+          const dt = lastTime ? Math.min(0.1, (now - lastTime) / 1000) : 0;
+          lastTime = now;
+          if (!g?.playing) return;
+          gaitPhase = (gaitPhase + dt / gaitPeriod[g.kind]) % 1;
+          const f = gaitFrame(g.kind, gaitPhase, rigForGait());
+          if (f.highlight.join() !== highlightKey) {
+            update(latest.current); // recolour when the active muscle groups change
+            return;
+          }
+          const rig = setRig(
+            poseRig('standing', atlas.poseConfig, f.motion),
+            f,
+          );
+          for (const m of meshes) {
+            const p = m.userData.part;
+            if (p.system !== 'bone' || !m.visible) continue;
+            m.matrix.copy(rig[segmentKey(p)]);
+            m.matrixWorldNeedsUpdate = true;
+          }
+          reportStance(f.stance);
+        }
         let start = [0, 0],
           drag = false;
         const hit = (e: PointerEvent) => {
@@ -681,7 +879,8 @@ export default function AnatomyScene({
           select.current(next.id);
         };
         renderer.domElement.addEventListener('keydown', stepKey);
-        renderer.setAnimationLoop(() => {
+        renderer.setAnimationLoop((now) => {
+          stepGait(now);
           controls.update();
           renderer.render(scene, camera);
         });

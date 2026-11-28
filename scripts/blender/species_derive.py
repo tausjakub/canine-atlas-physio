@@ -45,7 +45,8 @@ def derive(base, species, trunk=1.0, height=1.0, head=1.0, legs=1.0, tail=1.0, n
     for k, v in J.items():
         if k.endswith('_z'):
             joints[k] = v
-        elif k == 'carpus':
+        elif k in ('carpus', 'scap_dorsal'):
+            # The scapula belongs to the limb: it shortens with the legs.
             joints[k] = limb(v, J['shoulder'], sh)
         elif k == 'hock':
             joints[k] = limb(v, J['hip'], hp)
@@ -79,6 +80,24 @@ def derive(base, species, trunk=1.0, height=1.0, head=1.0, legs=1.0, tail=1.0, n
     return S
 
 
+def scale_head(S, k):
+    """Grow the whole head by k about the occiput: its length (occiput to
+    rostrum) and the girth and width of the cranium and face segments, so
+    the retargeted skull, the real skull fitted onto it and the head muscles
+    all scale together."""
+    if k == 1.0:
+        return S
+    S = copy.deepcopy(S)
+    h, R = S['head'], S['retarget']
+    h['rostrum'] = tuple(o + (r - o) * k for o, r in zip(h['occiput'], h['rostrum']))
+    G = R.setdefault('girth', {})
+    W = R.setdefault('width', {})
+    for seg in ('cranium', 'face'):
+        W[seg] = W.get(seg, G.get(seg, 1.0)) * k
+        G[seg] = G.get(seg, 1.0) * k
+    return S
+
+
 def apply_stance(S):
     """Pose the limbs from segment angles (degrees from +x, cranial; -90 is
     straight down) in S['stance']; the shoulder and hip heights follow from the
@@ -86,6 +105,7 @@ def apply_stance(S):
     tail move with them (tilting between shoulder and hip). An optional `arch`
     (metres) bows the thoracolumbar spine dorsally, `head_pitch` (degrees,
     positive raises the nose) turns the head about the occiput."""
+    S = scale_head(S, S.get('head_scale', 1.0))
     st = S.get('stance')
     if not st:
         return S
@@ -130,6 +150,14 @@ def apply_stance(S):
     S['linea'] = [lift(v) for v in S['linea']]
     S['tail'] = [lift(v) for v in S['tail']]
     occ, ros = lift(S['head']['occiput']), lift(S['head']['rostrum'])
+    # `neck_raise` (metres) carries the head up on a more upright neck: C1 and
+    # the head rise fully, C4 and C7 less, so the crown sits above the back.
+    up = st.get('neck_raise', 0.0)
+    if up:
+        for k, w in (('C1', 1.0), ('C4', 0.6), ('C7', 0.2)):
+            x, y, z = S['spine'][k]
+            S['spine'][k] = (x, y + up * w, z)
+        occ, ros = (occ[0], occ[1] + up, occ[2]), (ros[0], ros[1] + up, ros[2])
     pitch = math.radians(st.get('head_pitch', 0.0))
     dx, dy = ros[0] - occ[0], ros[1] - occ[1]
     ros = (occ[0] + dx * math.cos(pitch) - dy * math.sin(pitch), occ[1] + dx * math.sin(pitch) + dy * math.cos(pitch), ros[2])
